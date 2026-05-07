@@ -1,0 +1,9 @@
+id: no-inline-date
+language: typescript
+severity: warning
+message: Avoid inline `new Date()` calls; use dateHelper for testable, timezone-aware dates.
+messageKo: 인라인 `new Date()` 호출 금지. 테스트 가능·타임존 인식을 위해 dateHelper를 사용하세요.
+query: |
+  (new_expression
+    constructor: (identifier) @ctor
+    (#eq? @ctor "Date")) @call

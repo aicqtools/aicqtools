@@ -1,0 +1,9 @@
+id: no-print-in-prod
+language: python
+severity: warning
+message: Avoid bare print() in production code; use the standard `logging` module.
+messageKo: 운영 코드에서 print() 사용 지양 — 표준 `logging` 모듈을 사용하세요.
+query: |
+  (call
+    function: (identifier) @fn
+    (#eq? @fn "print")) @call

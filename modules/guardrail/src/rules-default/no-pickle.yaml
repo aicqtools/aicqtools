@@ -1,0 +1,12 @@
+id: no-pickle
+language: python
+severity: error
+message: pickle.loads/load is unsafe — never deserialize untrusted data. Use json or msgpack.
+messageKo: pickle.loads/load는 안전하지 않습니다 — 신뢰할 수 없는 데이터 역직렬화 금지. json 또는 msgpack을 사용하세요.
+query: |
+  (call
+    function: (attribute
+      object: (identifier) @mod
+      attribute: (identifier) @attr)
+    (#eq? @mod "pickle")
+    (#match? @attr "^(load|loads)$")) @call
