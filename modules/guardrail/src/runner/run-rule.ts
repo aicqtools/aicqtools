@@ -1,9 +1,9 @@
 import Parser from 'tree-sitter';
-import type { Language } from '@aicq/core';
-import type { Rule, FunctionRule, PatternRule } from '@aicq/rule-sdk';
+import type { Language } from '@aicqtools/core';
+import type { Rule, FunctionRule, PatternRule } from '@aicqtools/rule-sdk';
 import { traverse } from '../matcher/traverse.js';
 import { makeRuleContext, type RunContext } from './context.js';
-import { getParser } from '@aicq/core';
+import { getParser } from '@aicqtools/core';
 
 function ruleAppliesTo(rule: Rule, language: Language): boolean {
   const langs = Array.isArray(rule.language) ? rule.language : [rule.language];

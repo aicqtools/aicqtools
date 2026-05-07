@@ -1,0 +1,11 @@
+locale: ko
+include:
+  - "src/**/*.{ts,tsx,js,mjs,cjs,jsx,py}"
+exclude:
+  - "**/node_modules/**"
+  - "**/dist/**"
+  - "**/.turbo/**"
+  - "aicq/**"
+modules:
+  guardrail:
+    rulesDir: aicq/rules

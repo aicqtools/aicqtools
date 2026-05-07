@@ -1,5 +1,5 @@
-import type { Severity } from '@aicq/core';
-import type { Rule } from '@aicq/rule-sdk';
+import type { Severity } from '@aicqtools/core';
+import type { Rule } from '@aicqtools/rule-sdk';
 
 export interface RenderOptions {
   readonly locale: 'ko' | 'en';

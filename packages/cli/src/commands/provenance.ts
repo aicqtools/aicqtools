@@ -5,7 +5,7 @@ import {
   emitAiBom,
   buildArticle50Report,
   writeProvenanceRecord,
-} from '@aicq/provenance';
+} from '@aicqtools/provenance';
 
 export interface ProvenanceCaptureOptions {
   readonly cwd: string;

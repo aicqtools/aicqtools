@@ -1,4 +1,4 @@
-import { startStdio } from '@aicq/guardrail';
+import { startStdio } from '@aicqtools/guardrail';
 
 export async function runMcpStdio(): Promise<never> {
   await startStdio();

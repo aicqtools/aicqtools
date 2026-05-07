@@ -1,5 +1,5 @@
 {
-  "name": "@aicq/cli",
+  "name": "@aicqtools/cli",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -18,10 +18,10 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@aicq/core": "workspace:*",
-    "@aicq/guardrail": "workspace:*",
-    "@aicq/provenance": "workspace:*",
-    "@aicq/rule-sdk": "workspace:*",
+    "@aicqtools/core": "workspace:*",
+    "@aicqtools/guardrail": "workspace:*",
+    "@aicqtools/provenance": "workspace:*",
+    "@aicqtools/rule-sdk": "workspace:*",
     "commander": "^12.1.0",
     "picocolors": "^1.1.1"
   },

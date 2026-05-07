@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { parse as parseYaml } from 'yaml';
-import type { PatternRule } from '@aicq/rule-sdk';
-import type { Language, Severity } from '@aicq/core';
+import type { PatternRule } from '@aicqtools/rule-sdk';
+import type { Language, Severity } from '@aicqtools/core';
 
 const languageSchema = z.enum(['typescript', 'javascript', 'tsx', 'python']);
 const severitySchema = z.enum(['error', 'warning', 'info']);

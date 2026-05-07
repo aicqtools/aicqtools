@@ -1,5 +1,5 @@
 {
-  "name": "@aicq/guardrail",
+  "name": "@aicqtools/guardrail",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -19,8 +19,8 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@aicq/core": "workspace:*",
-    "@aicq/rule-sdk": "workspace:*",
+    "@aicqtools/core": "workspace:*",
+    "@aicqtools/rule-sdk": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "fast-glob": "^3.3.2",
     "tree-sitter": "~0.21.1",

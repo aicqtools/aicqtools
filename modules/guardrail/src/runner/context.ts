@@ -1,6 +1,6 @@
 import type Parser from 'tree-sitter';
-import type { Diagnostic, Language, Range, Severity } from '@aicq/core';
-import type { RuleContext, RuleMeta, ReportArgs } from '@aicq/rule-sdk';
+import type { Diagnostic, Language, Range, Severity } from '@aicqtools/core';
+import type { RuleContext, RuleMeta, ReportArgs } from '@aicqtools/rule-sdk';
 
 export function rangeOfNode(node: Parser.SyntaxNode): Range {
   return {

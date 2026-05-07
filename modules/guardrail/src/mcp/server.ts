@@ -3,7 +3,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import type { Rule } from '@aicq/rule-sdk';
+import type { Rule } from '@aicqtools/rule-sdk';
 import { loadAllBuiltinRules } from '../rules-default/index.js';
 import { handleCheckSnippet, handleListRules } from './handlers.js';
 

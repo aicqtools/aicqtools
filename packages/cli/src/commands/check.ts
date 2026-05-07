@@ -1,9 +1,9 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
-import { FileCache, loadConfig, reportJson, reportSarif, reportText } from '@aicq/core';
-import { loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicq/guardrail';
-import type { Rule } from '@aicq/rule-sdk';
+import { FileCache, loadConfig, reportJson, reportSarif, reportText } from '@aicqtools/core';
+import { loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
+import type { Rule } from '@aicqtools/rule-sdk';
 
 export interface CheckOptions {
   readonly cwd: string;

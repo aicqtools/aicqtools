@@ -1,4 +1,4 @@
-import { defineRule } from '@aicq/rule-sdk';
+import { defineRule } from '@aicqtools/rule-sdk';
 
 export default defineRule({
   id: 'no-console-log',

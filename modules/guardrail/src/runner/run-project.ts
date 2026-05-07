@@ -1,8 +1,8 @@
 import fastGlob from 'fast-glob';
 import { stat } from 'node:fs/promises';
-import type { CheckResult, Diagnostic } from '@aicq/core';
-import { FileCache, hashRulesetSignature } from '@aicq/core';
-import type { Rule } from '@aicq/rule-sdk';
+import type { CheckResult, Diagnostic } from '@aicqtools/core';
+import { FileCache, hashRulesetSignature } from '@aicqtools/core';
+import type { Rule } from '@aicqtools/rule-sdk';
 import { runFile } from './run-file.js';
 import { rulesetSignature } from './ruleset-signature.js';
 

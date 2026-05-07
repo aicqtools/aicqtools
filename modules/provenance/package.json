@@ -1,5 +1,5 @@
 {
-  "name": "@aicq/provenance",
+  "name": "@aicqtools/provenance",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@aicq/core": "workspace:*"
+    "@aicqtools/core": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

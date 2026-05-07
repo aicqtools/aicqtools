@@ -1,7 +1,7 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { Rule } from '@aicq/rule-sdk';
+import type { Rule } from '@aicqtools/rule-sdk';
 import { injectIntoMarkdown, renderRules } from './render.js';
 
 export interface SyncTarget {

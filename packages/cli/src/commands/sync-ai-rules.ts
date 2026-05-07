@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
-import { loadConfig } from '@aicq/core';
-import { loadAllBuiltinRules, loadFunctionRulesFromDir, syncAiRules } from '@aicq/guardrail';
-import type { Rule } from '@aicq/rule-sdk';
+import { loadConfig } from '@aicqtools/core';
+import { loadAllBuiltinRules, loadFunctionRulesFromDir, syncAiRules } from '@aicqtools/guardrail';
+import type { Rule } from '@aicqtools/rule-sdk';
 
 export interface SyncAiRulesOptions {
   readonly cwd: string;

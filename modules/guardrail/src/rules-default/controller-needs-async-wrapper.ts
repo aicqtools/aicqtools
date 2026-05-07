@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import { defineRule } from '@aicq/rule-sdk';
+import { defineRule } from '@aicqtools/rule-sdk';
 
 const ROUTER_METHODS = new Set(['get', 'post', 'put', 'patch', 'delete']);
 

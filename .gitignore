@@ -12,4 +12,5 @@ Thumbs.db
 .idea/
 *.tsbuildinfo
 .aicq/
-aicq/provenance/
+**/aicq/provenance/
+e2e/bench-fixture/

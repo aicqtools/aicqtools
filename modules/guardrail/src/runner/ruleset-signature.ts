@@ -1,4 +1,4 @@
-import type { Rule } from '@aicq/rule-sdk';
+import type { Rule } from '@aicqtools/rule-sdk';
 
 export function ruleSignature(rule: Rule): string {
   if (rule.kind === 'pattern') {

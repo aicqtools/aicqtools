@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import { defineRule } from '@aicq/rule-sdk';
+import { defineRule } from '@aicqtools/rule-sdk';
 
 function isResJsonCall(callee: Parser.SyntaxNode, textOf: (n: Parser.SyntaxNode) => string): boolean {
   if (callee.type !== 'member_expression') return false;

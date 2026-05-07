@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import type { Language } from '@aicq/core';
-import type { Rule } from '@aicq/rule-sdk';
+import type { Language } from '@aicqtools/core';
+import type { Rule } from '@aicqtools/rule-sdk';
 import { runFileWithSource } from '../runner/run-file.js';
 
 const languageSchema = z.enum(['typescript', 'javascript', 'tsx', 'python']);

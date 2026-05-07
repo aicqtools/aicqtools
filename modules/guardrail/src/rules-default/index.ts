@@ -1,7 +1,7 @@
 import { readFile, readdir } from 'node:fs/promises';
 import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import type { Rule } from '@aicq/rule-sdk';
+import type { Rule } from '@aicqtools/rule-sdk';
 import { parseYamlRule } from '../matcher/yaml-rule.js';
 import noConsoleLog from './no-console-log.js';
 import noIdOverwrite from './no-id-overwrite.js';

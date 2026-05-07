@@ -1,5 +1,5 @@
 {
-  "name": "@aicq/rule-sdk",
+  "name": "@aicqtools/rule-sdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@aicq/core": "workspace:*",
+    "@aicqtools/core": "workspace:*",
     "tree-sitter": "~0.21.1"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import type { Language, Severity, Range } from '@aicq/core';
+import type { Language, Severity, Range } from '@aicqtools/core';
 import type Parser from 'tree-sitter';
 
 export type NodeType = string;

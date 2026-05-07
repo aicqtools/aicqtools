@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
-import type { Diagnostic, Language } from '@aicq/core';
-import { detectLanguage, parseSource } from '@aicq/core';
-import type { Rule } from '@aicq/rule-sdk';
+import type { Diagnostic, Language } from '@aicqtools/core';
+import { detectLanguage, parseSource } from '@aicqtools/core';
+import type { Rule } from '@aicqtools/rule-sdk';
 import { runRule } from './run-rule.js';
 
 export interface RunFileResult {

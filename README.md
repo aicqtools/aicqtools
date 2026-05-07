@@ -1,8 +1,9 @@
-# AICQ — AI Code Quality Platform (working name)
+# AICQ Tools — AI Code Quality Platform (working name)
 
 AI 바이브코딩으로 생성된 코드를 결정론적으로 검증하는 통합 코드 품질 플랫폼. 가드레일 엔진, 출처 추적기, 의존성 검증기를 단일 모노레포로 운영한다.
 
-> 통합 브랜드는 Phase 5(2026-Q4)에 결정. 그전까지 임시명 `aicq` 사용.
+> 통합 브랜드는 Phase 5(2026-Q4)에 결정. 그전까지 임시 organization/scope 명 `aicqtools` 사용.
+> CLI 명령(`aicq check`)과 사용자 프로젝트의 `aicq.config.yaml` 파일명·`aicq/rules/` 디렉토리명은 그대로 유지.
 
 ## 모듈
 

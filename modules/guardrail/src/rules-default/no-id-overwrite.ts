@@ -1,4 +1,4 @@
-import { defineRule } from '@aicq/rule-sdk';
+import { defineRule } from '@aicqtools/rule-sdk';
 
 /**
  * Forbid assignment to `<obj>.id`. IDs should be immutable after creation.

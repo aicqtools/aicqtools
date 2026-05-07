@@ -1,5 +1,5 @@
 import type Parser from 'tree-sitter';
-import { defineRule } from '@aicq/rule-sdk';
+import { defineRule } from '@aicqtools/rule-sdk';
 
 const FK_METHODS = new Set(['belongsTo', 'hasMany', 'hasOne', 'belongsToMany']);
 

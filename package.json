@@ -1,8 +1,8 @@
 {
-  "name": "aicq",
+  "name": "aicqtools",
   "private": true,
   "version": "0.0.0",
-  "description": "AI Code Quality Platform — guardrail engine + provenance tracker (working name)",
+  "description": "AICQ Tools — AI Code Quality platform (guardrail engine + provenance tracker)",
   "packageManager": "pnpm@10.33.4",
   "engines": {
     "node": ">=20.0.0"
