@@ -1,0 +1,12 @@
+id: no-inline-math-round
+language: typescript
+severity: warning
+message: Avoid inline Math.round; use mathHelper for consistent rounding rules.
+messageKo: Math.round 인라인 사용 금지. 일관된 반올림 규칙을 위해 mathHelper를 사용하세요.
+query: |
+  (call_expression
+    function: (member_expression
+      object: (identifier) @obj
+      property: (property_identifier) @prop)
+    (#eq? @obj "Math")
+    (#eq? @prop "round")) @call

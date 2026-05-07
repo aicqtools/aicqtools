@@ -1,0 +1,41 @@
+# AI 코딩 가이드라인
+
+아래 규칙은 aicq가 커밋 단계에서 강제합니다. 자동 생성된 내용 — 수정은 `aicq/rules/` 에서.
+
+
+## 오류 (반드시 지킬 것)
+
+### controller-needs-async-wrapper
+비동기 라우트 핸들러는 asyncWrapper / asyncHandler로 감싸야 합니다.
+- Languages: typescript, javascript, tsx
+
+### fk-needs-on-delete
+FK 관계에 명시적 `onDelete` 정책이 빠졌습니다.
+- Languages: typescript, javascript
+
+### no-direct-openai
+llmClient 싱글톤을 사용하세요. 직접 OpenAI 인스턴스화는 금지입니다.
+- Languages: typescript
+
+### no-id-overwrite
+`.id` 필드는 생성 후 재할당하지 마세요. ID는 불변이어야 합니다.
+- Languages: typescript, javascript, tsx
+
+### route-needs-rate-limit
+새 라우트에 rate-limit 미들웨어가 빠졌습니다.
+- Languages: typescript, javascript, tsx
+
+
+## 경고
+
+### api-response-shape
+API 응답은 { success, data, message } 표준 형태여야 합니다.
+- Languages: typescript, javascript, tsx
+
+### no-console-log
+운영 코드에서 console.log 사용을 피하세요.
+- Languages: typescript, javascript, tsx
+
+### no-inline-math-round
+Math.round 인라인 사용 금지. 일관된 반올림 규칙을 위해 mathHelper를 사용하세요.
+- Languages: typescript

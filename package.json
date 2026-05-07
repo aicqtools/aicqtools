@@ -1,0 +1,34 @@
+{
+  "name": "aicq",
+  "private": true,
+  "version": "0.0.0",
+  "description": "AI Code Quality Platform — guardrail engine + provenance tracker (working name)",
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "dev": "turbo run dev",
+    "clean": "turbo run clean && rm -rf node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "turbo": "^2.3.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "tree-sitter",
+      "tree-sitter-typescript",
+      "tree-sitter-python",
+      "tree-sitter-javascript",
+      "better-sqlite3",
+      "esbuild"
+    ]
+  }
+}

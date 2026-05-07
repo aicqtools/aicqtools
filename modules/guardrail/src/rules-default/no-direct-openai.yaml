@@ -1,0 +1,9 @@
+id: no-direct-openai
+language: typescript
+severity: error
+message: Use the llmClient singleton. Direct OpenAI instantiation is forbidden.
+messageKo: llmClient 싱글톤을 사용하세요. 직접 OpenAI 인스턴스화는 금지입니다.
+query: |
+  (new_expression
+    constructor: (identifier) @ctor
+    (#eq? @ctor "OpenAI"))
