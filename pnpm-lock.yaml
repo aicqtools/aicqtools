@@ -21,6 +21,8 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.17)
 
+  examples/talkup-mirror: {}
+
   modules/guardrail:
     dependencies:
       '@aicqtools/core':
@@ -70,6 +72,8 @@ importers:
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.17)
+
+  packages/action: {}
 
   packages/cli:
     dependencies:

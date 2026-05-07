@@ -1,0 +1,10 @@
+{
+  "name": "@aicqtools/example-talkup-mirror",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Dogfooding example — TalkUp-style code mirror with intentional rule violations",
+  "scripts": {
+    "check": "node ../../packages/cli/dist/bin.js check --locale ko --no-cache",
+    "prepare": "echo 'husky activated via root pnpm install (note: nested husky not auto-installed)'"
+  }
+}

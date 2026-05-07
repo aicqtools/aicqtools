@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# AICQ guardrail check (talkup-mirror dogfood)
+#
+# This hook runs aicq check on every git commit in the talkup-mirror example.
+# Note: talkup-mirror is INTENTIONALLY seeded with violations to demonstrate
+# how the hook blocks commits — disable or use --no-verify if you want to
+# commit violations on purpose.
+
+cd "$(dirname "$0")/.."
+node ../../packages/cli/dist/bin.js check --locale ko --no-cache

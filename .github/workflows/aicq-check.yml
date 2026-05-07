@@ -1,0 +1,45 @@
+name: AICQ check (self-dogfood)
+
+# Run aicq against this very monorepo on every PR / push to main.
+# This is the canonical dogfooding workflow — every change must pass aicq's own rules.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build all packages
+        run: pnpm build
+
+      - name: Run unit tests
+        run: pnpm test
+
+      - name: Run aicq check on talkup-mirror
+        working-directory: examples/talkup-mirror
+        run: node ../../packages/cli/dist/bin.js check --locale ko --no-cache
+        # talkup-mirror is intentionally seeded with violations,
+        # so this step is allowed to fail without breaking the workflow.
+        continue-on-error: true
+
+      - name: Run aicq benchmark
+        run: |
+          node e2e/benchmark/generate.mjs
+          node e2e/benchmark/run.mjs

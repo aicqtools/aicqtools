@@ -25,8 +25,37 @@ AI 바이브코딩으로 생성된 코드를 결정론적으로 검증하는 통
 
 ```bash
 pnpm install
+pnpm build
 pnpm test
 ```
+
+## CI / pre-commit 통합 (Phase 1a)
+
+### GitHub Action (PR 자동 검사)
+
+`.github/workflows/aicq-check.yml`:
+```yaml
+on: [pull_request, push]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aicqtools/aicqtools/packages/action@main
+        with: { locale: ko }
+```
+
+자세한 옵션은 [packages/action/README.md](packages/action/README.md).
+
+### pre-commit (husky)
+
+```bash
+pnpm add -D husky
+pnpm exec husky init
+echo 'npx aicq check' > .husky/pre-commit
+```
+
+husky/lefthook 두 가지 방법은 [docs/pre-commit-setup.md](docs/pre-commit-setup.md) 참조.
 
 자세한 내용은 [상세 계획 문서](../../Claude%20Data/AI%20packages/) 참조.
 

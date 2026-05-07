@@ -1,0 +1,12 @@
+{
+  "name": "@aicqtools/action",
+  "version": "0.0.0",
+  "private": true,
+  "description": "GitHub Action wrapper for aicq check (Composite, Phase 1a PoC)",
+  "scripts": {
+    "build": "echo 'Composite action — no JS build needed for PoC'",
+    "test": "echo 'No tests — verified via real GitHub workflow'",
+    "typecheck": "echo 'No TS — Composite action only'",
+    "clean": "echo 'Nothing to clean'"
+  }
+}

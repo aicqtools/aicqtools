@@ -1,0 +1,54 @@
+name: 'AICQ Check'
+description: 'Run AICQ guardrail rules against the repository (deterministic, no LLM)'
+author: 'aicqtools'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  format:
+    description: 'Output format (text | json | sarif)'
+    required: false
+    default: 'text'
+  locale:
+    description: 'Message locale (ko | en)'
+    required: false
+    default: 'en'
+  cwd:
+    description: 'Project root directory to check'
+    required: false
+    default: '.'
+  fail-on-warning:
+    description: 'Fail the action even if only warnings are found'
+    required: false
+    default: 'false'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      shell: bash
+      run: pnpm install --frozen-lockfile
+
+    - name: Build aicq
+      shell: bash
+      run: pnpm build
+
+    - name: Run aicq check
+      shell: bash
+      run: |
+        node packages/cli/dist/bin.js check \
+          --cwd "${{ inputs.cwd }}" \
+          --format "${{ inputs.format }}" \
+          --locale "${{ inputs.locale }}"
