@@ -23,6 +23,12 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - Friendly error message points to `docs/pdf-rendering.md` when puppeteer is missing
 - Programmatic API: `renderArticle50Pdf(report, { locale, format, margin })`
 
+**TalkUp case study (K3)**
+- `docs/case-studies/talkup-30k.md` (한국어), `talkup-30k.en.md` (English) — applying the 50-rule guardrail to a 205,069 LOC Korean production monorepo (anonymized)
+- Documents the seven recurring AI vibe-coding patterns the ruleset was bootstrapped from, mapped to specific rules
+- 5 of 7 cases detected on first pass — the two variant patterns (`no-id-overwrite`, `fk-needs-on-delete`) document v1.5 precision improvements
+- `examples/talkup-mirror/src/talkup-cases.ts` — anonymized verification samples that `aicq check` flags
+
 **Korean compliance ruleset (K2) — 13 rules → 50 rules total**
 
 FSC AI guideline (5):
