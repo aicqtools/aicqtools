@@ -40,11 +40,14 @@ export function buildProgram(): Command {
     .description('Capture provenance from staged git changes + active AI session')
     .option('-C, --cwd <path>', 'project root', process.cwd())
     .option('-o, --output <path>', 'output JSON path (default: aicq/provenance/<ts>.json)')
-    .action(async (opts: { cwd: string; output?: string }) => {
+    .option('--locale <locale>', 'message locale (ko|en)')
+    .action(async (opts: { cwd: string; output?: string; locale?: string }) => {
       const { runProvenanceCapture } = await import('./commands/provenance.js');
+      const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
       const code = await runProvenanceCapture({
         cwd: opts.cwd,
         ...(opts.output !== undefined ? { output: opts.output } : {}),
+        ...(locale !== undefined ? { locale } : {}),
       });
       process.exit(code);
     });
@@ -82,6 +85,27 @@ export function buildProgram(): Command {
       const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
       const code = await runSyncAiRules({
         cwd: opts.cwd,
+        ...(locale !== undefined ? { locale } : {}),
+      });
+      process.exit(code);
+    });
+
+  const docs = program
+    .command('docs')
+    .description('Documentation tooling (rule pages, etc.)');
+
+  docs
+    .command('build')
+    .description('Generate per-rule markdown docs (ko + en)')
+    .option('-C, --cwd <path>', 'project root', process.cwd())
+    .option('-o, --out <path>', 'output directory', 'aicq-docs')
+    .option('--locale <locale>', 'message locale (ko|en) — affects status message only')
+    .action(async (opts: { cwd: string; out: string; locale?: string }) => {
+      const { runDocsBuild } = await import('./commands/docs.js');
+      const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
+      const code = await runDocsBuild({
+        cwd: opts.cwd,
+        out: opts.out,
         ...(locale !== undefined ? { locale } : {}),
       });
       process.exit(code);

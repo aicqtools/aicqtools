@@ -32,6 +32,9 @@ export {
   MARKER_END,
 } from './sync/index.js';
 export type { RenderOptions, SyncOptions, SyncTarget } from './sync/index.js';
+
+export { renderRuleMarkdown, renderRulesIndex, buildRuleDocs } from './docs/index.js';
+export type { BuildDocsOptions, BuildDocsResult } from './docs/index.js';
 export type {
   BuildMcpServerOptions,
   CheckSnippetInput,

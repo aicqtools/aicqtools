@@ -1,0 +1,46 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="룰셋 — aicqtools" locale="ko">
+  <h1>빌트인 룰셋 (37개)</h1>
+  <p>
+    각 룰의 상세 페이지는 <code>aicq docs build</code> 명령으로 자동 생성됩니다.
+    Phase 1b에서 금감원/PCI 13개 추가 → 50개로 완성.
+  </p>
+
+  <h2>TypeScript 글로벌 (20)</h2>
+  <ul>
+    <li><code>no-direct-openai</code>, <code>no-direct-anthropic</code> — LLM 클라이언트 싱글톤 강제</li>
+    <li><code>api-response-shape</code> — `&#123; success, data, message &#125;` 표준</li>
+    <li><code>route-needs-rate-limit</code>, <code>route-needs-auth</code>, <code>controller-needs-async-wrapper</code> — 라우트 미들웨어</li>
+    <li><code>no-id-overwrite</code>, <code>no-jsonb-circular</code> — 데이터 안전</li>
+    <li><code>no-inline-math-round</code>, <code>no-inline-date</code>, <code>no-magic-number</code> — 인라인 계산 금지</li>
+    <li><code>fk-needs-on-delete</code> — Sequelize FK 정책</li>
+    <li><code>no-bare-throw</code>, <code>no-empty-catch</code> — 에러 처리</li>
+    <li><code>no-console-log</code>, <code>no-process-env-leak</code> — 운영 코드 위생</li>
+    <li><code>no-default-export-from-libs</code>, <code>prefer-named-imports</code>, <code>prefer-const-array</code>, <code>no-boolean-trap</code> — 코드 품질</li>
+  </ul>
+
+  <h2>Python 글로벌 (10)</h2>
+  <ul>
+    <li><code>requests-needs-timeout</code> — requests 호출에 timeout 필수</li>
+    <li><code>no-pickle</code>, <code>no-shell-true</code>, <code>no-fstring-sql</code> — 보안</li>
+    <li><code>no-mutable-default-arg</code>, <code>no-bare-except</code> — Python 함정</li>
+    <li><code>type-hint-required-public</code>, <code>async-await-consistency</code> — 코드 품질</li>
+    <li><code>no-print-in-prod</code>, <code>pytest-fixture-naming</code> — 운영·테스트 위생</li>
+  </ul>
+
+  <h2>한국 IT 컨벤션 (7) ★</h2>
+  <ul>
+    <li><code>camelcase-migration-column</code> — Sequelize 마이그레이션 컬럼명</li>
+    <li><code>enforce-utf8-encoding</code>, <code>korean-comment-encoding</code> — 인코딩</li>
+    <li><code>explicit-kst-timezone</code> — KST 타임존 명시</li>
+    <li><code>won-format-thousands</code> — 원화 천단위 콤마</li>
+    <li><code>rfc5987-korean-filename</code> — Content-Disposition 한글 파일명</li>
+    <li><code>naver-kakao-oauth-webview</code> — Capacitor OAuth WebView 패턴</li>
+  </ul>
+
+  <p style="margin-top:2rem">
+    개별 룰을 끄려면 <code>aicq.config.yaml</code>의 <code>modules.guardrail.rules</code>에 <code>{`{ 'rule-id': 'off' }`}</code>로 명시.
+  </p>
+</Layout>

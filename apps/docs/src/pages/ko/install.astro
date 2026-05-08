@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="설치 — aicqtools" locale="ko">
+  <h1>설치 가이드</h1>
+
+  <h2>1. CLI 설치</h2>
+  <pre><code>{`pnpm add -D @aicqtools/cli
+# 또는
+npm i -D @aicqtools/cli`}</code></pre>
+
+  <h2>2. pre-commit hook (husky)</h2>
+  <pre><code>{`pnpm add -D husky
+pnpm exec husky init
+echo 'npx aicq check' > .husky/pre-commit`}</code></pre>
+
+  <h2>3. GitHub Action</h2>
+  <p><code>.github/workflows/aicq-check.yml</code>:</p>
+  <pre><code>{`name: AICQ check
+on: [pull_request, push]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aicqtools/aicqtools/packages/action@main
+        with:
+          locale: ko`}</code></pre>
+
+  <h2>4. Claude Code MCP 등록</h2>
+  <pre><code>{`claude mcp add --transport stdio aicq -- npx -y @aicqtools/cli mcp`}</code></pre>
+  <p>Claude Code 재시작 후 prompt 시점에 룰 위반이 자동 차단됩니다.</p>
+</Layout>

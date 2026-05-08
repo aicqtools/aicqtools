@@ -1,4 +1,5 @@
 import { resolve } from 'node:path';
+import { loadConfig, resolveLocale, t } from '@aicqtools/core';
 import {
   buildRecord,
   capture,
@@ -10,16 +11,28 @@ import {
 export interface ProvenanceCaptureOptions {
   readonly cwd: string;
   readonly output?: string;
+  readonly locale?: 'ko' | 'en';
 }
 
 export async function runProvenanceCapture(opts: ProvenanceCaptureOptions): Promise<number> {
   const cwd = resolve(opts.cwd);
+  const config = await loadConfig(cwd);
+  const locale = resolveLocale({
+    ...(opts.locale ? { override: opts.locale } : {}),
+    configLocale: config.locale,
+    env: process.env,
+  });
   const result = await capture({ cwd, commitTimestamp: new Date().toISOString() });
   const record = buildRecord(result);
   const outPath = resolve(cwd, opts.output ?? `aicq/provenance/${Date.now()}.json`);
   await writeProvenanceRecord(outPath, record);
-  process.stdout.write(`provenance captured: ${outPath}\n`);
-  process.stdout.write(`  ${record.attributions.length} attribution(s), ${record.sessions.length} session(s)\n`);
+  process.stdout.write(t(locale, 'cli.provenance.captured', { path: outPath }) + '\n');
+  process.stdout.write(
+    t(locale, 'cli.provenance.summary', {
+      attributions: record.attributions.length,
+      sessions: record.sessions.length,
+    }) + '\n',
+  );
   return 0;
 }
 

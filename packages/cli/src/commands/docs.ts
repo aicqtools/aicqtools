@@ -1,16 +1,22 @@
 import { resolve } from 'node:path';
 import { loadConfig, resolveLocale, t } from '@aicqtools/core';
-import { loadAllBuiltinRules, loadFunctionRulesFromDir, syncAiRules } from '@aicqtools/guardrail';
+import { buildRuleDocs, loadAllBuiltinRules, loadFunctionRulesFromDir } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
 
-export interface SyncAiRulesOptions {
+export interface DocsBuildOptions {
   readonly cwd: string;
+  readonly out: string;
   readonly locale?: 'ko' | 'en';
 }
 
-export async function runSyncAiRules(opts: SyncAiRulesOptions): Promise<number> {
+export async function runDocsBuild(opts: DocsBuildOptions): Promise<number> {
   const cwd = resolve(opts.cwd);
   const config = await loadConfig(cwd);
+  const locale = resolveLocale({
+    ...(opts.locale ? { override: opts.locale } : {}),
+    configLocale: config.locale,
+    env: process.env,
+  });
 
   const rules: Rule[] = [...(await loadAllBuiltinRules())];
   if (config.modules.guardrail.rulesDir) {
@@ -24,18 +30,12 @@ export async function runSyncAiRules(opts: SyncAiRulesOptions): Promise<number> 
     }
   }
 
-  const locale = resolveLocale({
-    ...(opts.locale ? { override: opts.locale } : {}),
-    configLocale: config.locale,
-    env: process.env,
+  const { outDir, files } = await buildRuleDocs({
+    cwd,
+    outDir: opts.out,
+    rules,
   });
 
-  const written = await syncAiRules(rules, {
-    cwd,
-    locale,
-  });
-  for (const path of written) {
-    process.stdout.write(t(locale, 'cli.sync.updated', { path }) + '\n');
-  }
+  process.stdout.write(t(locale, 'cli.docs.generated', { count: files, dir: outDir }) + '\n');
   return 0;
 }

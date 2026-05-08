@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
-import { FileCache, loadConfig, reportJson, reportSarif, reportText } from '@aicqtools/core';
+import { FileCache, loadConfig, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
 import { loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
 
@@ -41,7 +41,11 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     cache?.close();
   }
 
-  const locale = opts.locale ?? config.locale;
+  const locale = resolveLocale({
+    ...(opts.locale ? { override: opts.locale } : {}),
+    configLocale: config.locale,
+    env: process.env,
+  });
 
   let serialized: string;
   if (opts.format === 'json') serialized = reportJson(result);
@@ -53,9 +57,11 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   } else if (opts.format === 'text') {
     process.stdout.write(serialized + '\n');
     if (result.diagnostics.length > 0) {
-      process.stdout.write(pc.red(`\n${result.diagnostics.length} violations found.\n`));
+      process.stdout.write(
+        pc.red('\n' + t(locale, 'cli.check.violationsFound', { count: result.diagnostics.length }) + '\n'),
+      );
     } else {
-      process.stdout.write(pc.green(`\nNo violations.\n`));
+      process.stdout.write(pc.green('\n' + t(locale, 'cli.check.noViolations') + '\n'));
     }
   } else {
     process.stdout.write(serialized + '\n');

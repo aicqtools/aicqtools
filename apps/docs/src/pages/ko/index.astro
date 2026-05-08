@@ -1,0 +1,28 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="aicqtools — AI 코드 품질 플랫폼" locale="ko">
+  <h1>aicqtools</h1>
+  <p><strong>AI 바이브코딩으로 생성된 코드를 결정론적으로 검증</strong>하는 통합 코드 품질 플랫폼.</p>
+
+  <h2>핵심 차별화</h2>
+  <ul>
+    <li><strong>결정론적 검증</strong> — LLM 호출 없이 100% 통과/실패</li>
+    <li><strong>MCP 네이티브</strong> — Claude Code/Cursor에서 prompt 시점 차단</li>
+    <li><strong>AI 룰 자동 동기화</strong> — `.cursorrules` / `CLAUDE.md` 자동 갱신</li>
+    <li><strong>한국 도메인 룰셋</strong> — 금감원·PCI DSS·한국 IT 컨벤션 번들</li>
+    <li><strong>repo당 과금</strong> — Team Pro ₩29,000/월</li>
+  </ul>
+
+  <h2>빌트인 룰셋 37개</h2>
+  <p>
+    TypeScript 글로벌 20 + Python 글로벌 10 + 한국 IT 컨벤션 7개. 자세한 목록은 <a href="/ko/rules">룰셋</a> 페이지 참조.
+  </p>
+
+  <h2>빠른 시작</h2>
+  <pre><code>{`pnpm add -D @aicqtools/cli
+npx aicq check --locale ko
+npx aicq sync-ai-rules --locale ko`}</code></pre>
+
+  <p>설치·CI 통합 가이드: <a href="/ko/install">설치</a></p>
+</Layout>

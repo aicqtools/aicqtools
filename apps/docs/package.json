@@ -1,0 +1,18 @@
+{
+  "name": "@aicqtools/docs-site",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Astro docs site for aicqtools (ko + en, Phase 1a PoC)",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "test": "echo 'No tests for docs site'",
+    "typecheck": "astro check",
+    "clean": "rm -rf dist .astro node_modules/.astro"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  }
+}

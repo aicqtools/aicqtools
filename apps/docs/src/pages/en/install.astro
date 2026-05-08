@@ -1,0 +1,33 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+<Layout title="Install — aicqtools" locale="en">
+  <h1>Install guide</h1>
+
+  <h2>1. Install the CLI</h2>
+  <pre><code>{`pnpm add -D @aicqtools/cli
+# or
+npm i -D @aicqtools/cli`}</code></pre>
+
+  <h2>2. pre-commit hook (husky)</h2>
+  <pre><code>{`pnpm add -D husky
+pnpm exec husky init
+echo 'npx aicq check' > .husky/pre-commit`}</code></pre>
+
+  <h2>3. GitHub Action</h2>
+  <p><code>.github/workflows/aicq-check.yml</code>:</p>
+  <pre><code>{`name: AICQ check
+on: [pull_request, push]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aicqtools/aicqtools/packages/action@main
+        with:
+          locale: en`}</code></pre>
+
+  <h2>4. Register the MCP server (Claude Code)</h2>
+  <pre><code>{`claude mcp add --transport stdio aicq -- npx -y @aicqtools/cli mcp`}</code></pre>
+  <p>After restarting Claude Code, rule violations are blocked at prompt time.</p>
+</Layout>

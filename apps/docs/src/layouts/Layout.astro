@@ -1,0 +1,49 @@
+---
+interface Props {
+  title: string;
+  locale: 'ko' | 'en';
+}
+const { title, locale } = Astro.props;
+const otherLocale = locale === 'ko' ? 'en' : 'ko';
+const otherLabel = locale === 'ko' ? 'English' : '한국어';
+const navLabels = locale === 'ko'
+  ? { home: '홈', rules: '룰셋', install: '설치' }
+  : { home: 'Home', rules: 'Rules', install: 'Install' };
+---
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <nav>
+        <a href={`/${locale}/`}>aicqtools</a>
+        <a href={`/${locale}/`}>{navLabels.home}</a>
+        <a href={`/${locale}/install`}>{navLabels.install}</a>
+        <a href={`/${locale}/rules`}>{navLabels.rules}</a>
+        <span style="float:right">
+          <a href={`/${otherLocale}/`}>{otherLabel}</a>
+        </span>
+      </nav>
+    </header>
+    <main>
+      <slot />
+    </main>
+    <footer>
+      <p>MIT License — <a href="https://github.com/aicqtools/aicqtools">GitHub</a></p>
+    </footer>
+  </body>
+</html>
+<style is:global>
+  body { font-family: system-ui, -apple-system, sans-serif; max-width: 920px; margin: 0 auto; padding: 1rem; line-height: 1.6; }
+  header nav { display: flex; gap: 1rem; align-items: center; padding: 1rem 0; border-bottom: 1px solid #ddd; }
+  header nav a:first-child { font-weight: bold; font-size: 1.2rem; }
+  main { padding: 2rem 0; }
+  footer { padding: 1rem 0; border-top: 1px solid #ddd; color: #666; font-size: 0.9rem; }
+  code { background: #f4f4f4; padding: 0.1em 0.3em; border-radius: 3px; }
+  pre code { background: transparent; }
+  pre { background: #f4f4f4; padding: 1rem; border-radius: 4px; overflow-x: auto; }
+</style>
