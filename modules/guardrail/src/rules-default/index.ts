@@ -42,6 +42,23 @@ import rfc5987KoreanFilename from './rfc5987-korean-filename.js';
 import naverKakaoOauthWebview from './naver-kakao-oauth-webview.js';
 import koreanCommentEncoding from './korean-comment-encoding.js';
 
+// K2 — 한국 도메인 컴플라이언스 (Phase 1b 베타)
+// 금감원 AI 가이드라인 (5)
+import auditLogAiDecision from './audit-log-ai-decision.js';
+import maskPiiInAiPrompt from './mask-pii-in-ai-prompt.js';
+import trackAiModelVersion from './track-ai-model-version.js';
+import humanOversightCheckpoint from './human-oversight-checkpoint.js';
+import aiExplainabilityMetadata from './ai-explainability-metadata.js';
+// PCI DSS (8)
+import noPlainCardNumber from './no-plain-card-number.js';
+import noCvvLogging from './no-cvv-logging.js';
+import requireTls12Plus from './require-tls-1-2-plus.js';
+import verifyPgResponse from './verify-pg-response.js';
+import requireIdempotencyKey from './require-idempotency-key.js';
+import separateRefundPermission from './separate-refund-permission.js';
+import preserveTransactionLog from './preserve-transaction-log.js';
+import maskCardNumber from './mask-card-number.js';
+
 export const builtinFunctionRules: readonly Rule[] = [
   // Phase 0
   noConsoleLog,
@@ -78,6 +95,21 @@ export const builtinFunctionRules: readonly Rule[] = [
   rfc5987KoreanFilename,
   naverKakaoOauthWebview,
   koreanCommentEncoding,
+  // K2 금감원 AI 가이드라인
+  auditLogAiDecision,
+  maskPiiInAiPrompt,
+  trackAiModelVersion,
+  humanOversightCheckpoint,
+  aiExplainabilityMetadata,
+  // K2 PCI DSS
+  noPlainCardNumber,
+  noCvvLogging,
+  requireTls12Plus,
+  verifyPgResponse,
+  requireIdempotencyKey,
+  separateRefundPermission,
+  preserveTransactionLog,
+  maskCardNumber,
 ];
 
 export async function loadBuiltinYamlRules(): Promise<Rule[]> {

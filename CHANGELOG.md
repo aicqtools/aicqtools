@@ -18,10 +18,31 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - `aicq provenance report --format article-50-html [--locale ko|en]` — Korean / English bilingual, XSS-safe escaping, print-friendly CSS with Korean system-font fallback chain
 - HTML chosen over PDF for v1.0 alpha — keeps the dependency footprint small; PDF (puppeteer / pdfkit) lands in v1.0 stable
 
+**Korean compliance ruleset (K2) — 13 rules → 50 rules total**
+
+FSC AI guideline (5):
+- `audit-log-ai-decision` — every AI inference must produce an audit log entry
+- `mask-pii-in-ai-prompt` — block Korean RRN / 16-digit card numbers from reaching LLM providers
+- `track-ai-model-version` — `openai.chat.completions.create` / `anthropic.messages.create` calls must specify `model:`
+- `human-oversight-checkpoint` — AI results persisted to DB must carry a review marker
+- `ai-explainability-metadata` — AI-derived API responses should expose reasoning / sources / model
+
+PCI DSS (8):
+- `no-plain-card-number` — schema columns named `card_number` / `cardNumber` must carry an encryption suffix
+- `no-cvv-logging` — CVV/CVC must never appear in `console.log` / `logger.*` arguments
+- `require-tls-1-2-plus` — block `TLSv1` / `TLSv1.1` in `secureProtocol` / `minVersion`
+- `verify-pg-response` — payment-gateway HTTP responses must be signature/hash-verified
+- `require-idempotency-key` — `pay*` / `charge*` / `payment*` functions must include an idempotency key
+- `separate-refund-permission` — `refund*` functions must check role/permission before invocation
+- `preserve-transaction-log` — payment/refund functions must produce an audit log entry (PCI DSS § 10)
+- `mask-card-number` — `cardNumber` rendered without `mask*` / `last4*` helpers is flagged
+
+All 13 rules are heuristic-based (beta) — false positives are possible and severity defaults can be adjusted via `aicq.config.yaml`. 31 new unit tests (fsc-ai: 12, pci-dss: 19); guardrail tests 96 → 127, regression 0.
+
 ### Planned (Phase 1b finish ~2026-09-15)
-- 13 additional rules — 5 FSC AI guideline mappings + 8 PCI DSS payment rules → 50 total
 - EU AI Act Article 50 PDF renderer (HTML → PDF)
 - Cursor SQLite-aware prompt extraction (replace current detection-only stub)
+- FSC AI / PCI DSS § references in rule messages (currently generic)
 
 ### Planned (Phase 2 ~2026-10-27)
 - v1.5 cloud SaaS beta — dashboard, PR auto-comment, Stripe billing
