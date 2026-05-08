@@ -1,8 +1,19 @@
 {
   "name": "@aicqtools/cli",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "private": true,
   "type": "module",
+  "description": "aicq command-line interface — `aicq check`, `aicq mcp`, `aicq sync-ai-rules`, `aicq provenance`, `aicq docs build`.",
+  "keywords": ["aicq", "aicqtools", "cli", "ai", "code-quality", "guardrail", "linter", "mcp"],
+  "homepage": "https://github.com/aicqtools/aicqtools/tree/main/packages/cli",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aicqtools/aicqtools.git",
+    "directory": "packages/cli"
+  },
+  "bugs": "https://github.com/aicqtools/aicqtools/issues",
+  "author": "Eom Sik <neuralflux3@gmail.com>",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
@@ -10,6 +21,10 @@
   },
   "exports": {
     ".": "./dist/index.js"
+  },
+  "files": ["dist/", "README.md"],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",

@@ -1,0 +1,103 @@
+name: ✨ 새 룰 제안 / Rule proposal
+description: 가드레일 룰 추가 제안 / Propose a new guardrail rule
+labels: ["rule-proposal", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        제안하시는 룰이 [기존 룰셋](https://github.com/aicqtools/aicqtools/blob/main/modules/guardrail/src/rules-default/index.ts)과 중복되지 않는지 먼저 확인해 주세요.
+        Please check the [existing ruleset](https://github.com/aicqtools/aicqtools/blob/main/modules/guardrail/src/rules-default/index.ts) for overlap.
+
+  - type: input
+    id: rule-id
+    attributes:
+      label: 제안 룰 ID / Proposed rule ID (kebab-case)
+      placeholder: "no-eval-in-prod"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: language
+    attributes:
+      label: 대상 언어 / Target language(s)
+      multiple: true
+      options:
+        - typescript
+        - javascript
+        - tsx
+        - python
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: severity
+      options:
+        - error
+        - warning
+        - info
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: 카테고리 / Category
+      options:
+        - 보안 / Security
+        - 에러 처리 / Error handling
+        - 성능 / Performance
+        - API 디자인 / API design
+        - 한국 IT 컨벤션 / Korean IT conventions
+        - 한국 컴플라이언스 (금감원/PCI) / Korean compliance (FSC/PCI)
+        - 그 외 / Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: rationale
+    attributes:
+      label: 왜 이 룰이 필요한가? / Why is this rule needed?
+      description: 실 프로젝트 사례, 알려진 함정 등. / Real-world cases, known pitfalls.
+    validations:
+      required: true
+
+  - type: textarea
+    id: violation-example
+    attributes:
+      label: 위반 예시 / Violation example
+      render: typescript
+      placeholder: |
+        // 이 코드는 룰을 위반해야 함 / This code should trigger the rule
+        eval(userInput);
+    validations:
+      required: true
+
+  - type: textarea
+    id: passing-example
+    attributes:
+      label: 통과 예시 / Passing example
+      render: typescript
+      placeholder: |
+        // 이 코드는 통과해야 함 / This code should pass
+        const result = JSON.parse(userInput);
+    validations:
+      required: true
+
+  - type: textarea
+    id: known-limitations
+    attributes:
+      label: 알려진 한계 / Known limitations (선택 / optional)
+      description: false positive 가능성, 정밀도 한계 등. / FP possibilities, precision limits.
+
+  - type: textarea
+    id: messages
+    attributes:
+      label: 메시지 / Messages
+      description: 영문 + 한국어 (한국 IT 컨벤션 룰은 한국어 필수). / English + Korean (Korean is required for Korean convention rules).
+      placeholder: |
+        message: "Avoid eval() — it's a code-injection vector."
+        messageKo: "eval() 사용 금지 — 코드 주입 공격 벡터입니다."
+    validations:
+      required: true

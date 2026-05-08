@@ -1,8 +1,18 @@
 {
   "name": "@aicqtools/action",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "private": true,
-  "description": "GitHub Action wrapper for aicq check (Composite, Phase 1a PoC)",
+  "description": "GitHub Action wrapper for `aicq check` (Composite action, Phase 1a PoC).",
+  "keywords": ["aicq", "aicqtools", "github-action", "ci", "code-quality"],
+  "homepage": "https://github.com/aicqtools/aicqtools/tree/main/packages/action",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aicqtools/aicqtools.git",
+    "directory": "packages/action"
+  },
+  "bugs": "https://github.com/aicqtools/aicqtools/issues",
+  "author": "Eom Sik <neuralflux3@gmail.com>",
+  "license": "MIT",
   "scripts": {
     "build": "echo 'Composite action — no JS build needed for PoC'",
     "test": "echo 'No tests — verified via real GitHub workflow'",

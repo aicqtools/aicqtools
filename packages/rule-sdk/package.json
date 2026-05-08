@@ -1,12 +1,27 @@
 {
   "name": "@aicqtools/rule-sdk",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "private": true,
   "type": "module",
+  "description": "User rule authoring SDK for aicqtools — `defineRule()` helper plus Rule / RuleContext / Visitor types.",
+  "keywords": ["aicq", "aicqtools", "rule-sdk", "code-quality", "guardrail", "tree-sitter"],
+  "homepage": "https://github.com/aicqtools/aicqtools/tree/main/packages/rule-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aicqtools/aicqtools.git",
+    "directory": "packages/rule-sdk"
+  },
+  "bugs": "https://github.com/aicqtools/aicqtools/issues",
+  "author": "Eom Sik <neuralflux3@gmail.com>",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js"
+  },
+  "files": ["dist/", "README.md"],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",

@@ -1,8 +1,19 @@
 {
   "name": "@aicqtools/core",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "private": true,
   "type": "module",
+  "description": "Shared core for aicqtools — tree-sitter parser, sqlite incremental cache, SARIF/JSON/text reporters, config loader, i18n.",
+  "keywords": ["aicq", "aicqtools", "ai", "code-quality", "guardrail", "tree-sitter", "sarif", "linter"],
+  "homepage": "https://github.com/aicqtools/aicqtools/tree/main/packages/core",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aicqtools/aicqtools.git",
+    "directory": "packages/core"
+  },
+  "bugs": "https://github.com/aicqtools/aicqtools/issues",
+  "author": "Eom Sik <neuralflux3@gmail.com>",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -10,7 +21,12 @@
     "./parser": "./dist/parser/index.js",
     "./config": "./dist/config/index.js",
     "./reporter": "./dist/reporter/index.js",
-    "./cache": "./dist/cache/index.js"
+    "./cache": "./dist/cache/index.js",
+    "./i18n": "./dist/i18n/index.js"
+  },
+  "files": ["dist/", "README.md"],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",

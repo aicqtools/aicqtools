@@ -1,8 +1,19 @@
 {
   "name": "@aicqtools/guardrail",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "private": true,
   "type": "module",
+  "description": "Deterministic AI code guardrail engine — 37 built-in rules, hybrid YAML/function DSL, MCP server, .cursorrules sync, sqlite cache.",
+  "keywords": ["aicq", "aicqtools", "guardrail", "ai-code-quality", "tree-sitter", "linter", "mcp", "code-review"],
+  "homepage": "https://github.com/aicqtools/aicqtools/tree/main/modules/guardrail",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aicqtools/aicqtools.git",
+    "directory": "modules/guardrail"
+  },
+  "bugs": "https://github.com/aicqtools/aicqtools/issues",
+  "author": "Eom Sik <neuralflux3@gmail.com>",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -11,6 +22,10 @@
     "./matcher": "./dist/matcher/index.js",
     "./mcp": "./dist/mcp/index.js",
     "./sync": "./dist/sync/index.js"
+  },
+  "files": ["dist/", "scripts/", "README.md"],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc && node scripts/copy-yaml-rules.mjs",

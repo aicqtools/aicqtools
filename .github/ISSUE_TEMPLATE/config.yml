@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 한국 커뮤니티 토론 (GeekNews)
+    url: https://news.hada.io/
+    about: 일반 질문·아이디어는 GeekNews에서 토론해 주세요.
+  - name: 💬 한국 커뮤니티 토론 (OKKY)
+    url: https://okky.kr/
+    about: AI 코딩·바이브코딩 관련 토론.
+  - name: 📖 룰 문서
+    url: https://github.com/aicqtools/aicqtools/tree/main/modules/guardrail/src/rules-default
+    about: 빌트인 룰 코드와 단위 테스트.
+  - name: 🔒 보안 취약점 신고
+    url: mailto:neuralflux3@gmail.com
+    about: 보안 관련 이슈는 공개 issue 대신 이메일로 (subject "[security]" 명시).

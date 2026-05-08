@@ -1,8 +1,19 @@
 {
   "name": "@aicqtools/provenance",
-  "version": "0.0.0",
+  "version": "1.0.0-alpha.1",
   "private": true,
   "type": "module",
+  "description": "AI code provenance tracker — Git pre-commit capture, CycloneDX 1.6 AI-BOM emitter, EU AI Act Article 50 reporter.",
+  "keywords": ["aicq", "aicqtools", "ai-provenance", "eu-ai-act", "cyclonedx", "ai-bom", "compliance"],
+  "homepage": "https://github.com/aicqtools/aicqtools/tree/main/modules/provenance",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aicqtools/aicqtools.git",
+    "directory": "modules/provenance"
+  },
+  "bugs": "https://github.com/aicqtools/aicqtools/issues",
+  "author": "Eom Sik <neuralflux3@gmail.com>",
+  "license": "MIT",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
@@ -10,6 +21,10 @@
     "./ai-bom": "./dist/ai-bom/index.js",
     "./git-hook": "./dist/git-hook/index.js",
     "./reporter": "./dist/reporter/index.js"
+  },
+  "files": ["dist/", "README.md"],
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "build": "tsc",
