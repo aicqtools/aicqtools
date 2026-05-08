@@ -28,8 +28,8 @@ export default defineRule({
   id: 'verify-pg-response',
   language: ['typescript', 'tsx'],
   severity: 'warning',
-  message: 'Payment gateway response is consumed without signature/hash verification.',
-  messageKo: '결제 게이트웨이 응답을 서명/해시 검증 없이 사용합니다.',
+  message: 'Payment gateway response is consumed without signature/hash verification (PCI DSS § 6.2.4 — input validation; payment-domain best practice).',
+  messageKo: '결제 게이트웨이 응답을 서명/해시 검증 없이 사용합니다 (PCI DSS § 6.2.4 — 입력 검증; 결제 도메인 권장 사항).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/verify-pg-response.md',
   visitors: {
     function_declaration: check,

@@ -19,8 +19,8 @@ export default defineRule({
   id: 'no-plain-card-number',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'Card number column appears to be stored in plaintext — PCI DSS requires encryption or tokenization.',
-  messageKo: '카드번호 컬럼이 평문으로 저장되는 것으로 보입니다 — PCI DSS 요건상 암호화/토큰화 필수.',
+  message: 'Card number column appears to be stored in plaintext (PCI DSS § 3.5.1 — render PAN unreadable).',
+  messageKo: '카드번호 컬럼이 평문으로 저장되는 것으로 보입니다 (PCI DSS § 3.5.1 — PAN 평문 저장 금지, 암호화/토큰화 필수).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/no-plain-card-number.md',
   visitors: {
     pair(node: Parser.SyntaxNode, ctx: RuleContext) {

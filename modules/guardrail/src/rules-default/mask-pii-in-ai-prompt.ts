@@ -23,8 +23,8 @@ export default defineRule({
   id: 'mask-pii-in-ai-prompt',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'AI prompt contains unmasked PII (Korean RRN or card number) — mask before sending to the model.',
-  messageKo: 'AI 프롬프트에 마스킹되지 않은 개인정보(주민번호/카드번호)가 포함되어 있습니다 — AI 호출 전 마스킹 필수.',
+  message: 'AI prompt contains unmasked PII (Korean RRN or card number) — mask before sending (FSC AI guideline — privacy protection).',
+  messageKo: 'AI 프롬프트에 마스킹되지 않은 개인정보(주민번호/카드번호)가 포함되어 있습니다 — AI 호출 전 마스킹 필수 (금감원 AI 가이드라인 — 개인정보 보호).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/mask-pii-in-ai-prompt.md',
   visitors: {
     call_expression(node: Parser.SyntaxNode, ctx: RuleContext) {

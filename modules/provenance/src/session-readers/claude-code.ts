@@ -16,6 +16,7 @@ interface JsonlEntry {
   version?: string;
   message?: {
     role?: string;
+    model?: string;
     content?: Array<{ type: string; text?: string }>;
   };
 }
@@ -71,6 +72,7 @@ async function parseJsonlSession(
   let firstTimestamp: string | null = null;
   let lastTimestamp: string | null = null;
   let version: string | null = null;
+  let model: string | null = null;
   let promptIndex = 0;
 
   for (const line of lines) {
@@ -86,6 +88,10 @@ async function parseJsonlSession(
     if (entry.timestamp) {
       if (!firstTimestamp) firstTimestamp = entry.timestamp;
       lastTimestamp = entry.timestamp;
+    }
+
+    if (entry.type === 'assistant' && entry.message?.model && !model) {
+      model = entry.message.model;
     }
 
     if (entry.type === 'user' && entry.message?.role === 'user') {
@@ -106,7 +112,7 @@ async function parseJsonlSession(
   return {
     sessionId,
     tool: 'claude-code',
-    model: 'unknown',
+    model: model ?? 'unknown',
     ...(version ? { modelVersion: version } : {}),
     startedAt: firstTimestamp,
     ...(lastTimestamp && lastTimestamp !== firstTimestamp ? { endedAt: lastTimestamp } : {}),

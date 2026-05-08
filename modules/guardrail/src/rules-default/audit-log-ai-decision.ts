@@ -24,8 +24,8 @@ export default defineRule({
   id: 'audit-log-ai-decision',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'AI inference call must be paired with an audit log entry (FSC AI guideline).',
-  messageKo: 'AI 추론 호출은 감사 로그가 필수입니다 (금감원 AI 가이드라인).',
+  message: 'AI inference call must be paired with an audit log entry (FSC AI guideline — auditability).',
+  messageKo: 'AI 추론 호출은 감사 로그가 필수입니다 (금감원 AI 가이드라인 — 감사 추적성).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/audit-log-ai-decision.md',
   visitors: {
     function_declaration: check,

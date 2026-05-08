@@ -24,8 +24,8 @@ export default defineRule({
   id: 'preserve-transaction-log',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'Payment/refund function does not produce an audit log entry — PCI DSS § 10.',
-  messageKo: '결제/환불 함수에 감사 로그 기록이 없습니다 — PCI DSS § 10 위반.',
+  message: 'Payment/refund function does not produce an audit log entry (PCI DSS § 10.2 — implement audit logs for all access to cardholder data).',
+  messageKo: '결제/환불 함수에 감사 로그 기록이 없습니다 (PCI DSS § 10.2 — 카드 소지자 데이터 접근에 대한 감사 로그 필수).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/preserve-transaction-log.md',
   visitors: {
     function_declaration: check,

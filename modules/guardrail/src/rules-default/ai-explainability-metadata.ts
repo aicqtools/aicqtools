@@ -19,8 +19,8 @@ export default defineRule({
   id: 'ai-explainability-metadata',
   language: ['typescript', 'tsx'],
   severity: 'info',
-  message: 'AI-derived response is missing explainability metadata (reasoning/sources/model) — FSC AI guideline.',
-  messageKo: 'AI 응답에 설명가능성 메타데이터(reasoning/sources/model) 누락 — 금감원 AI 가이드라인.',
+  message: 'AI-derived response is missing explainability metadata (reasoning/sources/model) — FSC AI guideline — explainability.',
+  messageKo: 'AI 응답에 설명가능성 메타데이터(reasoning/sources/model) 누락 (금감원 AI 가이드라인 — 설명가능성).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/ai-explainability-metadata.md',
   visitors: {
     call_expression(node: Parser.SyntaxNode, ctx: RuleContext) {

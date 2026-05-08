@@ -15,8 +15,8 @@ export default defineRule({
   id: 'mask-card-number',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'Card number is rendered without masking — PCI DSS § 3.3.',
-  messageKo: '카드번호가 마스킹 없이 표시됩니다 — PCI DSS § 3.3.',
+  message: 'Card number is rendered without masking (PCI DSS § 3.4.1 — PAN must be masked when displayed; max first 6 + last 4).',
+  messageKo: '카드번호가 마스킹 없이 표시됩니다 (PCI DSS § 3.4.1 — PAN 표시 시 마스킹 필수; 최대 앞 6자리 + 뒷 4자리).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/mask-card-number.md',
   visitors: {
     template_string(node: Parser.SyntaxNode, ctx: RuleContext) {

@@ -72,7 +72,7 @@ describe('ClaudeCodeSessionReader', () => {
     expect(result).toEqual({ sessions: [], prompts: [] });
   });
 
-  it('parses a jsonl file with user and assistant messages', async () => {
+  it('parses a jsonl file with user and assistant messages and extracts model', async () => {
     const cwd = process.cwd();
     const projectDir = join(tmpHome, '.claude', 'projects', encodeClaudeProjectId(cwd));
     await mkdir(projectDir, { recursive: true });
@@ -88,7 +88,11 @@ describe('ClaudeCodeSessionReader', () => {
         type: 'assistant',
         sessionId: 'sess-a',
         timestamp: '2026-05-08T10:01:00Z',
-        message: { role: 'assistant', content: [{ type: 'text', text: 'Hi' }] },
+        message: {
+          role: 'assistant',
+          model: 'claude-opus-4-7',
+          content: [{ type: 'text', text: 'Hi' }],
+        },
       }),
     ];
     await writeFile(join(projectDir, 'sess-a.jsonl'), lines.join('\n'));
@@ -98,11 +102,29 @@ describe('ClaudeCodeSessionReader', () => {
     expect(result.sessions).toHaveLength(1);
     expect(result.sessions[0]?.sessionId).toBe('sess-a');
     expect(result.sessions[0]?.tool).toBe('claude-code');
+    expect(result.sessions[0]?.model).toBe('claude-opus-4-7');
     expect(result.sessions[0]?.modelVersion).toBe('2.1.132');
     expect(result.sessions[0]?.startedAt).toBe('2026-05-08T10:00:00Z');
     expect(result.sessions[0]?.endedAt).toBe('2026-05-08T10:01:00Z');
     expect(result.prompts).toHaveLength(1);
     expect(result.prompts[0]?.prompt).toBe('Hello aicq');
+  });
+
+  it('falls back to "unknown" model when no assistant message is present', async () => {
+    const cwd = process.cwd();
+    const projectDir = join(tmpHome, '.claude', 'projects', encodeClaudeProjectId(cwd));
+    await mkdir(projectDir, { recursive: true });
+    const line = JSON.stringify({
+      type: 'user',
+      sessionId: 'sess-no-asst',
+      timestamp: '2026-05-08T10:00:00Z',
+      message: { role: 'user', content: [{ type: 'text', text: 'a' }] },
+    });
+    await writeFile(join(projectDir, 'sess-no-asst.jsonl'), line);
+
+    const reader = new ClaudeCodeSessionReader({ homeDir: tmpHome });
+    const result = await reader.read(cwd);
+    expect(result.sessions[0]?.model).toBe('unknown');
   });
 
   it('skips ide_opened_file and system-reminder text fragments', async () => {

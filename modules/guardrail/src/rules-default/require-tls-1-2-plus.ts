@@ -13,8 +13,8 @@ export default defineRule({
   id: 'require-tls-1-2-plus',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'TLS configuration allows TLS < 1.2 — PCI DSS § 4.1 requires strong cryptography.',
-  messageKo: 'TLS 1.2 미만 프로토콜을 허용하는 설정 — PCI DSS § 4.1는 강한 암호화를 요구합니다.',
+  message: 'TLS configuration allows TLS < 1.2 (PCI DSS § 4.2.1 — strong cryptography for cardholder data in transit).',
+  messageKo: 'TLS 1.2 미만 프로토콜을 허용하는 설정 (PCI DSS § 4.2.1 — 카드 소지자 데이터 전송 시 강한 암호화 필수).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/require-tls-1-2-plus.md',
   visitors: {
     pair(node: Parser.SyntaxNode, ctx: RuleContext) {

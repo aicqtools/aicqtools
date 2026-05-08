@@ -17,8 +17,8 @@ export default defineRule({
   id: 'no-cvv-logging',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'CVV/CVC must not appear in log output (PCI DSS § 3.2).',
-  messageKo: 'CVV/CVC를 로그에 기록할 수 없습니다 (PCI DSS § 3.2).',
+  message: 'CVV/CVC must not appear in log output (PCI DSS § 3.3.1 — sensitive authentication data must not be stored after authorization).',
+  messageKo: 'CVV/CVC를 로그에 기록할 수 없습니다 (PCI DSS § 3.3.1 — 인증 후 민감 인증 데이터 저장 금지).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/no-cvv-logging.md',
   visitors: {
     call_expression(node: Parser.SyntaxNode, ctx: RuleContext) {

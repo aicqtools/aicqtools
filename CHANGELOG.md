@@ -36,6 +36,17 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - `docs/marketing/README.md` — posting order, key messages, predicted Q&A templates
 - All drafts target user-driven publishing (no auto-posting bots), staged sequence Mon→Wed→Fri
 
+**E1 enhancement — Claude Code model extraction**
+- `ClaudeCodeSessionReader` now reads `message.model` from assistant entries (e.g., `claude-opus-4-7`) and propagates it to `AiSession.model`. Falls back to `'unknown'` only when no assistant entry has a `model` field.
+- Article 50 / AI-BOM reports now reflect the actual model rather than `unknown`.
+- New unit test exercises both the extracted-model path and the fallback path.
+
+**K2 §-mapping — explicit clause references in rule messages**
+- All 13 K2 rule messages now cite specific clauses:
+  - **PCI DSS** (8 rules): `no-plain-card-number` § 3.5.1 / `no-cvv-logging` § 3.3.1 / `require-tls-1-2-plus` § 4.2.1 / `verify-pg-response` § 6.2.4 / `require-idempotency-key` § 10.2 alignment / `separate-refund-permission` § 7.2 / `preserve-transaction-log` § 10.2 / `mask-card-number` § 3.4.1
+  - **FSC AI guideline** (5 rules): `audit-log-ai-decision` (auditability / 감사 추적성) / `mask-pii-in-ai-prompt` (privacy / 개인정보 보호) / `track-ai-model-version` (model governance / 모델 거버넌스) / `human-oversight-checkpoint` (human-in-the-loop / 인간 개입 포인트) / `ai-explainability-metadata` (explainability / 설명가능성)
+- Messages remain bilingual (`message` + `messageKo`) and ship in the auto-generated rule docs.
+
 **Korean compliance ruleset (K2) — 13 rules → 50 rules total**
 
 FSC AI guideline (5):

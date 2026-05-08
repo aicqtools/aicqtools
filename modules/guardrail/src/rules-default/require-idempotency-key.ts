@@ -18,8 +18,8 @@ export default defineRule({
   id: 'require-idempotency-key',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'Payment function missing an idempotency key — required to prevent double-charge on retry.',
-  messageKo: '결제 함수에 idempotency key 누락 — 재시도 시 중복 청구 방지에 필수입니다.',
+  message: 'Payment function missing an idempotency key — required to prevent double-charge on retry (payment-domain best practice; aligns with PCI DSS § 10.2 audit trail integrity).',
+  messageKo: '결제 함수에 idempotency key 누락 — 재시도 시 중복 청구 방지 필수 (결제 도메인 권장 사항; PCI DSS § 10.2 감사 추적 무결성 정렬).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/require-idempotency-key.md',
   visitors: {
     function_declaration(node: Parser.SyntaxNode, ctx: RuleContext) {

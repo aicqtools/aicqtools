@@ -27,8 +27,8 @@ export default defineRule({
   id: 'human-oversight-checkpoint',
   language: ['typescript', 'tsx'],
   severity: 'warning',
-  message: 'AI inference result is persisted without a human oversight marker (FSC AI guideline).',
-  messageKo: 'AI 추론 결과가 인간 검토 표시 없이 저장됩니다 — 금감원 AI 가이드라인 인간 개입 포인트 누락.',
+  message: 'AI inference result is persisted without a human oversight marker (FSC AI guideline — human-in-the-loop checkpoint).',
+  messageKo: 'AI 추론 결과가 인간 검토 표시 없이 저장됩니다 (금감원 AI 가이드라인 — 인간 개입 포인트).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/human-oversight-checkpoint.md',
   visitors: {
     function_declaration: check,

@@ -17,8 +17,8 @@ export default defineRule({
   id: 'track-ai-model-version',
   language: ['typescript', 'tsx'],
   severity: 'warning',
-  message: 'AI inference call missing explicit `model:` parameter — required by FSC AI guideline for traceability.',
-  messageKo: 'AI 추론 호출에 `model:` 파라미터가 명시되지 않았습니다 — 금감원 AI 가이드라인의 추적 요구사항.',
+  message: 'AI inference call missing explicit `model:` parameter (FSC AI guideline — model governance).',
+  messageKo: 'AI 추론 호출에 `model:` 파라미터가 명시되지 않았습니다 (금감원 AI 가이드라인 — 모델 거버넌스).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/track-ai-model-version.md',
   visitors: {
     call_expression(node: Parser.SyntaxNode, ctx: RuleContext) {

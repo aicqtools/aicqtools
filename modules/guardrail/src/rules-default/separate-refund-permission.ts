@@ -24,8 +24,8 @@ export default defineRule({
   id: 'separate-refund-permission',
   language: ['typescript', 'tsx'],
   severity: 'error',
-  message: 'Refund function lacks a permission/role check — separation of duties required.',
-  messageKo: '환불 함수에 권한 체크가 없습니다 — 직무 분리 원칙 위반.',
+  message: 'Refund function lacks a permission/role check (PCI DSS § 7.2 — restrict access by business need-to-know; separation of duties).',
+  messageKo: '환불 함수에 권한 체크가 없습니다 (PCI DSS § 7.2 — 업무 필요에 따른 접근 제한; 직무 분리 원칙).',
   docs: 'https://github.com/aicqtools/aicqtools/blob/main/docs/rules/separate-refund-permission.md',
   visitors: {
     function_declaration: check,
