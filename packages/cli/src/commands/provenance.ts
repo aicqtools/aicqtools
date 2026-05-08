@@ -3,15 +3,19 @@ import { loadConfig, resolveLocale, t } from '@aicqtools/core';
 import {
   buildRecord,
   capture,
+  createReader,
   emitAiBom,
   buildArticle50Report,
+  renderArticle50Html,
   writeProvenanceRecord,
 } from '@aicqtools/provenance';
+import type { ReaderName } from '@aicqtools/provenance';
 
 export interface ProvenanceCaptureOptions {
   readonly cwd: string;
   readonly output?: string;
   readonly locale?: 'ko' | 'en';
+  readonly reader?: ReaderName;
 }
 
 export async function runProvenanceCapture(opts: ProvenanceCaptureOptions): Promise<number> {
@@ -22,7 +26,8 @@ export async function runProvenanceCapture(opts: ProvenanceCaptureOptions): Prom
     configLocale: config.locale,
     env: process.env,
   });
-  const result = await capture({ cwd, commitTimestamp: new Date().toISOString() });
+  const reader = createReader(opts.reader ?? 'manual');
+  const result = await capture({ cwd, commitTimestamp: new Date().toISOString(), reader });
   const record = buildRecord(result);
   const outPath = resolve(cwd, opts.output ?? `aicq/provenance/${Date.now()}.json`);
   await writeProvenanceRecord(outPath, record);
@@ -38,8 +43,9 @@ export async function runProvenanceCapture(opts: ProvenanceCaptureOptions): Prom
 
 export interface ProvenanceReportOptions {
   readonly cwd: string;
-  readonly format: 'article-50' | 'ai-bom';
+  readonly format: 'article-50' | 'article-50-html' | 'ai-bom';
   readonly recordPath: string;
+  readonly locale?: 'ko' | 'en';
 }
 
 export async function runProvenanceReport(opts: ProvenanceReportOptions): Promise<number> {
@@ -49,6 +55,14 @@ export async function runProvenanceReport(opts: ProvenanceReportOptions): Promis
   const record = JSON.parse(await readFile(path, 'utf-8'));
   if (opts.format === 'ai-bom') {
     process.stdout.write(JSON.stringify(emitAiBom(record), null, 2) + '\n');
+  } else if (opts.format === 'article-50-html') {
+    const config = await loadConfig(cwd);
+    const locale = resolveLocale({
+      ...(opts.locale ? { override: opts.locale } : {}),
+      configLocale: config.locale,
+      env: process.env,
+    });
+    process.stdout.write(renderArticle50Html(buildArticle50Report(record), { locale }));
   } else {
     process.stdout.write(JSON.stringify(buildArticle50Report(record), null, 2) + '\n');
   }

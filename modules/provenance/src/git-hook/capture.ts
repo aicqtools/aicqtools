@@ -1,10 +1,13 @@
+import { ManualSessionReader } from '../session-readers/manual.js';
+import type { SessionReader } from '../session-readers/types.js';
 import type { AiSession, AiPromptRecord, CodeAttribution } from '../types.js';
 import { getStagedHunks } from './git.js';
-import { findClosestSession, readActiveSessions } from './session-source.js';
+import { findClosestSession } from './session-source.js';
 
 export interface CaptureContext {
   readonly cwd: string;
   readonly commitTimestamp: string;
+  readonly reader?: SessionReader;
 }
 
 export interface CaptureResult {
@@ -14,8 +17,9 @@ export interface CaptureResult {
 }
 
 export async function capture(ctx: CaptureContext): Promise<CaptureResult> {
+  const reader = ctx.reader ?? new ManualSessionReader();
   const [{ sessions, prompts }, hunks] = await Promise.all([
-    readActiveSessions(ctx.cwd),
+    reader.read(ctx.cwd),
     getStagedHunks(ctx.cwd),
   ]);
 

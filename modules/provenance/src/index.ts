@@ -21,5 +21,21 @@ export type {
   CaptureResult,
   StagedHunk,
 } from './git-hook/index.js';
-export { buildArticle50Report } from './reporter/index.js';
-export type { Article50Report } from './reporter/index.js';
+export { buildArticle50Report, renderArticle50Html } from './reporter/index.js';
+export type { Article50Report, RenderHtmlOptions } from './reporter/index.js';
+export {
+  ManualSessionReader,
+  ClaudeCodeSessionReader,
+  CursorSessionReader,
+  CompositeSessionReader,
+  createReader,
+  encodeClaudeProjectId,
+  getCursorWorkspaceStorageDir,
+} from './session-readers/index.js';
+export type {
+  SessionReader,
+  SessionReaderResult,
+  ClaudeCodeReaderOptions,
+  CursorReaderOptions,
+  ReaderName,
+} from './session-readers/index.js';

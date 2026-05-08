@@ -6,11 +6,22 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
-### Planned (Phase 1b ~2026-09-15)
+### Added — Phase 1b in progress
+
+**Provenance — session readers (E1 + E2)**
+- `SessionReader` abstraction with pluggable backends (`ManualSessionReader`, `ClaudeCodeSessionReader`, `CursorSessionReader`, `CompositeSessionReader`)
+- **Claude Code native reader** (E1) — parses `~/.claude/projects/<encoded-cwd>/*.jsonl`, extracts user prompts, skips `<ide_opened_file>` / `<system-reminder>` fragments, sorts sessions by mtime
+- **Cursor detection reader** (E2, beta-lite scope) — detects Cursor usage via `state.vscdb` in workspaceStorage (Win/macOS/Linux); full prompt extraction lands in v1.0 stable when SQLite schema is finalized
+- `aicq provenance capture --reader <manual|claude-code|cursor|all>` flag (default `manual` for backward compatibility)
+
+**Provenance — Article 50 HTML renderer (E3)**
+- `aicq provenance report --format article-50-html [--locale ko|en]` — Korean / English bilingual, XSS-safe escaping, print-friendly CSS with Korean system-font fallback chain
+- HTML chosen over PDF for v1.0 alpha — keeps the dependency footprint small; PDF (puppeteer / pdfkit) lands in v1.0 stable
+
+### Planned (Phase 1b finish ~2026-09-15)
 - 13 additional rules — 5 FSC AI guideline mappings + 8 PCI DSS payment rules → 50 total
-- Provenance tracker — Claude Code session.jsonl native reader (E1)
-- Provenance tracker — Cursor session capture (E2)
-- EU AI Act Article 50 PDF renderer (E3)
+- EU AI Act Article 50 PDF renderer (HTML → PDF)
+- Cursor SQLite-aware prompt extraction (replace current detection-only stub)
 
 ### Planned (Phase 2 ~2026-10-27)
 - v1.5 cloud SaaS beta — dashboard, PR auto-comment, Stripe billing

@@ -41,28 +41,56 @@ export function buildProgram(): Command {
     .option('-C, --cwd <path>', 'project root', process.cwd())
     .option('-o, --output <path>', 'output JSON path (default: aicq/provenance/<ts>.json)')
     .option('--locale <locale>', 'message locale (ko|en)')
-    .action(async (opts: { cwd: string; output?: string; locale?: string }) => {
-      const { runProvenanceCapture } = await import('./commands/provenance.js');
-      const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
-      const code = await runProvenanceCapture({
-        cwd: opts.cwd,
-        ...(opts.output !== undefined ? { output: opts.output } : {}),
-        ...(locale !== undefined ? { locale } : {}),
-      });
-      process.exit(code);
-    });
+    .option(
+      '--reader <name>',
+      'session reader (manual|claude-code|cursor|all)',
+      'manual',
+    )
+    .action(
+      async (opts: { cwd: string; output?: string; locale?: string; reader: string }) => {
+        const { runProvenanceCapture } = await import('./commands/provenance.js');
+        const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
+        const reader =
+          opts.reader === 'claude-code' || opts.reader === 'cursor' || opts.reader === 'all'
+            ? opts.reader
+            : 'manual';
+        const code = await runProvenanceCapture({
+          cwd: opts.cwd,
+          ...(opts.output !== undefined ? { output: opts.output } : {}),
+          ...(locale !== undefined ? { locale } : {}),
+          reader,
+        });
+        process.exit(code);
+      },
+    );
 
   provenance
     .command('report')
     .description('Render a compliance report from a captured provenance record')
     .argument('<record>', 'path to a captured provenance JSON file')
     .option('-C, --cwd <path>', 'project root', process.cwd())
-    .option('-f, --format <format>', 'report format (article-50|ai-bom)', 'article-50')
+    .option(
+      '-f, --format <format>',
+      'report format (article-50|article-50-html|ai-bom)',
+      'article-50',
+    )
+    .option('--locale <locale>', 'message locale for HTML output (ko|en)')
     .action(
-      async (record: string, opts: { cwd: string; format: string }) => {
+      async (record: string, opts: { cwd: string; format: string; locale?: string }) => {
         const { runProvenanceReport } = await import('./commands/provenance.js');
-        const format = opts.format === 'ai-bom' ? 'ai-bom' : 'article-50';
-        const code = await runProvenanceReport({ cwd: opts.cwd, format, recordPath: record });
+        const format =
+          opts.format === 'ai-bom'
+            ? 'ai-bom'
+            : opts.format === 'article-50-html'
+              ? 'article-50-html'
+              : 'article-50';
+        const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
+        const code = await runProvenanceReport({
+          cwd: opts.cwd,
+          format,
+          recordPath: record,
+          ...(locale !== undefined ? { locale } : {}),
+        });
         process.exit(code);
       },
     );
