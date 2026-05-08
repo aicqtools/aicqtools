@@ -1,10 +1,18 @@
 {
   "name": "@aicqtools/cli",
-  "version": "1.0.0-alpha.1",
-  "private": true,
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "description": "aicq command-line interface — `aicq check`, `aicq mcp`, `aicq sync-ai-rules`, `aicq provenance`, `aicq docs build`.",
-  "keywords": ["aicq", "aicqtools", "cli", "ai", "code-quality", "guardrail", "linter", "mcp"],
+  "keywords": [
+    "aicq",
+    "aicqtools",
+    "cli",
+    "ai",
+    "code-quality",
+    "guardrail",
+    "linter",
+    "mcp"
+  ],
   "homepage": "https://github.com/aicqtools/aicqtools/tree/main/packages/cli",
   "repository": {
     "type": "git",
@@ -22,7 +30,10 @@
   "exports": {
     ".": "./dist/index.js"
   },
-  "files": ["dist/", "README.md"],
+  "files": [
+    "dist/",
+    "README.md"
+  ],
   "publishConfig": {
     "access": "public"
   },

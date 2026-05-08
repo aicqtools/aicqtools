@@ -1,9 +1,15 @@
 {
   "name": "@aicqtools/action",
-  "version": "1.0.0-alpha.1",
+  "version": "1.0.0-alpha.2",
   "private": true,
   "description": "GitHub Action wrapper for `aicq check` (Composite action, Phase 1a PoC).",
-  "keywords": ["aicq", "aicqtools", "github-action", "ci", "code-quality"],
+  "keywords": [
+    "aicq",
+    "aicqtools",
+    "github-action",
+    "ci",
+    "code-quality"
+  ],
   "homepage": "https://github.com/aicqtools/aicqtools/tree/main/packages/action",
   "repository": {
     "type": "git",

@@ -1,10 +1,18 @@
 {
   "name": "@aicqtools/guardrail",
-  "version": "1.0.0-alpha.1",
-  "private": true,
+  "version": "1.0.0-alpha.2",
   "type": "module",
   "description": "Deterministic AI code guardrail engine — 37 built-in rules, hybrid YAML/function DSL, MCP server, .cursorrules sync, sqlite cache.",
-  "keywords": ["aicq", "aicqtools", "guardrail", "ai-code-quality", "tree-sitter", "linter", "mcp", "code-review"],
+  "keywords": [
+    "aicq",
+    "aicqtools",
+    "guardrail",
+    "ai-code-quality",
+    "tree-sitter",
+    "linter",
+    "mcp",
+    "code-review"
+  ],
   "homepage": "https://github.com/aicqtools/aicqtools/tree/main/modules/guardrail",
   "repository": {
     "type": "git",
@@ -23,7 +31,11 @@
     "./mcp": "./dist/mcp/index.js",
     "./sync": "./dist/sync/index.js"
   },
-  "files": ["dist/", "scripts/", "README.md"],
+  "files": [
+    "dist/",
+    "scripts/",
+    "README.md"
+  ],
   "publishConfig": {
     "access": "public"
   },

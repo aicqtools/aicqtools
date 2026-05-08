@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+### Planned (Phase 1b finish ~2026-09-15)
+- Cursor SQLite-aware prompt extraction (replace current detection-only stub)
+- Rule autocrafting (analyze repo → suggest project-specific rules) — early prototype
+
+---
+
+## [v1.0.0-alpha.2] - 2026-05-08
+
+Phase 1b in-progress release. Bundles every change since `v1.0.0-alpha.1`: provenance native readers, Article 50 HTML/PDF renderers, the 13-rule Korean compliance ruleset (50 rules total), TalkUp case study, community launch drafts, Claude Code model extraction, and PCI DSS / FSC AI § references in rule messages. **First publish to npm under `@aicqtools/*` scope.**
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.2
+- `@aicqtools/rule-sdk` 1.0.0-alpha.2
+- `@aicqtools/guardrail` 1.0.0-alpha.2
+- `@aicqtools/provenance` 1.0.0-alpha.2 (with optional `puppeteer` peer for PDF)
+- `@aicqtools/cli` 1.0.0-alpha.2 (`aicq` binary)
+
 ### Added — Phase 1b in progress
 
 **Provenance — session readers (E1 + E2)**
@@ -67,11 +84,6 @@ PCI DSS (8):
 - `mask-card-number` — `cardNumber` rendered without `mask*` / `last4*` helpers is flagged
 
 All 13 rules are heuristic-based (beta) — false positives are possible and severity defaults can be adjusted via `aicq.config.yaml`. 31 new unit tests (fsc-ai: 12, pci-dss: 19); guardrail tests 96 → 127, regression 0.
-
-### Planned (Phase 1b finish ~2026-09-15)
-- EU AI Act Article 50 PDF renderer (HTML → PDF)
-- Cursor SQLite-aware prompt extraction (replace current detection-only stub)
-- FSC AI / PCI DSS § references in rule messages (currently generic)
 
 ### Planned (Phase 2 ~2026-10-27)
 - v1.5 cloud SaaS beta — dashboard, PR auto-comment, Stripe billing
@@ -140,5 +152,6 @@ First public alpha. The guardrail engine + provenance scaffold are functional an
 - `aicq.config.yaml` rule overrides are schema-supported but the runtime override path is not yet exercised in tests.
 - npm packages are **not yet published** — install from local workspace only. Public `npm publish` is scheduled for the v1.0 release.
 
-[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.1...HEAD
+[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.2...HEAD
+[v1.0.0-alpha.2]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.2
 [v1.0.0-alpha.1]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.1
