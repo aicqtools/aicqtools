@@ -29,6 +29,13 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - 5 of 7 cases detected on first pass — the two variant patterns (`no-id-overwrite`, `fk-needs-on-delete`) document v1.5 precision improvements
 - `examples/talkup-mirror/src/talkup-cases.ts` — anonymized verification samples that `aicq check` flags
 
+**Korean community launch drafts (E4-A)**
+- `docs/marketing/geeknews-launch.md` — GeekNews HN-style post (short + impact, 2 length variants)
+- `docs/marketing/okky-launch.md` — OKKY discussion-style post (~1000자, Q&A bait)
+- `docs/marketing/velog-launch.md` — Velog long-form technical blog (3000~5000자, code + analysis)
+- `docs/marketing/README.md` — posting order, key messages, predicted Q&A templates
+- All drafts target user-driven publishing (no auto-posting bots), staged sequence Mon→Wed→Fri
+
 **Korean compliance ruleset (K2) — 13 rules → 50 rules total**
 
 FSC AI guideline (5):
