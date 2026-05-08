@@ -71,25 +71,32 @@ export function buildProgram(): Command {
     .option('-C, --cwd <path>', 'project root', process.cwd())
     .option(
       '-f, --format <format>',
-      'report format (article-50|article-50-html|ai-bom)',
+      'report format (article-50|article-50-html|article-50-pdf|ai-bom)',
       'article-50',
     )
-    .option('--locale <locale>', 'message locale for HTML output (ko|en)')
+    .option('--locale <locale>', 'message locale for HTML/PDF output (ko|en)')
+    .option('-o, --output <path>', 'output file (required for article-50-pdf)')
     .action(
-      async (record: string, opts: { cwd: string; format: string; locale?: string }) => {
+      async (
+        record: string,
+        opts: { cwd: string; format: string; locale?: string; output?: string },
+      ) => {
         const { runProvenanceReport } = await import('./commands/provenance.js');
         const format =
           opts.format === 'ai-bom'
             ? 'ai-bom'
             : opts.format === 'article-50-html'
               ? 'article-50-html'
-              : 'article-50';
+              : opts.format === 'article-50-pdf'
+                ? 'article-50-pdf'
+                : 'article-50';
         const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
         const code = await runProvenanceReport({
           cwd: opts.cwd,
           format,
           recordPath: record,
           ...(locale !== undefined ? { locale } : {}),
+          ...(opts.output !== undefined ? { output: opts.output } : {}),
         });
         process.exit(code);
       },

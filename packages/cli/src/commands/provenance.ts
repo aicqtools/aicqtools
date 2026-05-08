@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { loadConfig, resolveLocale, t } from '@aicqtools/core';
 import {
@@ -7,6 +8,7 @@ import {
   emitAiBom,
   buildArticle50Report,
   renderArticle50Html,
+  renderArticle50Pdf,
   writeProvenanceRecord,
 } from '@aicqtools/provenance';
 import type { ReaderName } from '@aicqtools/provenance';
@@ -43,9 +45,10 @@ export async function runProvenanceCapture(opts: ProvenanceCaptureOptions): Prom
 
 export interface ProvenanceReportOptions {
   readonly cwd: string;
-  readonly format: 'article-50' | 'article-50-html' | 'ai-bom';
+  readonly format: 'article-50' | 'article-50-html' | 'article-50-pdf' | 'ai-bom';
   readonly recordPath: string;
   readonly locale?: 'ko' | 'en';
+  readonly output?: string;
 }
 
 export async function runProvenanceReport(opts: ProvenanceReportOptions): Promise<number> {
@@ -55,7 +58,9 @@ export async function runProvenanceReport(opts: ProvenanceReportOptions): Promis
   const record = JSON.parse(await readFile(path, 'utf-8'));
   if (opts.format === 'ai-bom') {
     process.stdout.write(JSON.stringify(emitAiBom(record), null, 2) + '\n');
-  } else if (opts.format === 'article-50-html') {
+    return 0;
+  }
+  if (opts.format === 'article-50-html') {
     const config = await loadConfig(cwd);
     const locale = resolveLocale({
       ...(opts.locale ? { override: opts.locale } : {}),
@@ -63,8 +68,25 @@ export async function runProvenanceReport(opts: ProvenanceReportOptions): Promis
       env: process.env,
     });
     process.stdout.write(renderArticle50Html(buildArticle50Report(record), { locale }));
-  } else {
-    process.stdout.write(JSON.stringify(buildArticle50Report(record), null, 2) + '\n');
+    return 0;
   }
+  if (opts.format === 'article-50-pdf') {
+    if (!opts.output) {
+      process.stderr.write('--output <path> is required for article-50-pdf format\n');
+      return 1;
+    }
+    const config = await loadConfig(cwd);
+    const locale = resolveLocale({
+      ...(opts.locale ? { override: opts.locale } : {}),
+      configLocale: config.locale,
+      env: process.env,
+    });
+    const pdf = await renderArticle50Pdf(buildArticle50Report(record), { locale });
+    const outPath = resolve(cwd, opts.output);
+    await writeFile(outPath, pdf);
+    process.stdout.write(`PDF written: ${outPath}\n`);
+    return 0;
+  }
+  process.stdout.write(JSON.stringify(buildArticle50Report(record), null, 2) + '\n');
   return 0;
 }

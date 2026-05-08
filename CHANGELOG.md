@@ -16,7 +16,12 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 **Provenance — Article 50 HTML renderer (E3)**
 - `aicq provenance report --format article-50-html [--locale ko|en]` — Korean / English bilingual, XSS-safe escaping, print-friendly CSS with Korean system-font fallback chain
-- HTML chosen over PDF for v1.0 alpha — keeps the dependency footprint small; PDF (puppeteer / pdfkit) lands in v1.0 stable
+
+**Provenance — Article 50 PDF renderer (E3 PDF)**
+- `aicq provenance report --format article-50-pdf --output <path> [--locale ko|en]` — pixel-perfect PDF via puppeteer, reuses the HTML template
+- `puppeteer` is an **optional peer dependency** — default install does not download Chromium (~200 MB). Users opt in with `pnpm add puppeteer` when they need the PDF format
+- Friendly error message points to `docs/pdf-rendering.md` when puppeteer is missing
+- Programmatic API: `renderArticle50Pdf(report, { locale, format, margin })`
 
 **Korean compliance ruleset (K2) — 13 rules → 50 rules total**
 

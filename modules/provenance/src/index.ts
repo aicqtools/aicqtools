@@ -21,8 +21,16 @@ export type {
   CaptureResult,
   StagedHunk,
 } from './git-hook/index.js';
-export { buildArticle50Report, renderArticle50Html } from './reporter/index.js';
-export type { Article50Report, RenderHtmlOptions } from './reporter/index.js';
+export {
+  buildArticle50Report,
+  renderArticle50Html,
+  renderArticle50Pdf,
+} from './reporter/index.js';
+export type {
+  Article50Report,
+  RenderHtmlOptions,
+  RenderPdfOptions,
+} from './reporter/index.js';
 export {
   ManualSessionReader,
   ClaudeCodeSessionReader,
