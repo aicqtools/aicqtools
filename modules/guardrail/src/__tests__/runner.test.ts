@@ -44,4 +44,15 @@ query: |
     const result = runFileWithSource('a.ts', source, 'typescript', [rule]);
     expect(result.diagnostics).toHaveLength(0);
   });
+
+  // alpha.3 regression: running the same pattern rule across multiple files threw
+  // "SyntaxNode must belong to a Tree" because tree-sitter@~0.22.4 binds Tree nodes
+  // to the Parser that produced them. Fixed in alpha.4 (parserCache removed).
+  it('runs the same pattern rule on many files without throwing', () => {
+    for (let i = 0; i < 25; i++) {
+      const source = `const c${i} = new OpenAI({ apiKey: "${i}" });\n`;
+      const result = runFileWithSource(`a${i}.ts`, source, 'typescript', [rule]);
+      expect(result.diagnostics).toHaveLength(1);
+    }
+  });
 });

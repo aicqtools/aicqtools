@@ -4,6 +4,7 @@ import pc from 'picocolors';
 import { FileCache, loadConfig, ParserError, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
 import { loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
+import { getCliVersion } from '../version.js';
 
 export interface CheckOptions {
   readonly cwd: string;
@@ -58,7 +59,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
 
   let serialized: string;
   if (opts.format === 'json') serialized = reportJson(result);
-  else if (opts.format === 'sarif') serialized = reportSarif(result);
+  else if (opts.format === 'sarif') serialized = reportSarif(result, getCliVersion());
   else serialized = reportText(result, locale);
 
   if (opts.output) {

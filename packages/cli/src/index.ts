@@ -1,12 +1,13 @@
 import { Command } from 'commander';
 import { runCheck } from './commands/check.js';
+import { getCliVersion } from './version.js';
 
 export function buildProgram(): Command {
   const program = new Command();
   program
     .name('aicq')
     .description('AI Code Quality Platform — guardrail engine and provenance tracker')
-    .version('0.0.0');
+    .version(getCliVersion());
 
   program
     .command('check')

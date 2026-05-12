@@ -3,7 +3,7 @@ import type { Language } from '@aicqtools/core';
 import type { Rule, FunctionRule, PatternRule } from '@aicqtools/rule-sdk';
 import { traverse } from '../matcher/traverse.js';
 import { makeRuleContext, type RunContext } from './context.js';
-import { getParser } from '@aicqtools/core';
+import { loadLanguage } from '@aicqtools/core';
 
 function ruleAppliesTo(rule: Rule, language: Language): boolean {
   const langs = Array.isArray(rule.language) ? rule.language : [rule.language];
@@ -19,8 +19,7 @@ function runFunctionRule(rule: FunctionRule, run: RunContext, tree: Parser.Tree)
 }
 
 function runPatternRule(rule: PatternRule, run: RunContext, tree: Parser.Tree): void {
-  const parser = getParser(run.language);
-  const lang = parser.getLanguage();
+  const lang = loadLanguage(run.language);
   const query = new Parser.Query(lang, rule.query);
   const matches = query.matches(tree.rootNode);
   const ctx = makeRuleContext(run, rule);

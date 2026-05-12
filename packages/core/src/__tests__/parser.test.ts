@@ -38,6 +38,28 @@ describe('parseSource', () => {
   });
 });
 
+// Regression guard for the tree-sitter@~0.22.4 "SyntaxNode must belong to a Tree"
+// crash that surfaced in alpha.3 (329 occurrences on the TalkUp scan). The cache
+// was reusing one Parser per language across files; the native binding strict-binds
+// Parser ↔ Tree, so prior trees became invalid after subsequent parses. Fixed in
+// alpha.4 by removing parserCache.
+describe('parseSource — multi-file reuse', () => {
+  it('parses many sources for the same language without cross-tree node invalidation', () => {
+    const sources = [
+      'const a = 1;\n',
+      'const b: number = 2;\n',
+      'function f(x: string) { return x; }\n',
+      'class C { m() { return 1; } }\n',
+    ];
+    const trees = sources.map((s) => parseSource('typescript', s));
+    for (const t of trees) {
+      expect(t.rootNode.type).toBe('program');
+      expect(t.rootNode.hasError).toBe(false);
+      expect(t.rootNode.firstChild).not.toBeNull();
+    }
+  });
+});
+
 // Regression guard for the tree-sitter@0.21.1 native-binding bug that rejected
 // inputs ≥ 32,768 bytes with "Invalid argument" (TalkUp alpha.2 blocker).
 // Fixed by upgrading to tree-sitter@~0.22.4 in alpha.3.

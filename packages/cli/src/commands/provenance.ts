@@ -1,6 +1,7 @@
 import { writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { loadConfig, resolveLocale, t } from '@aicqtools/core';
+import { getCliVersion } from '../version.js';
 import {
   buildRecord,
   capture,
@@ -57,7 +58,7 @@ export async function runProvenanceReport(opts: ProvenanceReportOptions): Promis
   const path = resolve(cwd, opts.recordPath);
   const record = JSON.parse(await readFile(path, 'utf-8'));
   if (opts.format === 'ai-bom') {
-    process.stdout.write(JSON.stringify(emitAiBom(record), null, 2) + '\n');
+    process.stdout.write(JSON.stringify(emitAiBom(record, getCliVersion()), null, 2) + '\n');
     return 0;
   }
   if (opts.format === 'article-50-html') {

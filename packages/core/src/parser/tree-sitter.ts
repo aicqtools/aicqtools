@@ -3,9 +3,7 @@ import TypeScript from 'tree-sitter-typescript';
 import Python from 'tree-sitter-python';
 import type { Language } from '../types.js';
 
-const parserCache = new Map<Language, Parser>();
-
-function loadLanguage(lang: Language): Parser.Language {
+export function loadLanguage(lang: Language): Parser.Language {
   switch (lang) {
     case 'typescript':
       return TypeScript.typescript as Parser.Language;
@@ -18,13 +16,12 @@ function loadLanguage(lang: Language): Parser.Language {
   }
 }
 
+// New per-call allocation: tree-sitter@~0.22.4 native binding strict-binds
+// Parser ↔ Tree, so reusing one Parser across files would invalidate prior
+// trees and make Query.matches throw "SyntaxNode must belong to a Tree".
 export function getParser(lang: Language): Parser {
-  let parser = parserCache.get(lang);
-  if (!parser) {
-    parser = new Parser();
-    parser.setLanguage(loadLanguage(lang));
-    parserCache.set(lang, parser);
-  }
+  const parser = new Parser();
+  parser.setLanguage(loadLanguage(lang));
   return parser;
 }
 

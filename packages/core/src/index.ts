@@ -8,7 +8,7 @@ export type {
   CheckResult,
 } from './types.js';
 
-export { getParser, parseSource, detectLanguage } from './parser/index.js';
+export { getParser, parseSource, detectLanguage, loadLanguage } from './parser/index.js';
 export { loadConfig, findConfigPath, aicqConfigSchema } from './config/index.js';
 export type { AicqConfig } from './config/index.js';
 export { reportJson, reportText, reportSarif } from './reporter/index.js';

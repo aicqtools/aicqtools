@@ -10,6 +10,33 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - Cursor SQLite-aware prompt extraction (replace current detection-only stub)
 - Rule autocrafting (analyze repo → suggest project-specific rules) — early prototype
 - Split `@aicq/parse-failed` into `@aicq/parse-failed` + `@aicq/rule-error` once enough data accumulates on which path fails more often.
+- Investigate the alpha.3 TalkUp `no-magic-number` 43,716-hit surge (frontend) — likely false-positive surge that wants a tighter heuristic.
+
+---
+
+## [v1.0.0-alpha.4] - 2026-05-12
+
+Hotfix on top of alpha.3 that resolves both known limitations called out in the alpha.3 release notes.
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.4
+- `@aicqtools/rule-sdk` 1.0.0-alpha.4
+- `@aicqtools/guardrail` 1.0.0-alpha.4
+- `@aicqtools/provenance` 1.0.0-alpha.4
+- `@aicqtools/cli` 1.0.0-alpha.4
+
+### Fixed
+- **`parser failed: SyntaxNode must belong to a Tree`** — alpha.3's `parserCache` kept one `Parser` per language for the whole run. Under `tree-sitter@~0.22.4` the native binding strict-binds `Parser` ↔ `Tree`, so reparsing through the same `Parser` invalidates earlier trees' `SyntaxNode`s and `Parser.Query.matches` throws on them. TalkUp's alpha.3 scan surfaced 329 occurrences across the three modules (admin 70 / frontend 219 / backend 40). Fixed by removing `parserCache` entirely so every `parseSource` call allocates a fresh `Parser`.
+- **`aicq --version` printed `0.0.0`** — the value passed to commander was hardcoded, and the same placeholder leaked into SARIF `tool.driver.version` and CycloneDX `metadata.tools[0].version`. A new `packages/cli/src/version.ts` reads the version from the CLI's own `package.json` via the ESM `dirname(fileURLToPath(import.meta.url))` pattern (same approach used by `modules/guardrail/src/rules-default/index.ts`), walks up at most six levels until it finds the `@aicqtools/cli` package, and caches the result.
+
+### Changed
+- `@aicqtools/core` now publicly exports `loadLanguage(lang)` so callers (notably `runPatternRule` in `@aicqtools/guardrail`) can resolve a `Parser.Language` without allocating a `Parser` per call.
+- `packages/cli/src/commands/check.ts` and `packages/cli/src/commands/provenance.ts` now inject the real CLI version into `reportSarif(result, version)` and `emitAiBom(record, version)`. The defaults in `@aicqtools/core` (`reportSarif`) and `@aicqtools/provenance` (`emitAiBom`) keep `'0.0.0'` as a defensive fallback for direct programmatic callers.
+
+### Added
+- `packages/core/src/__tests__/parser.test.ts` — regression case that parses 4 distinct TypeScript sources sequentially and asserts each prior `rootNode` stays queryable.
+- `modules/guardrail/src/__tests__/runner.test.ts` — regression case that runs the same YAML pattern rule against 25 distinct files in one test, asserting no throw.
+- `packages/cli/src/__tests__/version.test.ts` — asserts `getCliVersion()` returns the version in `packages/cli/package.json` and matches `1.0.0-alpha.4`.
 
 ---
 
@@ -185,7 +212,8 @@ First public alpha. The guardrail engine + provenance scaffold are functional an
 - `aicq.config.yaml` rule overrides are schema-supported but the runtime override path is not yet exercised in tests.
 - npm packages are **not yet published** — install from local workspace only. Public `npm publish` is scheduled for the v1.0 release.
 
-[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.3...HEAD
+[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.4...HEAD
+[v1.0.0-alpha.4]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.4
 [v1.0.0-alpha.3]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.3
 [v1.0.0-alpha.2]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.2
 [v1.0.0-alpha.1]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.1
