@@ -29,8 +29,8 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
   const diagnostics: Diagnostic[] = [];
 
   for (const file of files) {
-    if (cache) {
-      try {
+    try {
+      if (cache) {
         const st = await stat(file);
         const cached = cache.get({
           filePath: file,
@@ -44,27 +44,36 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
         }
         const result = await runFile(file, opts.rules);
         cache.set(
-          {
-            filePath: file,
-            mtime: Math.floor(st.mtimeMs),
-            size: st.size,
-            rulesHash,
-          },
+          { filePath: file, mtime: Math.floor(st.mtimeMs), size: st.size, rulesHash },
           result.diagnostics,
         );
         diagnostics.push(...result.diagnostics);
-        continue;
-      } catch {
-        // fall through to non-cached path
+      } else {
+        const result = await runFile(file, opts.rules);
+        diagnostics.push(...result.diagnostics);
       }
+    } catch (err) {
+      // Per-file isolation: a parser crash or rule throw on one file must not abort the whole run.
+      // Skip cache.set on failure so the next run retries instead of caching the error.
+      diagnostics.push(parseFailedDiagnostic(file, err));
     }
-    const result = await runFile(file, opts.rules);
-    diagnostics.push(...result.diagnostics);
   }
 
   return {
     diagnostics,
     filesScanned: files.length,
     durationMs: Date.now() - start,
+  };
+}
+
+function parseFailedDiagnostic(file: string, err: unknown): Diagnostic {
+  const message = err instanceof Error ? err.message : String(err);
+  return {
+    ruleId: '@aicq/parse-failed',
+    severity: 'warning',
+    message: `parser failed: ${message}`,
+    messageKo: `파서 실패: ${message}`,
+    file,
+    range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
   };
 }
