@@ -92,6 +92,29 @@ CI (GitHub Actions): [packages/action/README.md](packages/action/README.md). Pre
 
 ---
 
+## Installation note — single `tree-sitter` native instance
+
+`@aicqtools/cli` 1.0.0-alpha.5+ declares `tree-sitter`, `tree-sitter-typescript`, and `tree-sitter-python` as direct `dependencies`, and the internal packages (`core` / `guardrail` / `rule-sdk`) require them as `peerDependencies`. This guarantees a **single hoisted native instance** under npm, pnpm, and yarn.
+
+Why it matters: in alpha.4 each package nested its own `tree-sitter` copy, and `tree-sitter-typescript`'s `peerOptional ^0.21` made npm hoist a separate copy at the user root. Multiple native binding instances ended up loaded in the same V8 isolate; the typescript grammar rejected cross-instance node calls with `SyntaxNode must belong to a Tree` (TalkUp's alpha.4 scan hit 329 occurrences across 3 modules, all `.ts`).
+
+**Workaround if you must stay on alpha.4 or earlier:**
+
+```json
+// package.json (npm)
+{ "overrides": { "tree-sitter": "0.22.4" } }
+
+// package.json (pnpm)
+{ "pnpm": { "overrides": { "tree-sitter": "0.22.4" } } }
+
+// package.json (yarn)
+{ "resolutions": { "tree-sitter": "0.22.4" } }
+```
+
+Then reinstall. Forces the same single-instance resolution as the alpha.5 fix.
+
+---
+
 ## The 5 packages (npm `@aicqtools` scope)
 
 | Package | Purpose |

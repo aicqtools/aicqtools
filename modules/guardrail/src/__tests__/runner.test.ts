@@ -56,3 +56,43 @@ query: |
     }
   });
 });
+
+// alpha.5 D-axis: a single broken rule must not abort the whole file run.
+// runFileWithSource wraps each rule in try/catch and emits @aicq/parse-failed
+// warnings whose message names the offending ruleId, so users can disable
+// just that rule without bisecting.
+describe('rule-level error isolation — alpha.5 D-axis', () => {
+  const brokenRule = parseYamlRule(`
+id: deliberately-broken
+language: typescript
+severity: warning
+message: x
+query: "(this_node_type_does_not_exist) @x"
+`);
+  const okRule = parseYamlRule(`
+id: no-direct-openai
+language: typescript
+severity: error
+message: Use llmClient singleton.
+query: |
+  (new_expression
+    constructor: (identifier) @ctor
+    (#eq? @ctor "OpenAI"))
+`);
+
+  it('embeds the offending ruleId in @aicq/parse-failed when a single rule throws', () => {
+    const source = `const x = 1;\n`;
+    const result = runFileWithSource('a.ts', source, 'typescript', [brokenRule]);
+    const failed = result.diagnostics.find((d) => d.ruleId === '@aicq/parse-failed');
+    expect(failed).toBeDefined();
+    expect(failed!.message).toContain('deliberately-broken');
+    expect(failed!.messageKo).toContain('deliberately-broken');
+  });
+
+  it('other rules keep running after one rule throws', () => {
+    const source = `const c = new OpenAI({ apiKey: "x" });\n`;
+    const result = runFileWithSource('a.ts', source, 'typescript', [brokenRule, okRule]);
+    expect(result.diagnostics.find((d) => d.ruleId === 'no-direct-openai')).toBeDefined();
+    expect(result.diagnostics.find((d) => d.ruleId === '@aicq/parse-failed')).toBeDefined();
+  });
+});

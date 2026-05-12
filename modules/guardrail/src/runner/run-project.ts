@@ -71,8 +71,8 @@ function parseFailedDiagnostic(file: string, err: unknown): Diagnostic {
   return {
     ruleId: '@aicq/parse-failed',
     severity: 'warning',
-    message: `parser failed: ${message}`,
-    messageKo: `파서 실패: ${message}`,
+    message: `parser failed during file parse: ${message}`,
+    messageKo: `파서 실패 (파일 파싱 단계): ${message}`,
     file,
     range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
   };

@@ -92,6 +92,29 @@ CI(GitHub Actions) 통합은 [packages/action/README.md](packages/action/README.
 
 ---
 
+## 설치 시 알아둘 점 — `tree-sitter` 단일 인스턴스
+
+`@aicqtools/cli` 1.0.0-alpha.5+는 `tree-sitter`, `tree-sitter-typescript`, `tree-sitter-python` 세 native 패키지를 자기 `dependencies`로 직접 명시하고, 내부 패키지들(`core` / `guardrail` / `rule-sdk`)은 이를 `peerDependencies`로 요구합니다. 이 구조로 npm/pnpm/yarn 모두 사용자 root에 **단일 native instance**를 hoist 합니다.
+
+왜 필요한지: alpha.4까지는 각 패키지가 `tree-sitter`를 nested로 install했고, `tree-sitter-typescript`의 `peerOptional ^0.21` 때문에 npm이 root에 별개 사본을 hoist해 V8 isolate에 native binding이 여러 개 공존했습니다. typescript grammar는 cross-instance node 호출을 거부해 `.ts` 파일에서 `SyntaxNode must belong to a Tree` 에러가 났습니다 (TalkUp alpha.4 점검에서 329건 발생).
+
+**alpha.4 이하를 계속 쓰는 경우 workaround:**
+
+```json
+// package.json (npm)
+{ "overrides": { "tree-sitter": "0.22.4" } }
+
+// package.json (pnpm)
+{ "pnpm": { "overrides": { "tree-sitter": "0.22.4" } } }
+
+// package.json (yarn)
+{ "resolutions": { "tree-sitter": "0.22.4" } }
+```
+
+후 `npm install` (또는 `pnpm install` / `yarn`). single instance가 강제되어 동일한 효과.
+
+---
+
 ## 패키지 5종 (npm `@aicqtools` 스코프)
 
 | 패키지 | 용도 |

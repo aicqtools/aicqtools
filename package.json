@@ -29,6 +29,9 @@
       "tree-sitter-javascript",
       "better-sqlite3",
       "esbuild"
-    ]
+    ],
+    "overrides": {
+      "tree-sitter": "~0.22.4"
+    }
   }
 }

@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/cli",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.5",
   "type": "module",
   "description": "aicq command-line interface — `aicq check`, `aicq mcp`, `aicq sync-ai-rules`, `aicq provenance`, `aicq docs build`.",
   "keywords": [
@@ -49,7 +49,10 @@
     "@aicqtools/provenance": "workspace:*",
     "@aicqtools/rule-sdk": "workspace:*",
     "commander": "^12.1.0",
-    "picocolors": "^1.1.1"
+    "picocolors": "^1.1.1",
+    "tree-sitter": "~0.22.4",
+    "tree-sitter-python": "~0.23.6",
+    "tree-sitter-typescript": "~0.23.2"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

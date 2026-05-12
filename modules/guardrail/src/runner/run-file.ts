@@ -28,7 +28,23 @@ export function runFileWithSource(
   const diagnostics: Diagnostic[] = [];
   const run = { filePath, source, language, diagnostics };
   for (const rule of rules) {
-    runRule(rule, run, tree);
+    try {
+      runRule(rule, run, tree);
+    } catch (err) {
+      diagnostics.push(ruleFailedDiagnostic(filePath, rule.id, err));
+    }
   }
   return { filePath, language, diagnostics };
+}
+
+function ruleFailedDiagnostic(filePath: string, ruleId: string, err: unknown): Diagnostic {
+  const message = err instanceof Error ? err.message : String(err);
+  return {
+    ruleId: '@aicq/parse-failed',
+    severity: 'warning',
+    message: `parser failed in rule ${ruleId}: ${message}`,
+    messageKo: `파서 실패 (룰 ${ruleId}): ${message}`,
+    file: filePath,
+    range: { start: { line: 1, column: 1 }, end: { line: 1, column: 1 } },
+  };
 }

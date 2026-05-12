@@ -38,6 +38,13 @@ jobs:
           node e2e/large-file-fixture/verify.mjs
         # Hard gate — this regression must never come back. No continue-on-error.
 
+      - name: Regression — install isolation (single tree-sitter native copy)
+        run: |
+          mkdir -p /tmp/aicq-tarballs
+          pnpm -r pack --pack-destination /tmp/aicq-tarballs
+          node e2e/install-isolation/run-bisect.mjs /tmp/aicq-tarballs
+        # Hard gate — alpha.4's multi-instance regression must never come back.
+
       - name: Run aicq check on talkup-mirror
         working-directory: examples/talkup-mirror
         run: node ../../packages/cli/dist/bin.js check --locale ko --no-cache

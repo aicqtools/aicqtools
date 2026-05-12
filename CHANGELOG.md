@@ -14,6 +14,38 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ---
 
+## [v1.0.0-alpha.5] - 2026-05-12
+
+Hotfix on top of alpha.4 that resolves the multi-`tree-sitter` native-instance collision uncovered by the TalkUp alpha.4 dogfood. alpha.4 dist code is unchanged in alpha.5 — only `package.json` dependency structure and a small diagnostic improvement.
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.5
+- `@aicqtools/rule-sdk` 1.0.0-alpha.5
+- `@aicqtools/guardrail` 1.0.0-alpha.5
+- `@aicqtools/provenance` 1.0.0-alpha.5
+- `@aicqtools/cli` 1.0.0-alpha.5
+
+### Fixed
+- **`parser failed: SyntaxNode must belong to a Tree` (.ts files only, YAML pattern rules)** — when `@aicqtools/cli` was installed into a non-pnpm-workspace project, npm's peer-resolution logic hoisted `tree-sitter@0.21.1` to the user root (to satisfy `tree-sitter-typescript`'s `peerOptional ^0.21`) while each aicq package nested its own `tree-sitter@0.22.4`. Up to four native binding instances coexisted in the same V8 isolate; the `Parser.Tree` created by `@aicqtools/core` and the `Parser.Query` constructed inside `@aicqtools/guardrail` came from different instances, and typescript-grammar's strict node identity check rejected the cross-instance call. TalkUp's alpha.4 scan surfaced 329 occurrences across 3 modules (admin 70 / frontend 219 / backend 40, all `.ts`). Fixed by promoting `tree-sitter` / `tree-sitter-typescript` / `tree-sitter-python` to `peerDependencies` in `@aicqtools/core`, `@aicqtools/guardrail`, `@aicqtools/rule-sdk`, and declaring them as direct `dependencies` of `@aicqtools/cli` so the user-facing install hoists a single shared copy.
+- **`@aicq/parse-failed` warning now names the offending rule** — rule-level `try/catch` was added in `runFileWithSource`, so a single misbehaving rule no longer hides as `parser failed: ...`. Messages read `parser failed in rule <ruleId>: <cause>` (Korean: `파서 실패 (룰 <ruleId>): <cause>`). The file-level parse path keeps the prior wording with a `during file parse` qualifier.
+
+### Changed
+- `@aicqtools/core`, `@aicqtools/guardrail`, `@aicqtools/rule-sdk`: tree-sitter native deps moved from `dependencies` to `peerDependencies` (non-optional). All three publish `peerDependenciesMeta` with `optional: false` to make the requirement explicit.
+- `@aicqtools/cli`: `tree-sitter`, `tree-sitter-typescript`, `tree-sitter-python` added as direct `dependencies` so end-user `npm i @aicqtools/cli` / `pnpm add @aicqtools/cli` auto-hoists a single shared instance without manual user action.
+- Workspace root `package.json` adds `pnpm.overrides.tree-sitter: ~0.22.4` to enforce single `tree-sitter@0.22.4` resolution during local dev / CI.
+
+### Added
+- `e2e/install-isolation/run-bisect.mjs` + `README.md` — CI hard-gate that `npm install`s the freshly packed CLI into a clean tempdir, asserts exactly one `tree-sitter` package copy is hoisted, and runs the 4-YAML-rule bisect on a synthetic `.ts` source to confirm zero `@aicq/parse-failed`. Wired into `.github/workflows/aicq-check.yml`.
+- `modules/guardrail/src/__tests__/runner.test.ts` — rule-level error isolation describe block (D-axis), confirming a single broken rule emits `@aicq/parse-failed` with the offending ruleId embedded and other rules keep running.
+
+### Investigation notes
+The first alpha.5 hypothesis ("parseSource Parser lifetime / loadLanguage double-lookup") was disproved by a five-stage reproducer chain: a synthetic probe passed 40/40, real TalkUp `.ts` files passed 32/32 with direct tree-sitter calls, an aicq-call-sequence verbatim mimic passed 24/24, and only the aicq dist path under the alpha.4 install layout failed — narrowing the defect to native instance multiplicity rather than code-level lifetime. The `parseSource` API and `runRule` signature are unchanged in alpha.5. See `~/.claude/plans/aicqtools-alpha4-bug-yaml-rules-ts.md` §5.5 for the full chain.
+
+### Workaround for users still on alpha.4
+Add `"overrides": { "tree-sitter": "0.22.4" }` to your project's root `package.json` (pnpm: `"pnpm": { "overrides": { ... } }`, yarn: `"resolutions"`), then reinstall. Verified to produce the same single-instance result as the alpha.5 fix.
+
+---
+
 ## [v1.0.0-alpha.4] - 2026-05-12
 
 Hotfix on top of alpha.3 that resolves both known limitations called out in the alpha.3 release notes.
@@ -212,7 +244,8 @@ First public alpha. The guardrail engine + provenance scaffold are functional an
 - `aicq.config.yaml` rule overrides are schema-supported but the runtime override path is not yet exercised in tests.
 - npm packages are **not yet published** — install from local workspace only. Public `npm publish` is scheduled for the v1.0 release.
 
-[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.4...HEAD
+[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.5...HEAD
+[v1.0.0-alpha.5]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.5
 [v1.0.0-alpha.4]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.4
 [v1.0.0-alpha.3]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.3
 [v1.0.0-alpha.2]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.2
