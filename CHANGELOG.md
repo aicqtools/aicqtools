@@ -9,6 +9,39 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 ### Planned (Phase 1b finish ~2026-09-15)
 - Cursor SQLite-aware prompt extraction (replace current detection-only stub)
 - Rule autocrafting (analyze repo → suggest project-specific rules) — early prototype
+- Split `@aicq/parse-failed` into `@aicq/parse-failed` + `@aicq/rule-error` once enough data accumulates on which path fails more often.
+
+---
+
+## [v1.0.0-alpha.3] - 2026-05-12
+
+Hotfix release for the alpha.2 blocker that prevented `aicq check` from running on React/Next projects with files ≥ 32,768 bytes. Adds per-file isolation, regression fixtures, and a clearer CLI error path.
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.3
+- `@aicqtools/rule-sdk` 1.0.0-alpha.3
+- `@aicqtools/guardrail` 1.0.0-alpha.3
+- `@aicqtools/provenance` 1.0.0-alpha.3
+- `@aicqtools/cli` 1.0.0-alpha.3
+
+### Fixed
+- **Windows tree-sitter 32KB+ blocker** — `tree-sitter@0.21.1` Windows prebuilt native binding rejected inputs of length ≥ 2^15 with `Error: Invalid argument`, aborting whole-project checks on the first oversized file (e.g. `frontend_admin/src/components/characters/CharacterForm.tsx` at 49,961 bytes in the TalkUp case). Resolved by upgrading to `tree-sitter@~0.22.4`; the offending size threshold no longer applies.
+
+### Changed
+- **tree-sitter line unified across the workspace.** `@aicqtools/core`, `@aicqtools/guardrail`, `@aicqtools/rule-sdk` all now depend on `tree-sitter@~0.22.4` (was `~0.21.1`). `tree-sitter-python` bumped `~0.21.0` → `~0.23.6` (peer-compatible with 0.22.x). `tree-sitter-typescript@~0.23.2` unchanged (peer warning is accepted; runtime API is unchanged across 0.21→0.22).
+- **Per-file isolation in `runProject`** — a parser crash or rule throw on one file now produces a single `@aicq/parse-failed` `warning` diagnostic and the scan continues. Previously a single failure aborted the entire run. Failed files are deliberately not cached, so the next run after a fix retries them.
+- **Better CLI error context** — fatal parser failures that escape isolation now print `aicq: parser failed on <file>: <cause>` via the new `ParserError` export from `@aicqtools/core`. Localized via the new `cli.check.parserFailed` i18n key (ko/en).
+- **Docs** — Rewrote root [README.md](README.md) / [README.en.md](README.en.md) and added new [packages/cli/README.md](packages/cli/README.md) / [README.en.md](packages/cli/README.en.md) with a beginner-first "Why → What → How" structure. Glossary is now inlined (deterministic, MCP, SARIF, AI-BOM, Article 50 are defined where they first appear). (Carried from the alpha.2 Unreleased section.)
+
+### Added
+- **Large-file regression fixture** — new `e2e/large-file-fixture/` generates valid TSX/TS/Python files at 32K / 50K / 100K bytes and asserts `parseSource()` returns a clean tree without throwing.
+- **CI hard gate** — `.github/workflows/aicq-check.yml` runs the large-file regression step with no `continue-on-error`; a future tree-sitter regression on large inputs fails CI immediately.
+- **vitest large-input cases** — `parseSource` now has 12 new unit tests (typescript / tsx / javascript / python × 32K / 50K / 100K) protecting the same surface from the test side.
+- **Test coverage growth** — guardrail 127 → 130 (per-file isolation), core 27 → 41 (large inputs + SARIF + i18n), cli 0 → 3 (`ParserError` handling). Provenance 30 (2 skipped on machines without Chrome).
+
+### Internal
+- `packages/core/src/parser/tree-sitter.ts` — narrowed `loadLanguage` return type from `unknown` to `Parser.Language` to satisfy stricter 0.22.x typings.
+- `modules/provenance/src/__tests__/article-50-pdf.test.ts` — gate PDF/launch tests on a real Chrome probe (not just module presence), so dev/CI machines without browsers installed cleanly skip.
 
 ---
 
@@ -152,6 +185,7 @@ First public alpha. The guardrail engine + provenance scaffold are functional an
 - `aicq.config.yaml` rule overrides are schema-supported but the runtime override path is not yet exercised in tests.
 - npm packages are **not yet published** — install from local workspace only. Public `npm publish` is scheduled for the v1.0 release.
 
-[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.2...HEAD
+[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.3...HEAD
+[v1.0.0-alpha.3]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.3
 [v1.0.0-alpha.2]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.2
 [v1.0.0-alpha.1]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.1
