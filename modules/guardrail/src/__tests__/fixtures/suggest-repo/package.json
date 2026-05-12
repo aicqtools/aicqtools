@@ -1,0 +1,9 @@
+{
+  "name": "suggest-fixture",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "openai": "^4.0.0",
+    "axios": "^1.6.0"
+  }
+}

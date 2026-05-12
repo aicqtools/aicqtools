@@ -7,10 +7,32 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 ## [Unreleased]
 
 ### Planned (Phase 1b finish ~2026-09-15)
-- Cursor SQLite-aware prompt extraction (replace current detection-only stub)
-- Rule autocrafting (analyze repo → suggest project-specific rules) — early prototype
 - Split `@aicq/parse-failed` into `@aicq/parse-failed` + `@aicq/rule-error` once enough data accumulates on which path fails more often.
 - Investigate the alpha.3 TalkUp `no-magic-number` 43,716-hit surge (frontend) — likely false-positive surge that wants a tighter heuristic.
+- Cursor SQLite extraction: scope which workspace `state.vscdb` to read by matching `<hash>/workspace.json`'s `folder` URI against the cwd (currently best-effort, takes the most-recent DB regardless of project).
+- `aicq rules suggest`: pattern-mining v2 — generalize literal arguments, dedupe near-equivalent shapes, optionally re-evaluate the user's own `rulesDir` rules.
+
+---
+
+## [v1.0.0-alpha.6] - 2026-05-12
+
+Phase 1b feature drop: the two remaining `Planned (Phase 1b finish)` items land — Cursor `state.vscdb` prompt extraction and the `aicq rules suggest` rule-autocrafting prototype. No fixes to alpha.5; this is purely additive.
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.6
+- `@aicqtools/rule-sdk` 1.0.0-alpha.6
+- `@aicqtools/guardrail` 1.0.0-alpha.6
+- `@aicqtools/provenance` 1.0.0-alpha.6
+- `@aicqtools/cli` 1.0.0-alpha.6
+
+### Added
+- **Cursor `state.vscdb` prompt extraction (`CursorSessionReader`)** — replaces the detection-only stub. The reader opens Cursor's workspace `state.vscdb` (`ItemTable`) and global `state.vscdb` (`ItemTable` + `cursorDiskKV`) **read-only** via the `better-sqlite3` already used by `@aicqtools/core`'s incremental cache, probes the known chat-storage keys (`workbench.panel.aichat.view.aichat.chatdata`, `aiService.prompts`, `composer.composerData`, …), and normalizes four known JSON shapes (`aiService.prompts` flat list, `chatdata` tabs/bubbles, composer `conversation[]`, global `composerData:<id>` + split `bubbleId:<composerId>:<bid>` rows) into `AiSession` / `AiPromptRecord`. **Best-effort by design**: Cursor's schema shifts across versions, so any unrecognized/changed/corrupt payload degrades to the historical detection-only result (a single `cursor-detected-*` session, no prompts) and the reader **never throws** (per-file isolation policy). `aicq provenance capture --reader cursor|all` now surfaces real Cursor prompts in Article 50 / AI-BOM reports where the schema matches. (Korean: Cursor `state.vscdb`(SQLite)에서 AI 대화 → 프롬프트를 추출하도록 교체. 워크스페이스 + 글로벌 DB를 `better-sqlite3` readonly로 열어 알려진 chat key를 탐색하고 4가지 JSON shape를 정규화. 스키마 미인식·변경·손상 시 감지만 하고 절대 throw 하지 않음.)
+- **`aicq rules suggest` — rule-autocrafting early prototype.** Scans the repo with all built-in rules (reusing the same `runProject` scan and `.aicq/cache.sqlite` cache as `aicq check`), ranks them by how many violations they would flag, and prints a paste-ready `aicq.config.yaml` enable-snippet plus 1–2 sample violation locations per rule. A "detected stack" section reads `package.json` / `requirements.txt` (no AST) and labels built-in rules whose id/docs/message mentions a declared dependency (`stack match`). With `--patterns`, it additionally mines the AST for frequently-occurring `new X(...)` / `obj.method(...)` shapes and emits **draft** tree-sitter pattern rules (`severity: info`, `message`/`messageKo` are TODO placeholders, every generated query is compiled against the grammar before being emitted) — seeds a human edits, not finished rules. Output formats: `text` (default, human summary), `json` (`RuleSuggestionReport`), `yaml` (config snippet + draft rules). Options: `--top`, `--min-hits`, `--patterns`, `--min-pattern-count`, `--no-cache`, `--locale`, `-o/--output`. The command is advisory — it never enables rules or writes to `aicq.config.yaml` itself. New i18n keys `cli.rules.suggest.*` (ko/en). New `@aicqtools/guardrail` exports: `analyzeRepo`, `minePatterns`, `buildConfigSnippet`, `formatSuggestText`, `formatSuggestYaml` + their report types. (Korean: 저장소를 내장 룰로 스캔해 적중 순으로 순위 + 붙여넣기용 config 스니펫 + 샘플 위치를 출력하고, `package.json`/`requirements.txt` 의존성을 감지해 스택 매치 룰을 표시. `--patterns`로 AST 패턴을 채굴해 tree-sitter query YAML 룰 초안을 생성 — 사람이 다듬는 씨앗. 어떤 룰도 자동 활성화하지 않음.)
+- Test coverage: provenance `session-readers.test.ts` gains SQLite-fixture cases for the new reader (`ItemTable` chatdata, `aiService.prompts`, broken-payload fallback, global `cursorDiskKV` inline + split-bubble) plus `getCursorGlobalStorageDir`; new `modules/guardrail/src/__tests__/suggest.test.ts` (analyzeRepo ranking + stack detection + top/minHits, minePatterns drafting + minCount, formatters) with a `fixtures/suggest-repo/` mixed TS+Python fixture; new `packages/cli/src/__tests__/rules-suggest.test.ts` (exit code, text/json/yaml output, `--output` file write).
+
+### Changed
+- `@aicqtools/provenance` adds `better-sqlite3` (`^11.7.0`, the same pin `@aicqtools/core` already ships) as a direct dependency + `@types/better-sqlite3` as a dev dependency. No root `pnpm.onlyBuiltDependencies` change — `better-sqlite3` is already listed.
+- `@aicqtools/provenance` now publicly exports `getCursorGlobalStorageDir` and `normalizeCursorChat` alongside the existing `getCursorWorkspaceStorageDir` / `CursorSessionReader`.
 
 ---
 
@@ -244,7 +266,8 @@ First public alpha. The guardrail engine + provenance scaffold are functional an
 - `aicq.config.yaml` rule overrides are schema-supported but the runtime override path is not yet exercised in tests.
 - npm packages are **not yet published** — install from local workspace only. Public `npm publish` is scheduled for the v1.0 release.
 
-[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.5...HEAD
+[Unreleased]: https://github.com/aicqtools/aicqtools/compare/v1.0.0-alpha.6...HEAD
+[v1.0.0-alpha.6]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.6
 [v1.0.0-alpha.5]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.5
 [v1.0.0-alpha.4]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.4
 [v1.0.0-alpha.3]: https://github.com/aicqtools/aicqtools/releases/tag/v1.0.0-alpha.3

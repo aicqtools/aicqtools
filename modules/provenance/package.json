@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/provenance",
-  "version": "1.0.0-alpha.5",
+  "version": "1.0.0-alpha.6",
   "type": "module",
   "description": "AI code provenance tracker — Git pre-commit capture, CycloneDX 1.6 AI-BOM emitter, EU AI Act Article 50 reporter.",
   "keywords": [
@@ -43,7 +43,8 @@
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
-    "@aicqtools/core": "workspace:*"
+    "@aicqtools/core": "workspace:*",
+    "better-sqlite3": "^11.7.0"
   },
   "peerDependencies": {
     "puppeteer": ">=22.0.0"
@@ -54,6 +55,7 @@
     }
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
     "@types/node": "^22.10.0",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"

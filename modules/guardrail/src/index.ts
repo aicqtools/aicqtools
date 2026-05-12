@@ -35,6 +35,18 @@ export type { RenderOptions, SyncOptions, SyncTarget } from './sync/index.js';
 
 export { renderRuleMarkdown, renderRulesIndex, buildRuleDocs } from './docs/index.js';
 export type { BuildDocsOptions, BuildDocsResult } from './docs/index.js';
+
+export { analyzeRepo, minePatterns, buildConfigSnippet, formatSuggestText, formatSuggestYaml } from './suggest/index.js';
+export type {
+  AnalyzeRepoOptions,
+  DependencySource,
+  DetectedDependency,
+  MinePatternsOptions,
+  PatternRuleDraft,
+  RuleSuggestion,
+  RuleSuggestionReport,
+  SuggestSampleLocation,
+} from './suggest/index.js';
 export type {
   BuildMcpServerOptions,
   CheckSnippetInput,

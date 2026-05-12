@@ -147,5 +147,54 @@ export function buildProgram(): Command {
       process.exit(code);
     });
 
+  const rules = program
+    .command('rules')
+    .description('Rule analysis and suggestion commands');
+
+  rules
+    .command('suggest')
+    .description('Analyze the repo and suggest project-specific rules (early prototype)')
+    .option('-C, --cwd <path>', 'project root', process.cwd())
+    .option('-f, --format <format>', 'output format (text|json|yaml)', 'text')
+    .option('-o, --output <path>', 'write report to file instead of stdout')
+    .option('--locale <locale>', 'message locale (ko|en)')
+    .option('--top <n>', 'max rule suggestions', '10')
+    .option('--min-hits <n>', 'minimum violations for a rule to be suggested', '1')
+    .option('--patterns', 'also mine AST patterns into draft YAML pattern rules')
+    .option('--min-pattern-count <n>', 'minimum occurrences for a mined pattern', '5')
+    .option('--no-cache', 'disable incremental sqlite cache')
+    .action(
+      async (opts: {
+        cwd: string;
+        format: string;
+        output?: string;
+        locale?: string;
+        top: string;
+        minHits: string;
+        patterns?: boolean;
+        minPatternCount: string;
+        cache: boolean;
+      }) => {
+        const { runRulesSuggest } = await import('./commands/rules-suggest.js');
+        const format = (['text', 'json', 'yaml'] as const).find((f) => f === opts.format) ?? 'text';
+        const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
+        const top = Number.parseInt(opts.top, 10);
+        const minHits = Number.parseInt(opts.minHits, 10);
+        const minPatternCount = Number.parseInt(opts.minPatternCount, 10);
+        const code = await runRulesSuggest({
+          cwd: opts.cwd,
+          format,
+          ...(opts.output !== undefined ? { output: opts.output } : {}),
+          ...(locale !== undefined ? { locale } : {}),
+          ...(Number.isFinite(top) ? { top } : {}),
+          ...(Number.isFinite(minHits) ? { minHits } : {}),
+          ...(opts.patterns ? { patterns: true } : {}),
+          ...(Number.isFinite(minPatternCount) ? { minPatternCount } : {}),
+          cache: opts.cache,
+        });
+        process.exit(code);
+      },
+    );
+
   return program;
 }
