@@ -4,126 +4,130 @@
 
 </div>
 
-# AICQ Tools — AI 코드 품질 플랫폼 *(작업명)*
+# aicqtools
 
-> AI 바이브코딩으로 생성된 코드를 **결정론적**으로 검증하는 통합 코드 품질 플랫폼. 가드레일 엔진, 출처 추적기, 의존성 검증기를 단일 모노레포로 운영합니다.
+> **AI가 만든 코드를 결정론적으로 검증하는 코드 품질 도구.**
+> 가드레일 룰 50개 + AI 출처 추적 + EU AI Act Article 50 리포트를 한 번에.
 
+[![npm](https://img.shields.io/npm/v/@aicqtools/cli/alpha.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status: Phase 1a alpha](https://img.shields.io/badge/status-Phase_1a_alpha-orange.svg)]()
+[![Status](https://img.shields.io/badge/status-v1.0.0--alpha.2-orange.svg)](CHANGELOG.md)
 
-> 통합 브랜드는 Phase 5(2026-Q4)에 결정합니다. 그전까지 임시 organization/scope 명 **`aicqtools`** 사용. 사용자 직면 인터페이스(`aicq` CLI 명령, `aicq.config.yaml`, `aicq/rules/`)는 그대로 유지합니다.
+> **결정론적**(deterministic) — LLM 호출 없이 같은 입력에 항상 같은 결과를 내는 방식. Codacy/Greptile 같은 확률적 도구와 반대로 CI에서 안정적으로 동작합니다.
 
-## ✨ 핵심 차별화
+---
 
-1. **결정론적 검증** — LLM 호출 없이 100% 통과/실패 판정 (Codacy/Greptile은 확률적)
-2. **MCP 네이티브** — Claude Code/Cursor MCP 서버로 통합, AI가 코드를 만들기 **전** prompt 시점에 차단
-3. **AI 에이전트 룰 자동 동기화** — `.cursorrules`/`CLAUDE.md`에 위반 컨텍스트 자동 주입
-4. **하이브리드 룰 UX** — 간단=YAML, 복잡=JS/TS 함수
-5. **한국 도메인 룰셋** — 금감원 AI 가이드라인·PCI DSS·한국 IT 컨벤션을 처음부터 번들 (글로벌 도구 미진입 영역)
-6. **Repo당 과금** — Team Pro ₩29,000/repo·월 (Semgrep $35×N과 비교)
+## 왜 만들었나
 
-## 📦 모듈 / 패키지
+AI 어시스턴트(Claude Code · Cursor · Copilot)가 만든 코드는 문법은 맞아도 **회사 정책 · 법규 · 도메인 규칙을 반복적으로 위반**합니다. 이 격차를 메우는 게 aicqtools의 목적입니다.
 
-| 모듈 | 상태 | 설명 |
-|------|------|------|
-| `modules/guardrail` | Phase 1a alpha | 결정론적 룰 엔진 (YAML + JS/TS 함수, 37개 빌트인) |
-| `modules/provenance` | Phase 1a PoC | AI 코드 출처 추적기 (EU AI Act 대응) |
-| `modules/supply-chain` | placeholder | 의존성 신뢰도 검증 (Phase 4) |
+### 1. AI 바이브코딩의 반복 패턴
+ESLint는 일반적인 패턴은 잡지만 *"이 회사는 LLM 클라이언트를 항상 싱글톤으로 만든다"* 같은 프로젝트 고유 규칙은 못 잡습니다. aicqtools는 한국 SaaS 프로덕션 모노레포(TalkUp, 205,069 LOC)를 도그푸딩(자기 도구로 자기 코드 검사)해 추출한 7개 패턴을 시작점으로 50개 룰을 제공합니다.
 
-| 패키지 | 설명 |
-|--------|------|
-| `packages/core` | tree-sitter 파서·sqlite 캐시·리포터·설정·i18n (3개 모듈 공유) |
-| `packages/rule-sdk` | 사용자 룰 작성 SDK (`defineRule()`) |
-| `packages/cli` | 통합 CLI (`aicq check` / `provenance` / `mcp` / `sync-ai-rules` / `docs build`) |
-| `packages/action` | GitHub Action (Composite, PR 자동 검증) |
+### 2. 한국 도메인 룰 부재
+Codacy · Semgrep · SonarQube 같은 글로벌 도구는 글로벌 IT 관례만 다룹니다. 한국 핀테크/스타트업이 필요한 영역은 비어 있습니다:
+- **금감원 AI 가이드라인** — 개인정보 마스킹, AI 의사결정 감사 로그, 모델 버전 추적
+- **PCI DSS** — 카드번호 평문 금지, 결제 멱등성(idempotency) 강제, TLS 1.2+
+- **한국 IT 컨벤션** — KST 타임존 명시, 원화 천단위 콤마, RFC 5987 한글 파일명, Naver/Kakao OAuth WebView 패턴
 
-## 🚀 빠른 시작
+aicqtools는 이 20개 한국 도메인 룰을 처음부터 번들링합니다.
 
-### 모노레포 자체 빌드
+### 3. EU AI Act Article 50 — 시행 D-3개월
+**2026-08-02부터** EU에 서비스하는 모든 AI 시스템은 학습 데이터 · 모델 · 운영자 정보를 **기계 가독 형식으로 문서화**해야 합니다. 한국 스타트업도 EU 진출 시 의무 적용. aicqtools는 Claude Code/Cursor 세션을 자동 감지해 AI-BOM(AI Bill of Materials — 사용된 모델/버전/라이선스 명세서, CycloneDX 1.6 포맷)과 Article 50 리포트(HTML/PDF)를 자동 생성합니다.
+
+---
+
+## 무엇이 들어있나
+
+### 가드레일 50개 룰
+
+| 카테고리 | 룰 수 | 예시 |
+|---------|------|------|
+| TypeScript / JavaScript 글로벌 | 12 | `no-direct-anthropic`, `no-process-env-leak`, `route-needs-auth` |
+| Python 글로벌 | 10 | `requests-needs-timeout`, `no-pickle`, `no-fstring-sql` |
+| 한국 IT 컨벤션 | 7 | `explicit-kst-timezone`, `won-format-thousands`, `rfc5987-korean-filename` |
+| 금감원 AI 가이드라인 | 5 | `mask-pii-in-ai-prompt`, `audit-log-ai-decision`, `track-ai-model-version` |
+| PCI DSS | 8 | `no-plain-card-number`, `mask-card-number`, `require-tls-1-2-plus` |
+| 코드베이스 도그푸드 | 8 | `no-console-log`, `api-response-shape`, `controller-needs-async-wrapper` |
+
+10,000줄 모노레포 첫 검사 **3초**, SQLite 캐시 히트 후 **20ms**(150배 속도).
+
+### AI 출처 추적
+
+`aicq provenance capture`가 Git staged 변경과 활성 AI 세션을 함께 기록합니다.
+- **Claude Code 네이티브 리더** — `~/.claude/projects/<encoded-cwd>/*.jsonl` 파싱, 사용 모델까지 추출
+- **Cursor 감지 리더** — `state.vscdb`로 Cursor 사용 여부 확인 (전체 프롬프트 추출은 v1.0 stable에서)
+- **수동 모드** — `.aicq/sessions.json`에 직접 기록
+
+### 컴플라이언스 리포트
+
+EU AI Act Article 50 양식(한국어/영어 이중) HTML, PDF(puppeteer 옵션 peer), AI-BOM(CycloneDX 1.6 JSON) 포맷을 동일 캡처 데이터에서 렌더링합니다.
+
+---
+
+## 5분 quickstart
 
 ```bash
-pnpm install
-pnpm build
-pnpm test
-```
+# 1. 설치 — 대부분 이 패키지 하나면 충분합니다
+npm install --save-dev @aicqtools/cli
 
-### 사용자 프로젝트에 통합
-
-```bash
-# 1. 사용자 프로젝트에서 (workspace 외부, npm publish 후)
-pnpm add -D @aicqtools/cli
-
-# 2. 검사 실행
+# 2. 첫 검사
 npx aicq check --locale ko
+# 출력 예시:
+# ✗ src/routes/api.ts:42  no-console-log  warning
+#   → 프로덕션 코드에서 console.log 사용을 피하세요. logger를 쓰세요.
+# ✗ src/db/schema.ts:18   no-plain-card-number  error
+#   → 평문 card_number 컬럼은 _encrypted 접미사가 필요합니다 (PCI DSS § 3.5.1).
 
-# 3. AI 에이전트 룰 자동 동기화
+# 3. AI 에이전트에 룰 자동 주입
 npx aicq sync-ai-rules --locale ko
-# → .cursorrules / CLAUDE.md에 37개 룰 주입
+# → .cursorrules / CLAUDE.md 가 50개 룰 요약으로 갱신됨
+# → Claude Code/Cursor가 다음 코드 생성 시 이 컨텍스트를 사용
 
-# 4. 룰 docs 생성
-npx aicq docs build --out aicq-docs
+# 4. (선택) AI 세션 기록 — EU AI Act 대비
+npx aicq provenance capture --reader claude-code
 ```
 
-## 🛠️ CI / pre-commit 통합
+CI(GitHub Actions) 통합은 [packages/action/README.md](packages/action/README.md), pre-commit 훅은 [docs/pre-commit-setup.md](docs/pre-commit-setup.md), MCP(Model Context Protocol — Claude Code/Cursor가 외부 도구를 호출하는 표준) 등록은 [docs/mcp-claude-code-setup.md](docs/mcp-claude-code-setup.md)를 참고하세요.
 
-### GitHub Action (PR 자동 검사)
+---
 
-`.github/workflows/aicq-check.yml`:
+## 패키지 5종 (npm `@aicqtools` 스코프)
 
-```yaml
-name: AICQ check
-on: [pull_request, push]
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aicqtools/aicqtools/packages/action@main
-        with:
-          locale: ko
-```
+| 패키지 | 용도 |
+|--------|------|
+| [`@aicqtools/cli`](packages/cli) | `aicq` 바이너리 — 사용자가 실제로 설치하는 패키지 |
+| [`@aicqtools/guardrail`](modules/guardrail) | 룰 엔진 + 50개 빌트인 룰 |
+| [`@aicqtools/provenance`](modules/provenance) | AI 세션 리더 + Article 50 / AI-BOM 렌더러 |
+| [`@aicqtools/rule-sdk`](packages/rule-sdk) | 커스텀 룰 작성용 `defineRule()` 헬퍼 (ESLint의 `RuleCreate`와 비슷) |
+| [`@aicqtools/core`](packages/core) | tree-sitter 파서 · SQLite 증분 캐시 · SARIF(Static Analysis Results Interchange Format — 정적 분석 결과 산업 표준 JSON) 리포터 · i18n |
 
-자세한 옵션: [packages/action/README.md](packages/action/README.md)
+대부분 사용자는 **`@aicqtools/cli` 하나만 설치**하면 됩니다. 나머지는 자동으로 의존성으로 끌려옵니다.
 
-### pre-commit (husky)
+---
 
-```bash
-pnpm add -D husky
-pnpm exec husky init
-echo 'npx aicq check' > .husky/pre-commit
-```
+## 더 알아보기
 
-husky/lefthook 양쪽 가이드: [docs/pre-commit-setup.md](docs/pre-commit-setup.md)
+- **GitHub Action**(PR 자동 검사) — [packages/action/README.md](packages/action/README.md)
+- **MCP 등록** — [docs/mcp-claude-code-setup.md](docs/mcp-claude-code-setup.md)
+- **PDF 리포트 설정** — [docs/pdf-rendering.md](docs/pdf-rendering.md)
+- **사례 연구**(TalkUp 205K LOC) — [docs/case-studies/talkup-30k.md](docs/case-studies/talkup-30k.md)
+- **EU AI Act 데이터 요건** — [docs/eu-ai-act-data-requirements.md](docs/eu-ai-act-data-requirements.md)
+- **변경 이력** — [CHANGELOG.md](CHANGELOG.md)
 
-### MCP 서버 (Claude Code / Cursor)
+---
 
-```bash
-claude mcp add --transport stdio aicq -- node /path/to/aicqtools/packages/cli/dist/bin.js mcp
-```
+## 로드맵
 
-자세한 안내: [docs/mcp-claude-code-setup.md](docs/mcp-claude-code-setup.md)
+| 시기 | 마일스톤 |
+|------|---------|
+| **2026-05 (현재)** | v1.0.0-alpha.2 — 50 룰, MCP, Article 50 HTML/PDF |
+| 2026-08-01 | v1.0 stable — EU AI Act 시행일 직전 |
+| 2026-09-15 | Phase 1b 완료 — Cursor SQLite 추출, 룰 자동작성 프로토타입 |
+| 2026-10-27 | v1.5 SaaS 베타 — 대시보드, PR 자동 코멘트 |
 
-## 📋 빌트인 룰셋 (37개)
+---
 
-- **TypeScript / JavaScript 글로벌 (20개)** — LLM 클라이언트 싱글톤, API 응답 형식, 라우트 미들웨어, 에러 처리, 환경변수 누설 방지 등
-- **Python 글로벌 (10개)** — requests timeout, pickle 금지, f-string SQL 차단, mutable default argument 등
-- **한국 IT 컨벤션 (7개)** — Sequelize migration camelCase, KST 타임존, 원화 포맷, RFC 5987 한글 파일명, Naver/Kakao OAuth WebView 패턴 등
+## 라이선스 / 기여
 
-전체 목록: `aicq docs build` 후 `aicq-docs/rules/ko/index.md` 참조.
-
-## 🗺️ 로드맵
-
-| Phase | 시기 | 핵심 |
-|-------|------|------|
-| **Phase 1a** | ~2026-08-01 | EU AI Act 시한 직전 v1.0 압축 출시 (37 룰 + MCP 알파 + 출처 추적기 PoC) |
-| **Phase 1b** | ~2026-09-15 | 금감원/PCI 13개 추가 → 50 룰, 출처 추적기 알파 |
-| **Phase 2** | ~2026-10-27 | v1.5 클라우드 SaaS 베타 (대시보드·PR 코멘트·Stripe) |
-| **Phase 3** | 6~9개월차 | 통합 플랫폼 정식 출시 + IDE 확장 |
-
-## 📜 라이선스
-
-MIT — [LICENSE](LICENSE) 참조.
-
-## 🤝 기여
-
-`CONTRIBUTING.md` (예정). 버그 제보·룰 PR 환영합니다.
+MIT — [LICENSE](LICENSE). 버그 제보 · 룰 PR 환영합니다. 기여 가이드는 추후 `CONTRIBUTING.md`로 추가 예정.

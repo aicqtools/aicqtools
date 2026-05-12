@@ -4,126 +4,130 @@
 
 </div>
 
-# AICQ Tools — AI Code Quality Platform *(working name)*
+# aicqtools
 
-> A unified code-quality platform that **deterministically** validates AI-generated code. Guardrail engine, provenance tracker, and supply-chain validator in a single monorepo.
+> **A code-quality tool that deterministically validates AI-generated code.**
+> 50 guardrail rules + AI provenance tracking + EU AI Act Article 50 reports — all in one CLI.
 
+[![npm](https://img.shields.io/npm/v/@aicqtools/cli/alpha.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status: Phase 1a alpha](https://img.shields.io/badge/status-Phase_1a_alpha-orange.svg)]()
+[![Status](https://img.shields.io/badge/status-v1.0.0--alpha.2-orange.svg)](CHANGELOG.md)
 
-> The unified brand will be decided in Phase 5 (2026-Q4). Until then, the temporary organization/scope name **`aicqtools`** is used. User-facing surfaces (`aicq` CLI command, `aicq.config.yaml`, `aicq/rules/`) remain stable.
+> **Deterministic** — same input, same result, no LLM in the loop. Unlike probabilistic tools (Codacy, Greptile), CI runs are stable and auditable.
 
-## ✨ What sets us apart
+---
 
-1. **Deterministic checks** — 100% pass/fail without an LLM call (Codacy/Greptile are probabilistic)
-2. **MCP-native** — Claude Code/Cursor MCP server integration; block AI **before** it generates the violating code, at prompt time
-3. **AI-agent rule auto-sync** — auto-injects violation context into `.cursorrules`/`CLAUDE.md`
-4. **Hybrid rule UX** — YAML for simple patterns, JS/TS functions for complex
-5. **Korean domain ruleset bundled** — FSC AI guidelines, PCI DSS, Korean IT conventions out of the box (a gap global tools don't fill)
-6. **Per-repo pricing** — Team Pro $19/repo/month (vs Semgrep $35×N seats)
+## Why
 
-## 📦 Modules / Packages
+Code from AI assistants (Claude Code, Cursor, Copilot) compiles fine but routinely violates **company policy, regulation, and domain rules**. aicqtools fills the gap left by general-purpose linters.
 
-| Module | Status | Purpose |
-|--------|--------|---------|
-| `modules/guardrail` | Phase 1a alpha | Deterministic rule engine (YAML + JS/TS, 37 built-in rules) |
-| `modules/provenance` | Phase 1a PoC | AI code provenance tracker (EU AI Act readiness) |
-| `modules/supply-chain` | placeholder | Dependency trust validator (Phase 4) |
+### 1. AI vibe-coding repeats the same mistakes
+ESLint catches generic patterns but misses *"in this company every LLM client must be a singleton"*. aicqtools starts from 7 patterns extracted by dogfooding (running our own tool on our own code) on a Korean SaaS production monorepo (TalkUp, 205,069 LOC) and ships 50 rules total.
+
+### 2. Korean-domain coverage that global tools skip
+Codacy, Semgrep, SonarQube only cover global IT conventions. The compliance and convention rules Korean fintech/startups actually need are missing:
+- **FSC AI guidelines** — PII masking, audit logs for AI decisions, model-version tracking
+- **PCI DSS** — no plaintext card numbers, payment idempotency, TLS 1.2+
+- **Korean IT conventions** — explicit KST timezone, won-amount thousands separator, RFC 5987 Korean filenames, Naver/Kakao OAuth WebView quirks
+
+aicqtools bundles 20 of these Korean-domain rules from day one — useful even outside Korea when you need to handle PCI DSS or audit AI decision-making.
+
+### 3. EU AI Act Article 50 — 3 months out
+**Effective 2026-08-02**, every AI system serving the EU must document training data, models, and operators in machine-readable form. Korean (and other non-EU) startups expanding to EU are in scope. aicqtools auto-detects Claude Code/Cursor sessions and renders an AI-BOM (AI Bill of Materials — model/version/license manifest, CycloneDX 1.6 JSON) plus an Article 50 report (HTML or PDF).
+
+---
+
+## What's inside
+
+### Guardrail — 50 deterministic rules
+
+| Category | Count | Examples |
+|---------|-------|----------|
+| TypeScript / JavaScript global | 12 | `no-direct-anthropic`, `no-process-env-leak`, `route-needs-auth` |
+| Python global | 10 | `requests-needs-timeout`, `no-pickle`, `no-fstring-sql` |
+| Korean IT conventions | 7 | `explicit-kst-timezone`, `won-format-thousands`, `rfc5987-korean-filename` |
+| FSC AI guidelines | 5 | `mask-pii-in-ai-prompt`, `audit-log-ai-decision`, `track-ai-model-version` |
+| PCI DSS | 8 | `no-plain-card-number`, `mask-card-number`, `require-tls-1-2-plus` |
+| Codebase dogfood | 8 | `no-console-log`, `api-response-shape`, `controller-needs-async-wrapper` |
+
+10K-LOC monorepo cold scan: **3 seconds**. SQLite-cached scan: **20 ms** (150× speedup).
+
+### AI provenance tracking
+
+`aicq provenance capture` records git-staged changes alongside the active AI session.
+- **Claude Code native reader** — parses `~/.claude/projects/<encoded-cwd>/*.jsonl`, extracts the model used
+- **Cursor detection reader** — checks `state.vscdb` for Cursor activity (full prompt extraction lands in v1.0 stable once the schema is finalized)
+- **Manual mode** — record into `.aicq/sessions.json` yourself
+
+### Compliance reports
+
+EU AI Act Article 50 forms in Korean/English bilingual HTML, PDF (`puppeteer` optional peer), or AI-BOM (CycloneDX 1.6 JSON) — all rendered from the same capture.
+
+---
+
+## 5-minute quickstart
+
+```bash
+# 1. Install — this one package is enough for most users
+npm install --save-dev @aicqtools/cli
+
+# 2. First check
+npx aicq check --locale en
+# Sample output:
+# ✗ src/routes/api.ts:42  no-console-log  warning
+#   → Avoid console.log in production code. Use a logger.
+# ✗ src/db/schema.ts:18   no-plain-card-number  error
+#   → Plaintext card_number column needs an _encrypted suffix (PCI DSS § 3.5.1).
+
+# 3. Inject rules into your AI agents
+npx aicq sync-ai-rules --locale en
+# → .cursorrules / CLAUDE.md refreshed with the 50-rule summary
+# → Claude Code/Cursor pick this context up on the next generation
+
+# 4. (Optional) Capture an AI session — Article 50 readiness
+npx aicq provenance capture --reader claude-code
+```
+
+CI (GitHub Actions): [packages/action/README.md](packages/action/README.md). Pre-commit hooks: [docs/pre-commit-setup.md](docs/pre-commit-setup.md). MCP (Model Context Protocol — the standard Claude Code/Cursor uses to call external tools): [docs/mcp-claude-code-setup.md](docs/mcp-claude-code-setup.md).
+
+---
+
+## The 5 packages (npm `@aicqtools` scope)
 
 | Package | Purpose |
 |---------|---------|
-| `packages/core` | tree-sitter parser, sqlite cache, reporter, config, i18n (shared by all modules) |
-| `packages/rule-sdk` | User rule authoring SDK (`defineRule()`) |
-| `packages/cli` | Unified CLI (`aicq check` / `provenance` / `mcp` / `sync-ai-rules` / `docs build`) |
-| `packages/action` | GitHub Action (Composite, automatic PR checks) |
+| [`@aicqtools/cli`](packages/cli) | The `aicq` binary — what end users actually install |
+| [`@aicqtools/guardrail`](modules/guardrail) | Rule engine + the 50 built-in rules |
+| [`@aicqtools/provenance`](modules/provenance) | AI session readers + Article 50 / AI-BOM renderers |
+| [`@aicqtools/rule-sdk`](packages/rule-sdk) | `defineRule()` helper for custom rules (analogous to ESLint's `RuleCreate`) |
+| [`@aicqtools/core`](packages/core) | tree-sitter parser · SQLite incremental cache · SARIF (Static Analysis Results Interchange Format — the industry standard JSON for static-analysis findings) reporter · i18n |
 
-## 🚀 Quick start
+Most users only install **`@aicqtools/cli`**; everything else is pulled in as a dependency.
 
-### Build the monorepo itself
+---
 
-```bash
-pnpm install
-pnpm build
-pnpm test
-```
+## Learn more
 
-### Use in your own project
+- **GitHub Action** (auto-check on PR) — [packages/action/README.md](packages/action/README.md)
+- **MCP setup** — [docs/mcp-claude-code-setup.md](docs/mcp-claude-code-setup.md)
+- **PDF rendering setup** — [docs/pdf-rendering.md](docs/pdf-rendering.md)
+- **Case study** (TalkUp 205K LOC) — [docs/case-studies/talkup-30k.en.md](docs/case-studies/talkup-30k.en.md)
+- **EU AI Act data requirements** — [docs/eu-ai-act-data-requirements.md](docs/eu-ai-act-data-requirements.md)
+- **Changelog** — [CHANGELOG.md](CHANGELOG.md)
 
-```bash
-# 1. In your project (after npm publish)
-pnpm add -D @aicqtools/cli
+---
 
-# 2. Run a check
-npx aicq check --locale en
+## Roadmap
 
-# 3. Sync AI agent rules
-npx aicq sync-ai-rules --locale en
-# → injects 37 rules into .cursorrules / CLAUDE.md
+| Date | Milestone |
+|------|-----------|
+| **2026-05 (current)** | v1.0.0-alpha.2 — 50 rules, MCP, Article 50 HTML/PDF |
+| 2026-08-01 | v1.0 stable — just before EU AI Act effective date |
+| 2026-09-15 | Phase 1b complete — Cursor SQLite extraction, rule-autocrafting prototype |
+| 2026-10-27 | v1.5 SaaS beta — dashboard, PR auto-comments |
 
-# 4. Generate per-rule docs
-npx aicq docs build --out aicq-docs
-```
+---
 
-## 🛠️ CI / pre-commit integration
+## License / contributing
 
-### GitHub Action (auto-check on PR)
-
-`.github/workflows/aicq-check.yml`:
-
-```yaml
-name: AICQ check
-on: [pull_request, push]
-jobs:
-  check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aicqtools/aicqtools/packages/action@main
-        with:
-          locale: en
-```
-
-Full options: [packages/action/README.md](packages/action/README.md)
-
-### pre-commit (husky)
-
-```bash
-pnpm add -D husky
-pnpm exec husky init
-echo 'npx aicq check' > .husky/pre-commit
-```
-
-husky/lefthook walkthroughs: [docs/pre-commit-setup.md](docs/pre-commit-setup.md)
-
-### MCP server (Claude Code / Cursor)
-
-```bash
-claude mcp add --transport stdio aicq -- node /path/to/aicqtools/packages/cli/dist/bin.js mcp
-```
-
-Full guide: [docs/mcp-claude-code-setup.md](docs/mcp-claude-code-setup.md)
-
-## 📋 Built-in ruleset (37 rules)
-
-- **TypeScript / JavaScript global (20)** — LLM client singletons, API response shapes, route middleware, error handling, env-var leakage, etc.
-- **Python global (10)** — `requests` timeout, no `pickle`, no SQL via f-string, no mutable default args, etc.
-- **Korean IT conventions (7)** — camelCase Sequelize migrations, explicit KST timezone, won-amount formatting, RFC 5987 Korean filenames, Naver/Kakao OAuth WebView patterns, etc.
-
-Full list: run `aicq docs build` and open `aicq-docs/rules/en/index.md`.
-
-## 🗺️ Roadmap
-
-| Phase | Target | Highlights |
-|-------|--------|------------|
-| **Phase 1a** | ~2026-08-01 | v1.0 compressed launch right before EU AI Act effective date (37 rules + MCP alpha + provenance PoC) |
-| **Phase 1b** | ~2026-09-15 | +13 FSC/PCI rules → 50 total, provenance tracker alpha |
-| **Phase 2** | ~2026-10-27 | v1.5 cloud SaaS beta (dashboard, PR comments, Stripe) |
-| **Phase 3** | months 6–9 | Unified platform GA + IDE extension |
-
-## 📜 License
-
-MIT — see [LICENSE](LICENSE).
-
-## 🤝 Contributing
-
-`CONTRIBUTING.md` is forthcoming. Bug reports and rule PRs welcome.
+MIT — see [LICENSE](LICENSE). Bug reports and rule PRs welcome. `CONTRIBUTING.md` is forthcoming.
