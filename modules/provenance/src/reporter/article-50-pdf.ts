@@ -25,7 +25,7 @@ interface PuppeteerModule {
 
 export async function loadPuppeteer(): Promise<PuppeteerModule> {
   try {
-    // @ts-expect-error — puppeteer is an optional peer dependency, may be unresolved at type-check time
+    // @ts-ignore — puppeteer is an optional peer dependency; may or may not be resolvable at type-check time
     const mod = await import('puppeteer');
     return (mod.default ?? mod) as PuppeteerModule;
   } catch {

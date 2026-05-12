@@ -11,25 +11,32 @@ const sampleReport: Article50Report = {
   attributedFiles: ['src/index.ts'],
 };
 
-let puppeteerInstalled = false;
+let puppeteerModuleAvailable = false;
+let chromeRunnable = false;
 try {
-  await loadPuppeteer();
-  puppeteerInstalled = true;
+  const p = await loadPuppeteer();
+  puppeteerModuleAvailable = true;
+  try {
+    const browser = await p.launch({ headless: true });
+    await browser.close();
+    chromeRunnable = true;
+  } catch {
+    chromeRunnable = false;
+  }
 } catch {
-  puppeteerInstalled = false;
+  puppeteerModuleAvailable = false;
 }
 
 describe('renderArticle50Pdf', () => {
-  it('throws a friendly error when puppeteer is not installed', async () => {
-    if (puppeteerInstalled) {
-      // Skip this assertion when puppeteer is actually installed in dev environment.
-      return;
-    }
-    await expect(renderArticle50Pdf(sampleReport)).rejects.toThrow(/puppeteer is required/);
-  });
+  it.skipIf(puppeteerModuleAvailable)(
+    'throws a friendly error when puppeteer is not installed',
+    async () => {
+      await expect(renderArticle50Pdf(sampleReport)).rejects.toThrow(/puppeteer is required/);
+    },
+  );
 
-  it.skipIf(!puppeteerInstalled)(
-    'returns a non-empty PDF buffer when puppeteer is installed',
+  it.skipIf(!chromeRunnable)(
+    'returns a non-empty PDF buffer when puppeteer + Chrome are installed',
     async () => {
       const pdf = await renderArticle50Pdf(sampleReport, { locale: 'ko' });
       expect(pdf).toBeInstanceOf(Uint8Array);
@@ -45,12 +52,11 @@ describe('renderArticle50Pdf', () => {
 });
 
 describe('loadPuppeteer', () => {
-  it('exposes a launch function when puppeteer is installed', async () => {
-    if (!puppeteerInstalled) {
-      // Negative path already covered by renderArticle50Pdf above.
-      return;
-    }
-    const p = await loadPuppeteer();
-    expect(typeof p.launch).toBe('function');
-  });
+  it.skipIf(!puppeteerModuleAvailable)(
+    'exposes a launch function when puppeteer is installed',
+    async () => {
+      const p = await loadPuppeteer();
+      expect(typeof p.launch).toBe('function');
+    },
+  );
 });
