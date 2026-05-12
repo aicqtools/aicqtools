@@ -5,16 +5,16 @@ import type { Language } from '../types.js';
 
 const parserCache = new Map<Language, Parser>();
 
-function loadLanguage(lang: Language): unknown {
+function loadLanguage(lang: Language): Parser.Language {
   switch (lang) {
     case 'typescript':
-      return TypeScript.typescript;
+      return TypeScript.typescript as Parser.Language;
     case 'tsx':
-      return TypeScript.tsx;
+      return TypeScript.tsx as Parser.Language;
     case 'javascript':
-      return TypeScript.typescript;
+      return TypeScript.typescript as Parser.Language;
     case 'python':
-      return Python;
+      return Python as Parser.Language;
   }
 }
 
