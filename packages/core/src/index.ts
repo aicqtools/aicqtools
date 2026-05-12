@@ -16,3 +16,4 @@ export { FileCache, hashRulesetSignature } from './cache/index.js';
 export type { CacheKey } from './cache/index.js';
 export { t, resolveLocale, messages } from './i18n/index.js';
 export type { Locale, MessageKey } from './i18n/index.js';
+export { ParserError } from './errors.js';

@@ -18,6 +18,7 @@ export const messages = {
     'cli.provenance.notImplemented': 'provenance: not implemented yet (Phase 1a)',
     'cli.docs.generated': 'rule docs generated: {count} files in {dir}',
     'cli.error.generic': 'aicq error: {message}',
+    'cli.check.parserFailed': 'parser failed on {file}: {message}',
   },
   ko: {
     'cli.check.scanned': '파일 {files}개 검사, 위반 {violations}개, {ms}ms 소요',
@@ -29,6 +30,7 @@ export const messages = {
     'cli.provenance.notImplemented': 'provenance: 아직 미구현 (Phase 1a)',
     'cli.docs.generated': '룰 docs 생성됨: {dir}에 {count}개 파일',
     'cli.error.generic': 'aicq 오류: {message}',
+    'cli.check.parserFailed': '{file} 파서 실패: {message}',
   },
 } as const;
 

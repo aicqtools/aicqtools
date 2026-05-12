@@ -20,6 +20,12 @@ describe('t (translate)', () => {
     const out = t('en', 'cli.check.scanned', { files: 100, violations: 5, ms: 12 });
     expect(out).toBe('100 files scanned, 5 violations, 12ms');
   });
+  it('resolves cli.check.parserFailed in both locales with placeholders', () => {
+    const en = t('en', 'cli.check.parserFailed', { file: '/x/y.tsx', message: 'Invalid argument' });
+    expect(en).toBe('parser failed on /x/y.tsx: Invalid argument');
+    const ko = t('ko', 'cli.check.parserFailed', { file: '/x/y.tsx', message: 'Invalid argument' });
+    expect(ko).toBe('/x/y.tsx 파서 실패: Invalid argument');
+  });
 });
 
 describe('resolveLocale', () => {

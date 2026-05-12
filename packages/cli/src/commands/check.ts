@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
-import { FileCache, loadConfig, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
+import { FileCache, loadConfig, ParserError, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
 import { loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
 
@@ -28,6 +28,13 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   }
 
   const cache = opts.cache !== false ? new FileCache(resolve(cwd, '.aicq/cache.sqlite')) : undefined;
+
+  const locale = resolveLocale({
+    ...(opts.locale ? { override: opts.locale } : {}),
+    configLocale: config.locale,
+    env: process.env,
+  });
+
   let result;
   try {
     result = await runProject({
@@ -37,15 +44,17 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       rules,
       ...(cache ? { cache } : {}),
     });
+  } catch (err) {
+    if (err instanceof ParserError) {
+      process.stderr.write(
+        t(locale, 'cli.check.parserFailed', { file: err.filePath, message: err.cause.message }) + '\n',
+      );
+      return 2;
+    }
+    throw err;
   } finally {
     cache?.close();
   }
-
-  const locale = resolveLocale({
-    ...(opts.locale ? { override: opts.locale } : {}),
-    configLocale: config.locale,
-    env: process.env,
-  });
 
   let serialized: string;
   if (opts.format === 'json') serialized = reportJson(result);
