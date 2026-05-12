@@ -37,3 +37,33 @@ describe('parseSource', () => {
     expect(tree.rootNode.hasError).toBe(true);
   });
 });
+
+// Regression guard for the tree-sitter@0.21.1 native-binding bug that rejected
+// inputs ≥ 32,768 bytes with "Invalid argument" (TalkUp alpha.2 blocker).
+// Fixed by upgrading to tree-sitter@~0.22.4 in alpha.3.
+describe('parseSource — large inputs', () => {
+  function makeTs(bytes: number) {
+    const unit = 'const a = 1;\n';
+    return unit.repeat(Math.ceil(bytes / unit.length));
+  }
+  function makePy(bytes: number) {
+    const unit = 'x = 1\n';
+    return unit.repeat(Math.ceil(bytes / unit.length));
+  }
+  for (const lang of ['typescript', 'tsx', 'javascript'] as const) {
+    for (const bytes of [32_768, 51_200, 102_400]) {
+      it(`parses ${bytes}-byte ${lang} without throwing`, () => {
+        const tree = parseSource(lang, makeTs(bytes));
+        expect(tree.rootNode.type).toBe('program');
+        expect(tree.rootNode.hasError).toBe(false);
+      });
+    }
+  }
+  for (const bytes of [32_768, 51_200, 102_400]) {
+    it(`parses ${bytes}-byte python without throwing`, () => {
+      const tree = parseSource('python', makePy(bytes));
+      expect(tree.rootNode.type).toBe('module');
+      expect(tree.rootNode.hasError).toBe(false);
+    });
+  }
+});

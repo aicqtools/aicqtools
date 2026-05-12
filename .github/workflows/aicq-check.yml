@@ -32,6 +32,12 @@ jobs:
       - name: Run unit tests
         run: pnpm test
 
+      - name: Regression — large file parsing (32KB+ tsx/ts/py)
+        run: |
+          node e2e/large-file-fixture/generate.mjs
+          node e2e/large-file-fixture/verify.mjs
+        # Hard gate — this regression must never come back. No continue-on-error.
+
       - name: Run aicq check on talkup-mirror
         working-directory: examples/talkup-mirror
         run: node ../../packages/cli/dist/bin.js check --locale ko --no-cache
