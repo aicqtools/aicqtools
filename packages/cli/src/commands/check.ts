@@ -2,7 +2,7 @@ import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
 import { FileCache, findConfigPath, loadConfig, ParserError, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
-import { applyRuleConfig, loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
+import { applyRuleConfig, collectUnknownOverrideIds, loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
 import { getCliVersion } from '../version.js';
 
@@ -34,6 +34,8 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
 
   // Apply per-rule on/off/severity overrides from config.modules.guardrail.rules
   const { rules: effectiveRules, unknownIds } = applyRuleConfig(rules, config.modules.guardrail.rules);
+  const overrides = config.modules.guardrail.overrides;
+  const unknownOverrideIds = collectUnknownOverrideIds(rules, overrides);
 
   const cache = opts.cache !== false ? new FileCache(resolve(cwd, '.aicq/cache.sqlite')) : undefined;
 
@@ -47,6 +49,16 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   for (const id of unknownIds) {
     process.stderr.write(t(locale, 'cli.check.unknownRuleId', { id }) + '\n');
   }
+  // Same surface, but for overrides — include index and matched paths so users can find the typo.
+  for (const u of unknownOverrideIds) {
+    process.stderr.write(
+      t(locale, 'cli.check.unknownRuleIdInOverride', {
+        index: String(u.index),
+        id: u.id,
+        paths: u.paths.join(', '),
+      }) + '\n',
+    );
+  }
 
   let result;
   try {
@@ -57,6 +69,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       rules: effectiveRules,
       ...(cache ? { cache } : {}),
       ...(config.respectGitignore ? { respectGitignore: true } : {}),
+      ...(overrides.length > 0 ? { overrides } : {}),
     });
   } catch (err) {
     if (err instanceof ParserError) {

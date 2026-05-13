@@ -22,6 +22,8 @@ export const messages = {
     'cli.check.largeScanHint':
       'hint: {files} files scanned and no aicq.config.yaml was found. Consider adding a config to scope `include`/`exclude`, or set `respectGitignore: true`. Run `aicq rules suggest` for a starting point.',
     'cli.check.unknownRuleId': 'aicq.config.yaml references unknown rule `{id}` — ignored.',
+    'cli.check.unknownRuleIdInOverride':
+      'aicq.config.yaml overrides[{index}] references unknown rule `{id}` (paths: {paths}) — ignored.',
     'cli.check.noisyRuleHint':
       'hint: `{id}` fired {count} times. Consider setting `{id}: off` under `modules.guardrail.rules` in aicq.config.yaml, or narrow it with project-specific tuning.',
     'cli.rules.suggest.header': '{files} files scanned ({langs}), {ms}ms',
@@ -53,6 +55,8 @@ export const messages = {
     'cli.check.largeScanHint':
       '안내: {files}개 파일을 스캔했고 aicq.config.yaml이 없습니다. `include`/`exclude` 범위를 좁히는 config 작성 또는 `respectGitignore: true` 설정을 검토하세요. 시작점은 `aicq rules suggest`.',
     'cli.check.unknownRuleId': 'aicq.config.yaml에서 알 수 없는 룰 `{id}` 참조 — 무시함.',
+    'cli.check.unknownRuleIdInOverride':
+      'aicq.config.yaml overrides[{index}]에서 알 수 없는 룰 `{id}` 참조 (paths: {paths}) — 무시함.',
     'cli.check.noisyRuleHint':
       '안내: `{id}`이(가) {count}회 적중했습니다. aicq.config.yaml의 `modules.guardrail.rules`에 `{id}: off` 또는 프로젝트별 튜닝을 검토하세요.',
     'cli.rules.suggest.header': '파일 {files}개 검사 ({langs}), {ms}ms',

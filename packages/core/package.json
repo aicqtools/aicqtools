@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/core",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "type": "module",
   "description": "Shared core for aicqtools — tree-sitter parser, sqlite incremental cache, SARIF/JSON/text reporters, config loader, i18n.",
   "keywords": [
@@ -56,9 +56,15 @@
     "tree-sitter-typescript": "~0.23.2"
   },
   "peerDependenciesMeta": {
-    "tree-sitter": { "optional": false },
-    "tree-sitter-python": { "optional": false },
-    "tree-sitter-typescript": { "optional": false }
+    "tree-sitter": {
+      "optional": false
+    },
+    "tree-sitter-python": {
+      "optional": false
+    },
+    "tree-sitter-typescript": {
+      "optional": false
+    }
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

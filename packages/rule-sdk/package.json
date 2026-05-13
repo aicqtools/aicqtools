@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/rule-sdk",
-  "version": "1.0.0-alpha.7",
+  "version": "1.0.0-alpha.8",
   "type": "module",
   "description": "User rule authoring SDK for aicqtools — `defineRule()` helper plus Rule / RuleContext / Visitor types.",
   "keywords": [
@@ -45,7 +45,9 @@
     "tree-sitter": "~0.22.4"
   },
   "peerDependenciesMeta": {
-    "tree-sitter": { "optional": false }
+    "tree-sitter": {
+      "optional": false
+    }
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

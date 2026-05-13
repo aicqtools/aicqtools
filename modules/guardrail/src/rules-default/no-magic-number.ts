@@ -11,6 +11,9 @@ import { defineRule } from '@aicqtools/rule-sdk';
  * options seam):
  * - Test fixture / spec files (filename heuristic)
  * - `*.config.{ts,tsx,js,jsx}`, `*.polyfill.{ts,tsx,js,jsx}`, `**\/polyfills/**` (filename)
+ * - Database migrations / seeders / fixtures directories (alpha.8) — these are data files where
+ *   numeric literals are the payload, not magic numbers. Other rules (e.g. camelcase-migration-column)
+ *   keep firing on the same files because this skip is scoped to no-magic-number only.
  * - Variable declarator RHS (`const X = 7;` — 7 is being NAMED, not used inline)
  * - JSX attribute values (`<View width={24} />`)
  * - Enum members (`enum E { A = 7 }`)
@@ -27,7 +30,7 @@ const ALLOWED_NUMBERS = new Set([
   '0', '1', '-1', '2', '-2', '10', '16', '24', '60', '100', '1000', '1024',
 ]);
 
-const SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|fixtures|\.config\.|\.polyfill\.|[/\\]polyfills[/\\])/;
+const SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|fixtures|\.config\.|\.polyfill\.|[/\\]polyfills[/\\]|[/\\]seeders[/\\]|[/\\]migrations[/\\])/;
 
 // Callee names whose numeric args are almost always intentional, not magic numbers.
 // Matched on the leaf identifier (last name segment) — covers both `parseInt(...)` and

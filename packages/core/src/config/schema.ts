@@ -53,12 +53,29 @@ export const DEFAULT_EXCLUDE: readonly string[] = Object.freeze([
   '**/*.bundle.js',
 ]);
 
+const ruleLevelSchema = z.union([z.literal('off'), z.literal('warn'), z.literal('error')]);
+
+/**
+ * Per-path rule overrides (alpha.8). Behaves like ESLint's `overrides`: each entry matches a list
+ * of micromatch globs against the file path and applies its `rules` map on top of the global one.
+ * Multiple matching entries are merged in declaration order — later entries win for the same rule.
+ * `off` drops the rule for that file; `warn`/`error` overrides its severity. Unknown rule ids are
+ * collected and reported via stderr once, so config typos surface early instead of silently no-op'ing.
+ */
+export const ruleOverrideSchema = z.object({
+  paths: z.array(z.string().min(1)).min(1),
+  rules: z.record(ruleLevelSchema).default({}),
+});
+
+export type RuleOverride = z.infer<typeof ruleOverrideSchema>;
+
 export const guardrailModuleSchema = z
   .object({
     enabled: z.boolean().default(true),
     rulesDir: z.string().default('aicq/rules'),
     extends: z.array(z.string()).default([]),
-    rules: z.record(z.union([z.literal('off'), z.literal('warn'), z.literal('error')])).default({}),
+    rules: z.record(ruleLevelSchema).default({}),
+    overrides: z.array(ruleOverrideSchema).default([]),
   })
   .default({});
 

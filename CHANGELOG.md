@@ -13,6 +13,38 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - Full per-rule options framework: rule-specific zod-validated option schemas plumbed through `RuleContext.options`, with auto-generated doc tables. Alpha.7 wired the `rules: off|warn|error` map but per-rule options are still hardcoded inside each rule.
 - Nested `.gitignore` / dedicated `.aicqignore` support. Alpha.7 honors only the root `.gitignore`, opt-in via `respectGitignore: true`.
 - `@aicq/unused-suppression`: an info-severity diagnostic when an `aicq-disable-*` directive matched zero diagnostics (mirrors ESLint's `--report-unused-disable-directives`).
+- Friendlier `respectGitignore` default — flip to `'auto'` (enable when a `.gitignore` is present) and add CLI `--gitignore` / `--no-gitignore` flags. Tracked separately as a BREAKING release candidate.
+- Precise `public/_next/`, `public/static/`, `public/build/` default excludes. Currently alpha.8 only excludes the Capacitor-native copies; vanilla Next.js static exports under `public/_next/` are still scanned.
+
+---
+
+## [v1.0.0-alpha.8] - 2026-05-13
+
+Structural release on top of alpha.7. One ESLint-style mechanism (`overrides`) absorbs three of the alpha.7 dogfood follow-ups in a single channel (user-defined `pathExclude`, per-directory severity, per-file rule disable), and one targeted rule heuristic (`no-magic-number` skipping seeders/migrations) removes the largest residual noise source. No default-value flips — those land in alpha.9. (Korean: 알파.7 위 구조적 릴리스. ESLint식 한 메커니즘(`overrides`)이 알파.7 도그푸드 후속 3건(사용자 정의 `pathExclude`·디렉토리별 severity·파일별 룰 비활성)을 한 채널로 흡수하고, 표적 룰 휴리스틱 1건(seeders/migrations에서 `no-magic-number` skip)이 가장 큰 잔존 노이즈를 제거. 디폴트값 flip은 없음 — 그것은 알파.9에서.)
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.8
+- `@aicqtools/rule-sdk` 1.0.0-alpha.8
+- `@aicqtools/guardrail` 1.0.0-alpha.8
+- `@aicqtools/provenance` 1.0.0-alpha.8
+- `@aicqtools/cli` 1.0.0-alpha.8
+
+### Added
+- **`modules.guardrail.overrides` — ESLint-style per-path rule resolution.** A new array under `aicq.config.yaml > modules.guardrail` where each entry is `{ paths: glob[], rules: { ruleId: 'off' | 'warn' | 'error' } }`. For each scanned file the runner walks the overrides in declaration order, merging matched entries into a per-file effective rule map (later wins, same as ESLint). `off` drops the rule for that file; `warn`/`error` overrides its emitted severity. The mechanism is intentionally a *superset* of three alpha.7 followups in one channel: user-defined `pathExclude` (use `off`), per-directory rule severity (use `warn`/`error`), and rule-specific exemption beyond what a rule's built-in `pathExclude` provides. Fast path: when no entries are configured the runner skips the resolver entirely. Empty entries are rejected at schema time (`paths` must contain ≥ 1 glob). Windows backslash paths are normalized for matching. (Korean: `aicq.config.yaml > modules.guardrail` 아래 새 배열. 각 항목은 `{ paths: glob[], rules: { ruleId: 'off' | 'warn' | 'error' } }`. 매 스캔 파일마다 runner가 선언 순으로 순회하며 매치된 항목을 파일별 effective 룰 맵에 머지(later wins, ESLint와 동일). `off`는 해당 파일에서 룰을 drop, `warn`/`error`는 emit severity를 override. 알파.7 후속 3건(사용자 정의 `pathExclude`·디렉토리별 severity·룰별 면제)을 한 채널로 흡수하는 *상위집합*. 항목이 없으면 resolver 자체를 건너뛰는 fast path. 빈 항목은 스키마에서 reject(`paths`에 ≥ 1개 glob 필수). Windows 백슬래시 경로는 매칭 시 정규화.)
+- **Per-entry stderr warning for unknown rule ids inside `overrides`.** When `overrides[i].rules` references an id that doesn't exist on any loaded rule, `aicq check` writes a single stderr line with the override index, the offending id, and the matched `paths` — so a typo surfaces at the same severity (and verbosity) as the existing top-level `rules:` map check. New i18n key `cli.check.unknownRuleIdInOverride` (en/ko). (Korean: `overrides[i].rules`가 로드된 룰에 없는 id를 참조하면 `aicq check`가 override 인덱스·해당 id·매치된 `paths`를 한 줄 stderr로 출력 — 기존 최상위 `rules:` 맵 검사와 동일한 가시성. 신규 i18n 키 `cli.check.unknownRuleIdInOverride` (en/ko).)
+- **`no-magic-number` skips `seeders/` and `migrations/` directories.** Added to the rule's `SKIP_FILE_RE` next to the existing `fixtures/`, `*.config.*`, `*.polyfill.*`, `polyfills/` skips. These directories hold data files where numeric literals *are* the payload (Sequelize seeder rows, Knex/Prisma migration column definitions, ORM fixtures). Other rules (notably `camelcase-migration-column`) still fire on the same files — the skip is scoped to `no-magic-number` alone. (Korean: `no-magic-number` 룰의 `SKIP_FILE_RE`에 `seeders/`와 `migrations/` 추가 — 기존 `fixtures/`·`*.config.*`·`*.polyfill.*`·`polyfills/` 옆. 데이터 파일이라 숫자 리터럴이 *페이로드 그 자체*인 디렉토리(Sequelize seeder 행, Knex/Prisma migration 컬럼 정의, ORM fixture). 다른 룰(특히 `camelcase-migration-column`)은 같은 파일에서 계속 발화 — skip은 `no-magic-number` 단독으로 한정.)
+- **New `@aicqtools/core` exports**: `RuleOverride` (type), `ruleOverrideSchema` (zod). (Korean: `@aicqtools/core` 신규 export — `RuleOverride` 타입과 `ruleOverrideSchema` zod 스키마.)
+- **New `@aicqtools/guardrail` exports**: `applyOverridesForFile`, `collectUnknownOverrideIds`, `UnknownOverrideId` (type). (Korean: `@aicqtools/guardrail` 신규 export — `applyOverridesForFile`, `collectUnknownOverrideIds`, `UnknownOverrideId` 타입.)
+- **New test fixtures and suites**: `overrides.test.ts` (per-file resolution, fast path, last-write-wins, Windows backslash, end-to-end `runProject` integration with `off` and `error`), `overrides-cli.test.ts` (CLI wiring: config → runProject forwarding, omission when empty, unknown id stderr ko/en), seeders/migrations cases appended to `no-magic-number-skips.test.ts`. (Korean: 신규 테스트 — `overrides.test.ts`(파일별 resolution, fast path, last-write-wins, Windows 백슬래시, `runProject` end-to-end 통합), `overrides-cli.test.ts`(CLI 배선: config → runProject 전달, 빈 경우 누락, unknown id stderr ko/en), `no-magic-number-skips.test.ts`에 seeders/migrations 케이스 추가.)
+
+### Changed
+- `applyOverridesForFile` does not change the in-process `Rule` reference identity for the unmatched fast path — callers may rely on reference equality when no override matches. (Korean: 매치되는 override가 없는 fast path에서 `applyOverridesForFile`는 in-process `Rule` 참조 동일성을 유지 — 매치 없을 때 호출자는 참조 비교 가능.)
+- Cache key now mixes in the overrides shape (`overrides=<JSON>`) alongside the existing ruleset signature, so a config change that adds/removes/edits an override flushes stale cache entries automatically. (Korean: 캐시 키가 기존 ruleset signature 옆에 `overrides=<JSON>`을 함께 섞음 — override 추가/삭제/수정 시 stale 캐시가 자동 무효화.)
+
+### Verification
+- `pnpm -w build` / `typecheck` / `test` / `lint` all green on Windows 11.
+- Guardrail tests: previous 191 + 13 new (`overrides.test.ts`: 10, seeders/migrations skip cases: ~5 new on top of existing 9). CLI tests: previous + new `overrides-cli.test.ts` (4). 0 regressions on alpha.7 suites. (Korean: Guardrail 테스트 — 기존 191 + 신규 13건. CLI 테스트 — 기존 + 신규 4건. 알파.7 suite 회귀 0건.)
+- Real-project dogfood expected (TalkUp monorepo, with new `overrides` for `public/native-bridge.js` + `scripts/**`): frontend `totalDiagnostics` ≤ 756 maintained; backend `no-magic-number` in `database/seeders/**` drops from ~706 to 0; `camelcase-migration-column` 2 → 2 (migrations still visible). (Korean: 실 프로젝트 도그푸드 예상(TalkUp 모노레포, `public/native-bridge.js` + `scripts/**`에 신규 `overrides` 사용) — frontend `totalDiagnostics` ≤ 756 유지; backend의 `database/seeders/**`에서 `no-magic-number` ~706건 → 0; `camelcase-migration-column` 2 → 2(migrations 여전히 가시).)
 
 ---
 

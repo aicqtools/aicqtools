@@ -4,8 +4,15 @@ export {
   runProject,
   runRule,
   applyRuleConfig,
+  applyOverridesForFile,
+  collectUnknownOverrideIds,
 } from './runner/index.js';
-export type { RunFileResult, RunProjectOptions, ApplyRuleConfigResult } from './runner/index.js';
+export type {
+  RunFileResult,
+  RunProjectOptions,
+  ApplyRuleConfigResult,
+  UnknownOverrideId,
+} from './runner/index.js';
 
 export { traverse, parseYamlRule } from './matcher/index.js';
 export type { YamlRuleInput } from './matcher/index.js';

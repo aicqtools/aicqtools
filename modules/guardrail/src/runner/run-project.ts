@@ -1,9 +1,10 @@
 import fastGlob from 'fast-glob';
 import { readFile, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
-import type { CheckResult, Diagnostic } from '@aicqtools/core';
+import type { CheckResult, Diagnostic, RuleOverride } from '@aicqtools/core';
 import { FileCache, hashRulesetSignature } from '@aicqtools/core';
 import type { Rule } from '@aicqtools/rule-sdk';
+import { applyOverridesForFile } from './apply-rule-config.js';
 import { runFile } from './run-file.js';
 import { rulesetSignature } from './ruleset-signature.js';
 
@@ -19,6 +20,12 @@ export interface RunProjectOptions {
    * Defaults to false to keep behavior deterministic across projects.
    */
   readonly respectGitignore?: boolean;
+  /**
+   * Per-path rule overrides (alpha.8). When set, each file's rule set is re-resolved against
+   * matching `overrides` entries on top of the globally-resolved `rules` baseline. Empty array
+   * (or omitted) is the fast path — runner falls back to the baseline list unchanged.
+   */
+  readonly overrides?: readonly RuleOverride[];
 }
 
 export async function runProject(opts: RunProjectOptions): Promise<CheckResult> {
@@ -33,11 +40,21 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
   });
 
   const cache = opts.cache;
-  const rulesHash = cache ? hashRulesetSignature(rulesetSignature(opts.rules)) : '';
+  const overrides = opts.overrides ?? [];
+  // The ruleset hash mixes in the overrides shape so cache entries invalidate when a user adds,
+  // removes, or edits override paths/rules. Without this, a stale entry could survive a config
+  // change that should have flipped a diagnostic on or off.
+  const rulesHash = cache
+    ? hashRulesetSignature([
+        ...rulesetSignature(opts.rules),
+        'overrides=' + JSON.stringify(overrides),
+      ])
+    : '';
   const diagnostics: Diagnostic[] = [];
 
   for (const file of files) {
     try {
+      const fileRules = applyOverridesForFile(opts.rules, overrides, file);
       if (cache) {
         const st = await stat(file);
         const cached = cache.get({
@@ -50,14 +67,14 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
           diagnostics.push(...cached);
           continue;
         }
-        const result = await runFile(file, opts.rules);
+        const result = await runFile(file, fileRules);
         cache.set(
           { filePath: file, mtime: Math.floor(st.mtimeMs), size: st.size, rulesHash },
           result.diagnostics,
         );
         diagnostics.push(...result.diagnostics);
       } else {
-        const result = await runFile(file, opts.rules);
+        const result = await runFile(file, fileRules);
         diagnostics.push(...result.diagnostics);
       }
     } catch (err) {
