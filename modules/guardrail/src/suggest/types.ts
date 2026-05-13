@@ -16,6 +16,14 @@ export interface RuleSuggestion {
   readonly docs?: string;
   readonly sampleLocations: readonly SuggestSampleLocation[];
   readonly stackMatch?: boolean;
+  /**
+   * True when this rule is highly likely to dominate noise budgets in the suggested config:
+   * either it has substantially more hits than the next rule in the ranking, or it's an
+   * info-severity rule whose hit count exceeds the absolute "obviously noisy" threshold.
+   * Computed by `analyzeRepo`; consumed by both the text reporter (for a flag) and the
+   * YAML config-snippet builder (to emit such rules as commented-out lines).
+   */
+  readonly noisy?: boolean;
 }
 
 export type DependencySource = 'package.json' | 'requirements.txt';
@@ -58,6 +66,8 @@ export interface AnalyzeRepoOptions {
   readonly cache?: FileCache;
   readonly top?: number;
   readonly minHits?: number;
+  /** Mirror of `AicqConfig.respectGitignore`. Default false. */
+  readonly respectGitignore?: boolean;
 }
 
 export interface MinePatternsOptions {
@@ -66,4 +76,6 @@ export interface MinePatternsOptions {
   readonly exclude: readonly string[];
   readonly minCount?: number;
   readonly top?: number;
+  /** Mirror of `AicqConfig.respectGitignore`. Default false. */
+  readonly respectGitignore?: boolean;
 }

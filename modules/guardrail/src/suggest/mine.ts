@@ -4,6 +4,7 @@ import Parser from 'tree-sitter';
 import type { Language } from '@aicqtools/core';
 import { detectLanguage, loadLanguage, parseSource } from '@aicqtools/core';
 import { traverse } from '../matcher/traverse.js';
+import { resolveIgnores } from '../runner/run-project.js';
 import type { MinePatternsOptions, PatternRuleDraft, SuggestSampleLocation } from './types.js';
 
 const DEFAULT_MIN_COUNT = 5;
@@ -11,6 +12,19 @@ const DEFAULT_TOP = 10;
 const MAX_FILES = 5000;
 const MAX_SAMPLES = 2;
 const IDENTIFIER_RE = /^[A-Za-z_$][\w$]*$/;
+
+/**
+ * Common stdlib / global names whose `new X()` and `X.method()` invocations are universal
+ * patterns — they would generate noisy, useless draft rules ("don't construct Map", "don't
+ * call JSON.parse"). Dropping them keeps `--patterns` output focused on genuinely
+ * project-specific shapes.
+ */
+const STDLIB_BLOCKLIST = new Set([
+  'Array', 'Object', 'Map', 'Set', 'WeakMap', 'WeakSet', 'Date', 'Promise', 'RegExp',
+  'Error', 'TypeError', 'RangeError', 'SyntaxError',
+  'JSON', 'console', 'Math', 'process', 'Buffer', 'Symbol', 'Number', 'String', 'Boolean',
+  'Function', 'URL', 'URLSearchParams',
+]);
 
 type PatternKind = 'new' | 'call';
 
@@ -42,10 +56,11 @@ export async function minePatterns(opts: MinePatternsOptions): Promise<PatternRu
   const minCount = Math.max(1, opts.minCount ?? DEFAULT_MIN_COUNT);
   const top = Math.max(1, opts.top ?? DEFAULT_TOP);
 
+  const ignore = await resolveIgnores(opts.cwd, opts.exclude, opts.respectGitignore ?? false);
   const files = (
     await fastGlob([...opts.include], {
       cwd: opts.cwd,
-      ignore: [...opts.exclude],
+      ignore,
       absolute: true,
       onlyFiles: true,
       dot: false,
@@ -128,6 +143,7 @@ function extractSignature(
     const o = textOf(obj);
     const a = textOf(attr);
     if (!IDENTIFIER_RE.test(o) || !IDENTIFIER_RE.test(a)) return null;
+    if (STDLIB_BLOCKLIST.has(o)) return null;
     return { signature: `call:${o}.${a}`, kind: 'call', parts: [o, a] };
   }
 
@@ -137,6 +153,7 @@ function extractSignature(
     if (!ctor || ctor.type !== 'identifier') return null;
     const name = textOf(ctor);
     if (!IDENTIFIER_RE.test(name)) return null;
+    if (STDLIB_BLOCKLIST.has(name)) return null;
     return { signature: `new:${name}`, kind: 'new', parts: [name] };
   }
   if (node.type === 'call_expression') {
@@ -148,6 +165,7 @@ function extractSignature(
     const o = textOf(obj);
     const p = textOf(prop);
     if (!IDENTIFIER_RE.test(o) || !IDENTIFIER_RE.test(p)) return null;
+    if (STDLIB_BLOCKLIST.has(o)) return null;
     return { signature: `call:${o}.${p}`, kind: 'call', parts: [o, p] };
   }
   return null;

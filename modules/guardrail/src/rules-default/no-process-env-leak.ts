@@ -24,8 +24,11 @@ export default defineRule({
           ctx.textOf(inner) === 'process' &&
           ctx.textOf(innerProp) === 'env'
         ) {
-          // Allowlist: config/, env/, *.config.ts files
-          if (/(^|[/\\])(config|env)([/\\]|\.|$)/.test(ctx.filePath)) return;
+          // Allowlist: `config/`, `env/`, and `*.config.*` / `*.env.*` files (e.g. `next.config.ts`,
+          // `vite.config.ts`, `jest.config.ts`). Includes a leading `.` in the prefix character
+          // class so dotted filenames where `config`/`env` is preceded by `.` (e.g. `next.config.ts`)
+          // are recognized.
+          if (/(^|[/\\.])(config|env)([/\\.]|$)/.test(ctx.filePath)) return;
           ctx.report({ node });
         }
       }

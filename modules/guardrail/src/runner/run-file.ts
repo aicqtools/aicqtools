@@ -3,6 +3,7 @@ import type { Diagnostic, Language } from '@aicqtools/core';
 import { detectLanguage, parseSource } from '@aicqtools/core';
 import type { Rule } from '@aicqtools/rule-sdk';
 import { runRule } from './run-rule.js';
+import { applySuppressions, parseSuppressions } from './suppressions.js';
 
 export interface RunFileResult {
   readonly filePath: string;
@@ -34,7 +35,17 @@ export function runFileWithSource(
       diagnostics.push(ruleFailedDiagnostic(filePath, rule.id, err));
     }
   }
-  return { filePath, language, diagnostics };
+  // Apply inline-suppression directives last so they catch diagnostics from every rule
+  // (function rules, YAML pattern rules, and synthetic `@aicq/parse-failed`/rule-failed).
+  let suppressed: readonly Diagnostic[] = diagnostics;
+  try {
+    const suppressions = parseSuppressions(tree, source, language);
+    suppressed = applySuppressions(diagnostics, suppressions);
+  } catch {
+    // Suppression parsing must never abort a run. If the tree shape surprises us,
+    // fall through with the unfiltered diagnostics.
+  }
+  return { filePath, language, diagnostics: suppressed };
 }
 
 function ruleFailedDiagnostic(filePath: string, ruleId: string, err: unknown): Diagnostic {

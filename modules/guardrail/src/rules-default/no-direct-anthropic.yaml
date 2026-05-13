@@ -3,6 +3,12 @@ language: typescript
 severity: error
 message: Use the llmClient singleton. Direct Anthropic instantiation is forbidden.
 messageKo: llmClient 싱글톤을 사용하세요. 직접 Anthropic 인스턴스화는 금지입니다.
+# Allow the designated LLM wrapper module to construct the SDK once. Conventions only —
+# add an inline `// aicq-disable-next-line no-direct-anthropic` outside these paths.
+pathExclude:
+  - '**/llm/client.*'
+  - '**/llm/index.*'
+  - '**/ai/**/*client*.*'
 query: |
   (new_expression
     constructor: (identifier) @ctor

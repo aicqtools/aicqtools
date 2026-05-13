@@ -5,7 +5,7 @@ import fastGlob from 'fast-glob';
 import type { Language } from '@aicqtools/core';
 import { detectLanguage } from '@aicqtools/core';
 import type { Rule } from '@aicqtools/rule-sdk';
-import { runProject } from '../runner/run-project.js';
+import { resolveIgnores, runProject } from '../runner/run-project.js';
 import { buildConfigSnippet } from './format.js';
 import type {
   AnalyzeRepoOptions,
@@ -20,6 +20,10 @@ const DEFAULT_TOP = 10;
 const DEFAULT_MIN_HITS = 1;
 const MAX_SAMPLE_LOCATIONS = 2;
 const MIN_DEP_NAME_LENGTH = 4;
+/** When a rule has > NOISY_RATIO times the hits of the next-ranked rule, mark it noisy. */
+const NOISY_RATIO = 10;
+/** Absolute floor: any info-severity rule that fires more than this is treated as noisy regardless of gap. */
+const NOISY_ABS_THRESHOLD = 200;
 
 interface RuleBucket {
   hits: number;
@@ -43,6 +47,7 @@ export async function analyzeRepo(opts: AnalyzeRepoOptions): Promise<RuleSuggest
     exclude: opts.exclude,
     rules: opts.rules,
     ...(opts.cache ? { cache: opts.cache } : {}),
+    ...(opts.respectGitignore ? { respectGitignore: true } : {}),
   });
 
   const byRule = new Map<string, RuleBucket>();
@@ -86,11 +91,16 @@ export async function analyzeRepo(opts: AnalyzeRepoOptions): Promise<RuleSuggest
     if (rule) suggestions.push(makeSuggestion(rule, 0, [], true));
   }
   suggestions.sort((a, b) => b.hits - a.hits || a.ruleId.localeCompare(b.ruleId));
-  const capped = suggestions.slice(0, top);
+  // Mark "noisy" suggestions: those whose hit count is dramatically larger than the next
+  // rule's (gap criterion) OR any info-severity rule above the absolute threshold. This
+  // information drives both the text reporter's flag and the YAML snippet's comment-out
+  // behavior, so we compute it once here.
+  const capped = applyNoisyFlag(suggestions.slice(0, top));
 
+  const ignore = await resolveIgnores(opts.cwd, opts.exclude, opts.respectGitignore ?? false);
   const files = await fastGlob([...opts.include], {
     cwd: opts.cwd,
-    ignore: [...opts.exclude],
+    ignore,
     absolute: true,
     onlyFiles: true,
     dot: false,
@@ -128,6 +138,19 @@ function makeSuggestion(
     sampleLocations: samples,
     ...(stackMatch ? { stackMatch: true } : {}),
   };
+}
+
+function applyNoisyFlag(suggestions: readonly RuleSuggestion[]): RuleSuggestion[] {
+  const out = suggestions.map((s) => ({ ...s }));
+  for (let i = 0; i < out.length; i++) {
+    const cur = out[i];
+    if (!cur) continue;
+    const next = out[i + 1];
+    const gap = cur.hits > 0 && next && next.hits > 0 && cur.hits > next.hits * NOISY_RATIO;
+    const absInfo = cur.severity === 'info' && cur.hits > NOISY_ABS_THRESHOLD;
+    if (gap || absInfo) cur.noisy = true;
+  }
+  return out;
 }
 
 function bareDepName(name: string): string {

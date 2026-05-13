@@ -1,10 +1,13 @@
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
-import { FileCache, loadConfig, ParserError, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
-import { loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
+import { FileCache, findConfigPath, loadConfig, ParserError, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
+import { applyRuleConfig, loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
 import { getCliVersion } from '../version.js';
+
+/** When `filesScanned` exceeds this and no config exists, emit a one-line stderr advisory. */
+const LARGE_SCAN_HINT_THRESHOLD = 5000;
 
 export interface CheckOptions {
   readonly cwd: string;
@@ -17,6 +20,7 @@ export interface CheckOptions {
 export async function runCheck(opts: CheckOptions): Promise<number> {
   const cwd = resolve(opts.cwd);
   const config = await loadConfig(cwd);
+  const configPath = await findConfigPath(cwd);
 
   const rules: Rule[] = [...(await loadAllBuiltinRules())];
   if (config.modules.guardrail.rulesDir) {
@@ -28,6 +32,9 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     }
   }
 
+  // Apply per-rule on/off/severity overrides from config.modules.guardrail.rules
+  const { rules: effectiveRules, unknownIds } = applyRuleConfig(rules, config.modules.guardrail.rules);
+
   const cache = opts.cache !== false ? new FileCache(resolve(cwd, '.aicq/cache.sqlite')) : undefined;
 
   const locale = resolveLocale({
@@ -36,14 +43,20 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     env: process.env,
   });
 
+  // Warn once on stderr for any unknown rule ids in the config map (typo, renamed, removed).
+  for (const id of unknownIds) {
+    process.stderr.write(t(locale, 'cli.check.unknownRuleId', { id }) + '\n');
+  }
+
   let result;
   try {
     result = await runProject({
       cwd,
       include: config.include,
       exclude: config.exclude,
-      rules,
+      rules: effectiveRules,
       ...(cache ? { cache } : {}),
+      ...(config.respectGitignore ? { respectGitignore: true } : {}),
     });
   } catch (err) {
     if (err instanceof ParserError) {
@@ -55,6 +68,19 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     throw err;
   } finally {
     cache?.close();
+  }
+
+  // Advisory: large scan with no config and no respectGitignore → most likely the user is
+  // scanning build artifacts. Output goes to stderr so it never pollutes machine-consumable
+  // formats (json/sarif). Never affects exit code.
+  if (
+    result.filesScanned > LARGE_SCAN_HINT_THRESHOLD &&
+    !configPath &&
+    !config.respectGitignore
+  ) {
+    process.stderr.write(
+      t(locale, 'cli.check.largeScanHint', { files: result.filesScanned }) + '\n',
+    );
   }
 
   let serialized: string;

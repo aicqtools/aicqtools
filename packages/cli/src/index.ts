@@ -160,7 +160,7 @@ export function buildProgram(): Command {
     .option('--locale <locale>', 'message locale (ko|en)')
     .option('--top <n>', 'max rule suggestions', '10')
     .option('--min-hits <n>', 'minimum violations for a rule to be suggested', '1')
-    .option('--patterns', 'also mine AST patterns into draft YAML pattern rules')
+    .option('--patterns', 'also mine AST patterns into draft YAML pattern rules (experimental)')
     .option('--min-pattern-count <n>', 'minimum occurrences for a mined pattern', '5')
     .option('--no-cache', 'disable incremental sqlite cache')
     .action(

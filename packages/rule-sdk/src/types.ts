@@ -10,6 +10,13 @@ export interface RuleMeta {
   readonly message: string;
   readonly messageKo?: string;
   readonly docs?: string;
+  /**
+   * Optional list of file-path globs (micromatch-compatible). If `ctx.filePath` matches any of
+   * these, the rule is skipped for that file. Use it on rules that have a single designated
+   * "allowed" call-site (e.g. an LLM wrapper file legitimately calling `new OpenAI()`) — keep
+   * the globs generic conventions, not project-specific paths.
+   */
+  readonly pathExclude?: readonly string[];
 }
 
 export interface ReportArgs {

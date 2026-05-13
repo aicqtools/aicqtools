@@ -3,8 +3,9 @@ export {
   runFileWithSource,
   runProject,
   runRule,
+  applyRuleConfig,
 } from './runner/index.js';
-export type { RunFileResult, RunProjectOptions } from './runner/index.js';
+export type { RunFileResult, RunProjectOptions, ApplyRuleConfigResult } from './runner/index.js';
 
 export { traverse, parseYamlRule } from './matcher/index.js';
 export type { YamlRuleInput } from './matcher/index.js';

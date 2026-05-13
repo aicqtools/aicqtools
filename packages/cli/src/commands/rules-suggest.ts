@@ -45,6 +45,7 @@ export async function runRulesSuggest(opts: RulesSuggestOptions): Promise<number
       ...(cache ? { cache } : {}),
       ...(opts.top !== undefined ? { top: opts.top } : {}),
       ...(opts.minHits !== undefined ? { minHits: opts.minHits } : {}),
+      ...(config.respectGitignore ? { respectGitignore: true } : {}),
     });
     if (opts.patterns) {
       const patternDrafts = await minePatterns({
@@ -52,6 +53,7 @@ export async function runRulesSuggest(opts: RulesSuggestOptions): Promise<number
         include: config.include,
         exclude: config.exclude,
         ...(opts.minPatternCount !== undefined ? { minCount: opts.minPatternCount } : {}),
+        ...(config.respectGitignore ? { respectGitignore: true } : {}),
       });
       report = { ...report, patternDrafts };
     }
@@ -69,7 +71,7 @@ export async function runRulesSuggest(opts: RulesSuggestOptions): Promise<number
 
   let serialized: string;
   if (opts.format === 'json') serialized = JSON.stringify(report, null, 2);
-  else if (opts.format === 'yaml') serialized = formatSuggestYaml(report);
+  else if (opts.format === 'yaml') serialized = formatSuggestYaml(report, locale);
   else serialized = formatSuggestText(report, locale);
 
   if (opts.output) {

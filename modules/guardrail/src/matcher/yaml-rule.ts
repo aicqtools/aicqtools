@@ -13,6 +13,7 @@ const yamlRuleSchema = z.object({
   message: z.string().min(1),
   messageKo: z.string().optional(),
   docs: z.string().url().optional(),
+  pathExclude: z.array(z.string().min(1)).optional(),
   query: z.string().min(1),
 });
 
@@ -27,10 +28,11 @@ export function parseYamlRule(source: string): PatternRule {
     severity: parsed.severity as Severity,
     message: parsed.message,
     query: parsed.query,
+    ...(parsed.messageKo !== undefined ? { messageKo: parsed.messageKo } : {}),
+    ...(parsed.docs !== undefined ? { docs: parsed.docs } : {}),
+    ...(parsed.pathExclude !== undefined && parsed.pathExclude.length > 0
+      ? { pathExclude: parsed.pathExclude }
+      : {}),
   };
-  return parsed.messageKo !== undefined
-    ? { ...rule, messageKo: parsed.messageKo }
-    : parsed.docs !== undefined
-      ? { ...rule, docs: parsed.docs }
-      : rule;
+  return rule;
 }

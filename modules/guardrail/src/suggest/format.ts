@@ -3,22 +3,42 @@ import type { Locale } from '@aicqtools/core';
 import { t } from '@aicqtools/core';
 import type { PatternRuleDraft, RuleSuggestion, RuleSuggestionReport } from './types.js';
 
-const NOISY_RATIO = 10;
 const MESSAGE_WIDTH = 64;
 
-/** A paste-ready `aicq.config.yaml` fragment that enables the suggested rules. */
+/**
+ * A paste-ready `aicq.config.yaml` fragment that enables the suggested rules.
+ *
+ * Info-severity and `noisy`-flagged rules are emitted as **commented-out** lines with a note —
+ * pasting the snippet as-is never floods the project with low-signal diagnostics, but the
+ * reader sees that those rules exist and can uncomment them after tuning.
+ */
 export function buildConfigSnippet(suggestions: readonly RuleSuggestion[]): string {
   if (suggestions.length === 0) return '';
   const lines = ['modules:', '  guardrail:', '    rules:'];
   for (const s of suggestions) {
     const level = s.severity === 'error' ? 'error' : 'warn';
-    const note =
-      s.hits > 0
-        ? `  # ${s.hits} hit${s.hits === 1 ? '' : 's'}${s.stackMatch ? ', stack match' : ''}`
-        : '  # stack match';
-    lines.push(`      ${s.ruleId}: ${level}${note}`);
+    const noteParts: string[] = [];
+    if (s.hits > 0) noteParts.push(`${s.hits} hit${s.hits === 1 ? '' : 's'}`);
+    if (s.stackMatch) noteParts.push('stack match');
+    const commentOut = s.severity === 'info' || s.noisy === true;
+    if (commentOut) noteParts.push(`${s.severity} severity, likely noisy — review & tune before enabling`);
+    const note = noteParts.length > 0 ? `  # ${noteParts.join(', ')}` : '';
+    const prefix = commentOut ? '#      ' : '      ';
+    lines.push(`${prefix}${s.ruleId}: ${level}${note}`);
   }
   return lines.join('\n');
+}
+
+/**
+ * Renders a multi-line banner suitable for placing above `buildConfigSnippet`'s output.
+ * Uses YAML `#` comments so the entire result is paste-safe.
+ */
+function snippetBanner(locale: Locale): string {
+  const date = new Date().toISOString().slice(0, 10);
+  return t(locale, 'cli.rules.suggest.snippetBanner', { date })
+    .split('\n')
+    .map((line) => `# ${line}`)
+    .join('\n');
 }
 
 export function formatSuggestText(report: RuleSuggestionReport, locale: Locale): string {
@@ -36,16 +56,10 @@ export function formatSuggestText(report: RuleSuggestionReport, locale: Locale):
     lines.push(t(locale, 'cli.rules.suggest.none'));
   } else {
     lines.push(t(locale, 'cli.rules.suggest.tableHeader'));
-    const noisy = new Set<number>();
-    for (let i = 0; i < report.suggestions.length - 1; i++) {
-      const cur = report.suggestions[i]?.hits ?? 0;
-      const next = report.suggestions[i + 1]?.hits ?? 0;
-      if (cur > 0 && next > 0 && cur > next * NOISY_RATIO) noisy.add(i);
-    }
-    report.suggestions.forEach((s, i) => {
+    report.suggestions.forEach((s) => {
       const flags: string[] = [];
       if (s.stackMatch) flags.push(t(locale, 'cli.rules.suggest.stackMatchNote'));
-      if (noisy.has(i)) flags.push(t(locale, 'cli.rules.suggest.noisyNote'));
+      if (s.noisy) flags.push(t(locale, 'cli.rules.suggest.noisyNote'));
       const flagStr = flags.length > 0 ? ` ${flags.join(' ')}` : '';
       lines.push(`  ${s.ruleId}  ${s.hits}  ${s.severity}  ${truncate(s.message, MESSAGE_WIDTH)}${flagStr}`);
       for (const loc of s.sampleLocations) lines.push(`      ${loc.file}:${loc.line}:${loc.column}`);
@@ -64,37 +78,39 @@ export function formatSuggestText(report: RuleSuggestionReport, locale: Locale):
   if (report.configSnippet) {
     lines.push('');
     lines.push(t(locale, 'cli.rules.suggest.configHint'));
+    lines.push(snippetBanner(locale));
     lines.push(report.configSnippet);
   }
 
   if (report.patternDrafts && report.patternDrafts.length > 0) {
     lines.push('');
     lines.push(t(locale, 'cli.rules.suggest.patternDraftsHeader', { count: report.patternDrafts.length }));
-    lines.push(formatPatternDraftsYaml(report.patternDrafts));
+    lines.push(formatPatternDraftsYaml(report.patternDrafts, locale));
   }
 
   return lines.join('\n');
 }
 
-export function formatSuggestYaml(report: RuleSuggestionReport): string {
+export function formatSuggestYaml(report: RuleSuggestionReport, locale: Locale = 'en'): string {
   const parts: string[] = [];
   if (report.configSnippet) {
-    parts.push('# Enable suggested built-in rules — paste into aicq.config.yaml');
+    parts.push(snippetBanner(locale));
     parts.push(report.configSnippet);
   }
   if (report.patternDrafts && report.patternDrafts.length > 0) {
     if (parts.length > 0) parts.push('');
-    parts.push('# Auto-suggested draft pattern rules — review & edit, then place each under your rulesDir');
-    parts.push(formatPatternDraftsYaml(report.patternDrafts));
+    parts.push(`# ${t(locale, 'cli.rules.suggest.patternDraftsBanner')}`);
+    parts.push(formatPatternDraftsYaml(report.patternDrafts, locale));
   }
   return parts.length > 0 ? parts.join('\n') : '# No suggestions.';
 }
 
-function formatPatternDraftsYaml(drafts: readonly PatternRuleDraft[]): string {
+function formatPatternDraftsYaml(drafts: readonly PatternRuleDraft[], locale: Locale): string {
+  const expHeader = t(locale, 'cli.rules.suggest.experimentalLabel');
   return drafts
     .map(
       (d, i) =>
-        `# --- draft ${i + 1}/${drafts.length}: ${d.id} (${d.meta.count}x across ${d.meta.files} file${d.meta.files === 1 ? '' : 's'}) ---\n${patternDraftToYaml(d)}`,
+        `# --- ${expHeader} draft ${i + 1}/${drafts.length}: ${d.id} (${d.meta.count}x across ${d.meta.files} file${d.meta.files === 1 ? '' : 's'}) ---\n${patternDraftToYaml(d)}`,
     )
     .join('---\n');
 }

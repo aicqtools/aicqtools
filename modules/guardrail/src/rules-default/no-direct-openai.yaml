@@ -3,6 +3,14 @@ language: typescript
 severity: error
 message: Use the llmClient singleton. Direct OpenAI instantiation is forbidden.
 messageKo: llmClient 싱글톤을 사용하세요. 직접 OpenAI 인스턴스화는 금지입니다.
+# Allow the *designated* LLM wrapper module to construct the SDK once. Conventions only —
+# the project structures `src/**/llm/{client,index}.ts` or `src/**/ai/**/{*client*}.ts`
+# as the single permitted call-site. Add an inline `// aicq-disable-next-line no-direct-openai`
+# for one-off exceptions outside these paths.
+pathExclude:
+  - '**/llm/client.*'
+  - '**/llm/index.*'
+  - '**/ai/**/*client*.*'
 query: |
   (new_expression
     constructor: (identifier) @ctor

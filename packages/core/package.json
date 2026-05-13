@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/core",
-  "version": "1.0.0-alpha.6",
+  "version": "1.0.0-alpha.7",
   "type": "module",
   "description": "Shared core for aicqtools — tree-sitter parser, sqlite incremental cache, SARIF/JSON/text reporters, config loader, i18n.",
   "keywords": [
