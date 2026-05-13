@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
@@ -15,6 +16,12 @@ export interface CheckOptions {
   readonly output?: string;
   readonly locale?: 'ko' | 'en';
   readonly cache?: boolean;
+  /**
+   * CLI override for `respectGitignore`. `true` forces the walker to honor `.gitignore`,
+   * `false` forces it to skip the file. `undefined` defers to config (which itself may be
+   * `'auto'`, in which case the presence of a root `.gitignore` decides).
+   */
+  readonly respectGitignore?: boolean;
 }
 
 export async function runCheck(opts: CheckOptions): Promise<number> {
@@ -60,6 +67,18 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     );
   }
 
+  // Resolve `respectGitignore` precedence: explicit CLI flag > config boolean > config 'auto'.
+  // 'auto' enables only when a root `.gitignore` is present so the default is friendly without
+  // surprising users whose repos genuinely have no .gitignore.
+  let respectGitignore: boolean;
+  if (opts.respectGitignore !== undefined) {
+    respectGitignore = opts.respectGitignore;
+  } else if (config.respectGitignore === 'auto') {
+    respectGitignore = existsSync(resolve(cwd, '.gitignore'));
+  } else {
+    respectGitignore = config.respectGitignore;
+  }
+
   let result;
   try {
     result = await runProject({
@@ -68,7 +87,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       exclude: config.exclude,
       rules: effectiveRules,
       ...(cache ? { cache } : {}),
-      ...(config.respectGitignore ? { respectGitignore: true } : {}),
+      ...(respectGitignore ? { respectGitignore: true } : {}),
       ...(overrides.length > 0 ? { overrides } : {}),
     });
   } catch (err) {
@@ -89,7 +108,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   if (
     result.filesScanned > LARGE_SCAN_HINT_THRESHOLD &&
     !configPath &&
-    !config.respectGitignore
+    !respectGitignore
   ) {
     process.stderr.write(
       t(locale, 'cli.check.largeScanHint', { files: result.filesScanned }) + '\n',

@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/rule-sdk",
-  "version": "1.0.0-alpha.8",
+  "version": "1.0.0-alpha.9",
   "type": "module",
   "description": "User rule authoring SDK for aicqtools — `defineRule()` helper plus Rule / RuleContext / Visitor types.",
   "keywords": [

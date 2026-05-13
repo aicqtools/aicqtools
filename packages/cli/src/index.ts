@@ -17,8 +17,17 @@ export function buildProgram(): Command {
     .option('-o, --output <path>', 'write report to file instead of stdout')
     .option('--locale <locale>', 'message locale (ko|en)')
     .option('--no-cache', 'disable incremental sqlite cache')
+    .option('--gitignore', 'force-enable reading the root .gitignore (overrides config)')
+    .option('--no-gitignore', 'force-disable reading the root .gitignore (overrides config)')
     .action(
-      async (opts: { cwd: string; format: string; output?: string; locale?: string; cache: boolean }) => {
+      async (opts: {
+        cwd: string;
+        format: string;
+        output?: string;
+        locale?: string;
+        cache: boolean;
+        gitignore?: boolean;
+      }) => {
         const format = (['text', 'json', 'sarif'] as const).find((f) => f === opts.format) ?? 'text';
         const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
         const code = await runCheck({
@@ -27,6 +36,7 @@ export function buildProgram(): Command {
           ...(opts.output !== undefined ? { output: opts.output } : {}),
           ...(locale !== undefined ? { locale } : {}),
           cache: opts.cache,
+          ...(opts.gitignore !== undefined ? { respectGitignore: opts.gitignore } : {}),
         });
         process.exit(code);
       },

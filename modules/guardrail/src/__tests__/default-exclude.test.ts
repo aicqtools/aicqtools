@@ -27,12 +27,16 @@ describe('default `exclude` filters build artifacts (alpha.7)', () => {
     // Allowed:
     expect(fileList.some((f) => f.endsWith('/src/app.ts'))).toBe(true);
     expect(fileList.some((f) => f.endsWith('/database/migrations/001_init.ts'))).toBe(true);
+    // The hand-written `public/native-bridge.js` is real code and must still be scanned —
+    // only the narrow `public/_next /static /build` subdirs are excluded by default.
+    expect(fileList.some((f) => f.endsWith('/public/native-bridge.js'))).toBe(true);
     // Excluded:
     expect(fileList.some((f) => f.includes('/out/'))).toBe(false);
     expect(fileList.some((f) => f.includes('/.next/'))).toBe(false);
     expect(fileList.some((f) => f.includes('/ios/App/'))).toBe(false);
     expect(fileList.some((f) => f.includes('/android/app/'))).toBe(false);
     expect(fileList.some((f) => f.includes('/coverage/'))).toBe(false);
+    expect(fileList.some((f) => f.includes('/public/_next/'))).toBe(false);
   });
 
   it('DEFAULT_EXCLUDE includes the new framework conventions', () => {
@@ -46,6 +50,14 @@ describe('default `exclude` filters build artifacts (alpha.7)', () => {
       '**/android/app/src/main/assets/public/**',
       '**/__pycache__/**',
     ]));
+  });
+
+  it('DEFAULT_EXCLUDE adds the alpha.9 public build-output subdirs only', () => {
+    // Narrow, framework-named subdirs of public/ are excluded; `**/public/**` itself is not.
+    expect(DEFAULT_EXCLUDE).toEqual(
+      expect.arrayContaining(['**/public/_next/**', '**/public/static/**', '**/public/build/**']),
+    );
+    expect(DEFAULT_EXCLUDE).not.toContain('**/public/**');
   });
 
   it('does NOT exclude migrations/seeders/database directories', () => {

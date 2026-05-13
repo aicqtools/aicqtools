@@ -11,10 +11,33 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - Cursor SQLite extraction: scope which workspace `state.vscdb` to read by matching `<hash>/workspace.json`'s `folder` URI against the cwd (currently best-effort, takes the most-recent DB regardless of project).
 - `aicq rules suggest`: pattern-mining v2 — generalize literal arguments, dedupe near-equivalent shapes, optionally re-evaluate the user's own `rulesDir` rules.
 - Full per-rule options framework: rule-specific zod-validated option schemas plumbed through `RuleContext.options`, with auto-generated doc tables. Alpha.7 wired the `rules: off|warn|error` map but per-rule options are still hardcoded inside each rule.
-- Nested `.gitignore` / dedicated `.aicqignore` support. Alpha.7 honors only the root `.gitignore`, opt-in via `respectGitignore: true`.
+- Nested `.gitignore` / dedicated `.aicqignore` support. Alpha.9 honors only the root `.gitignore` (auto-on by default).
 - `@aicq/unused-suppression`: an info-severity diagnostic when an `aicq-disable-*` directive matched zero diagnostics (mirrors ESLint's `--report-unused-disable-directives`).
-- Friendlier `respectGitignore` default — flip to `'auto'` (enable when a `.gitignore` is present) and add CLI `--gitignore` / `--no-gitignore` flags. Tracked separately as a BREAKING release candidate.
-- Precise `public/_next/`, `public/static/`, `public/build/` default excludes. Currently alpha.8 only excludes the Capacitor-native copies; vanilla Next.js static exports under `public/_next/` are still scanned.
+- Line-level `.gitignore` parse-error logging (`aicq: .gitignore line N could not be parsed`). Alpha.9 silently tolerates unparseable lines; the next sweep should surface them on stderr for debuggability.
+
+---
+
+## [v1.0.0-alpha.9] - 2026-05-13
+
+Sequenced release on top of alpha.8 that flips two ergonomic defaults so the friendly behavior is the out-of-the-box one. BREAKING surface is contained to two clearly-named knobs: `respectGitignore` becomes `auto`, and `DEFAULT_EXCLUDE` gains three narrow build-output paths. Both can be opted out per-project. (Korean: 알파.8 위에 두 가지 친화성 디폴트를 뒤집는 시퀀스 릴리스. BREAKING 표면은 명명된 두 개의 손잡이로 한정 — `respectGitignore`이 `auto`가 되고, `DEFAULT_EXCLUDE`에 좁은 빌드 산출물 경로 3개 추가. 둘 다 프로젝트별로 opt-out 가능.)
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.9
+- `@aicqtools/rule-sdk` 1.0.0-alpha.9
+- `@aicqtools/guardrail` 1.0.0-alpha.9
+- `@aicqtools/provenance` 1.0.0-alpha.9
+- `@aicqtools/cli` 1.0.0-alpha.9
+
+### Changed (BREAKING — call it out in your release notes)
+- **`respectGitignore` default flips from `false` to `'auto'`.** The schema now accepts `boolean | 'auto'` (zod union) and the default is `'auto'`. With `'auto'`, the file walker reads the repo-root `.gitignore` when one is present and ignores the field when it isn't, so projects with a `.gitignore` get the friendly behavior immediately and projects without one keep deterministic excludes. Explicit `true`/`false` retain the legacy meanings. New CLI flags `--gitignore` / `--no-gitignore` override config for a single run (precedence: CLI > config boolean > config `'auto'` → existence check). The large-scan stderr advisory only fires when the resolved value is `false`, so a project with a `.gitignore` no longer sees the hint unnecessarily. (Korean: `respectGitignore` 기본값이 `false` → `'auto'`로 뒤집힘. 스키마는 `boolean | 'auto'` 유니온이 되고 기본값은 `'auto'`. `'auto'`에서는 워커가 루트 `.gitignore`가 있으면 읽고 없으면 무시 — `.gitignore`가 있는 프로젝트는 즉시 친화적 동작, 없는 프로젝트는 결정적 exclude 유지. 명시적 `true`/`false`는 기존 의미 유지. 신규 CLI 플래그 `--gitignore` / `--no-gitignore`로 단일 실행 override (우선순위: CLI > config boolean > config `'auto'` → 존재 확인). 대용량 스캔 안내는 resolve된 값이 `false`일 때만 출력되므로 `.gitignore`가 있는 프로젝트는 불필요한 힌트를 받지 않음.)
+- **`DEFAULT_EXCLUDE` adds three narrow `public/` build-output subdirs.** New entries: `**/public/_next/**`, `**/public/static/**`, `**/public/build/**`. These are the canonical paths frameworks copy bundles into; alpha.7 only excluded the Capacitor-native copies (`ios/App/**/public/`, `android/.../assets/public/`) so a vanilla Next.js static export landing in `public/_next/` was being scanned. **Deliberately not added**: `**/public/**` itself — hand-written assets (e.g. Capacitor's `public/native-bridge.js`) belong there and must still be scanned. Projects that disagree can shadow this via `exclude:` (full replacement) or the alpha.8 `overrides:`. (Korean: `DEFAULT_EXCLUDE`에 좁은 `public/` 빌드 산출물 서브디렉토리 3개 추가. 새 항목: `**/public/_next/**`, `**/public/static/**`, `**/public/build/**`. 프레임워크가 번들을 복사하는 표준 경로 — alpha.7는 Capacitor 네이티브 복사본(`ios/App/**/public/`, `android/.../assets/public/`)만 제외했기 때문에 일반 Next.js static export가 `public/_next/`에 떨어지면 스캔됐음. **의도적으로 추가하지 않음**: `**/public/**` 자체 — 수기 작성 자산(예: Capacitor의 `public/native-bridge.js`)이 거기 있고 반드시 스캔돼야 함. 프로젝트가 동의하지 않으면 `exclude:`(전체 교체) 또는 알파.8 `overrides:`로 가릴 수 있음.)
+
+### Added
+- **CLI flags `--gitignore` and `--no-gitignore`** on `aicq check`. Force-enable / force-disable `.gitignore` honoring for a single run, regardless of config. (Korean: `aicq check`에 `--gitignore` / `--no-gitignore` 플래그. config와 무관하게 단일 실행에서 `.gitignore` 적용 강제 활성·비활성.)
+
+### Verification
+- `pnpm -w build` / `typecheck` / `test` / `lint` all green on Windows 11.
+- New tests: `config-schema.test.ts` extended with respectGitignore union cases (5), `respect-gitignore-auto.test.ts` (CLI precedence × 6 fixtures), updated `default-exclude.test.ts` (asserts `public/_next/**` / `public/static/**` / `public/build/**` membership; asserts `**/public/**` is *not* added; fixture's `public/native-bridge.js` is still scanned). 313 tests pass, 0 regressions vs alpha.8. (Korean: 신규 테스트 — `config-schema.test.ts`에 respectGitignore 유니온 5 케이스 추가, `respect-gitignore-auto.test.ts`(CLI 우선순위 × 6 fixture), 확장된 `default-exclude.test.ts`(새 항목 멤버십·`**/public/**` 비추가·fixture의 `public/native-bridge.js`는 여전히 스캔 확인). 313 테스트 통과, 알파.8 대비 회귀 0건.)
 
 ---
 

@@ -48,6 +48,12 @@ export const DEFAULT_EXCLUDE: readonly string[] = Object.freeze([
   '**/.mypy_cache/**',
   '**/.pytest_cache/**',
   '**/vendor/**',
+  // Precise public/ build-output paths (alpha.9). We keep `**/public/**` itself live because
+  // hand-written assets (e.g. Capacitor's `public/native-bridge.js`) belong there. Drop only the
+  // narrowly named build subdirs that frameworks emit copies into.
+  '**/public/_next/**',
+  '**/public/static/**',
+  '**/public/build/**',
   // Minified / pre-bundled output guard (one minified file flips no-magic-number into the thousands)
   '**/*.min.js',
   '**/*.bundle.js',
@@ -99,12 +105,20 @@ export const aicqConfigSchema = z.object({
   include: z.array(z.string()).default(['**/*.{ts,tsx,js,mjs,cjs,jsx,py}']),
   exclude: z.array(z.string()).default([...DEFAULT_EXCLUDE]),
   /**
-   * When true, the file walker reads the repo-root `.gitignore` and appends its entries to the
-   * effective exclude list. Default false to keep behavior deterministic (a project changing
-   * `.gitignore` should not silently change what aicqtools scans). Only the root `.gitignore`
-   * is honored; nested gitignore files are left for a future release.
+   * Controls whether the file walker appends entries from the repo-root `.gitignore` to the
+   * effective exclude list (alpha.9). Three values:
+   *
+   * - `'auto'` (default): enabled when a `.gitignore` is present at the repo root, otherwise
+   *   disabled. This is the friendly default for the common case where a developer's git-ignored
+   *   directories are exactly the noise they don't want aicqtools to scan.
+   * - `true`: force-enable (legacy boolean opt-in).
+   * - `false`: force-disable (legacy boolean opt-out).
+   *
+   * CLI flags `--gitignore` / `--no-gitignore` override config for a single run.
+   *
+   * Only the root `.gitignore` is honored; nested gitignore files are left for a future release.
    */
-  respectGitignore: z.boolean().default(false),
+  respectGitignore: z.union([z.boolean(), z.literal('auto')]).default('auto'),
   modules: z
     .object({
       guardrail: guardrailModuleSchema,
