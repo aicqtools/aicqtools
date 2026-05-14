@@ -41,6 +41,11 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
 
   const cache = opts.cache;
   const overrides = opts.overrides ?? [];
+  // Per-entry match counters (alpha.10). Allocated only when overrides is non-empty so the
+  // unused-feature fast path stays allocation-free. Slots that remain 0 after the scan are
+  // reported by the CLI as "matched no files — ignored." warnings.
+  const matchCounts: number[] | undefined =
+    overrides.length > 0 ? new Array(overrides.length).fill(0) : undefined;
   // The ruleset hash mixes in the overrides shape so cache entries invalidate when a user adds,
   // removes, or edits override paths/rules. Without this, a stale entry could survive a config
   // change that should have flipped a diagnostic on or off.
@@ -54,7 +59,7 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
 
   for (const file of files) {
     try {
-      const fileRules = applyOverridesForFile(opts.rules, overrides, file);
+      const fileRules = applyOverridesForFile(opts.rules, overrides, file, matchCounts);
       if (cache) {
         const st = await stat(file);
         const cached = cache.get({
@@ -88,6 +93,7 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
     diagnostics,
     filesScanned: files.length,
     durationMs: Date.now() - start,
+    ...(matchCounts ? { overrideMatchCounts: matchCounts } : {}),
   };
 }
 

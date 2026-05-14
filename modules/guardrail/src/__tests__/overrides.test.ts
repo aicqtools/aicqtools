@@ -7,6 +7,7 @@ import type { RuleOverride } from '@aicqtools/core';
 import {
   applyOverridesForFile,
   collectUnknownOverrideIds,
+  normalizeOverridePath,
 } from '../runner/apply-rule-config.js';
 import { runProject } from '../runner/run-project.js';
 
@@ -161,6 +162,150 @@ describe('runProject — overrides integration', () => {
       });
       expect(result.diagnostics.length).toBeGreaterThan(0);
       expect(result.diagnostics.every((d) => d.severity === 'error')).toBe(true);
+    } finally {
+      await rm(cwd, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('normalizeOverridePath — auto-anchor (alpha.10)', () => {
+  it('prepends **/ to bare globs', () => {
+    expect(normalizeOverridePath('scripts/**')).toBe('**/scripts/**');
+    expect(normalizeOverridePath('public/native-bridge.js')).toBe('**/public/native-bridge.js');
+    expect(normalizeOverridePath('*.config.ts')).toBe('**/*.config.ts');
+  });
+
+  it('is idempotent when the glob already starts with **', () => {
+    expect(normalizeOverridePath('**/scripts/**')).toBe('**/scripts/**');
+    expect(normalizeOverridePath('**')).toBe('**');
+    expect(normalizeOverridePath('**/*.ts')).toBe('**/*.ts');
+  });
+
+  it('leaves Unix absolute paths alone', () => {
+    expect(normalizeOverridePath('/abs/path/**')).toBe('/abs/path/**');
+  });
+
+  it('leaves Windows drive-letter paths alone', () => {
+    expect(normalizeOverridePath('C:/foo/**')).toBe('C:/foo/**');
+    expect(normalizeOverridePath('D:/AI/Projects/x/**')).toBe('D:/AI/Projects/x/**');
+  });
+
+  it('preserves negation while anchoring the body', () => {
+    expect(normalizeOverridePath('!vendor/**')).toBe('!**/vendor/**');
+    expect(normalizeOverridePath('!**/vendor/**')).toBe('!**/vendor/**');
+    expect(normalizeOverridePath('!/abs/**')).toBe('!/abs/**');
+  });
+
+  it('accepts brace expansion at the start by treating the brace as non-anchor', () => {
+    // `{src,public}/scripts/**` becomes `**/{src,public}/scripts/**`. micromatch consumes it fine.
+    expect(normalizeOverridePath('{src,public}/scripts/**')).toBe('**/{src,public}/scripts/**');
+  });
+
+  it('returns empty input untouched', () => {
+    expect(normalizeOverridePath('')).toBe('');
+    expect(normalizeOverridePath('!')).toBe('!');
+  });
+});
+
+describe('applyOverridesForFile — auto-anchored matching (alpha.10)', () => {
+  it('matches a bare `scripts/**` against an absolute-path file (alpha.9 silent no-op fixed)', () => {
+    const ov: RuleOverride[] = [{ paths: ['scripts/**'], rules: { alpha: 'off' } }];
+    const out = applyOverridesForFile(baseline, ov, '/repo/src/scripts/build.ts');
+    expect(out.find((r) => r.id === 'alpha')).toBeUndefined();
+  });
+
+  it('produces the same result whether user wrote `scripts/**` or `**/scripts/**`', () => {
+    const file = '/repo/src/scripts/build.ts';
+    const shortForm = applyOverridesForFile(
+      baseline,
+      [{ paths: ['scripts/**'], rules: { alpha: 'off' } }],
+      file,
+    );
+    const longForm = applyOverridesForFile(
+      baseline,
+      [{ paths: ['**/scripts/**'], rules: { alpha: 'off' } }],
+      file,
+    );
+    expect(shortForm.map((r) => r.id)).toEqual(longForm.map((r) => r.id));
+  });
+
+  it('treats Unix absolute paths as anchored — `/repo/...` matches only that prefix', () => {
+    const ov: RuleOverride[] = [{ paths: ['/repo/src/scripts/**'], rules: { alpha: 'off' } }];
+    expect(applyOverridesForFile(baseline, ov, '/repo/src/scripts/build.ts').find((r) => r.id === 'alpha')).toBeUndefined();
+    expect(applyOverridesForFile(baseline, ov, '/other/scripts/build.ts').find((r) => r.id === 'alpha')).toBeDefined();
+  });
+
+  it('accumulates per-entry match counts when the optional array is passed', () => {
+    const ov: RuleOverride[] = [
+      { paths: ['scripts/**'], rules: { alpha: 'off' } },
+      { paths: ['nonexistent/**'], rules: { beta: 'off' } },
+    ];
+    const counts = [0, 0];
+    applyOverridesForFile(baseline, ov, '/repo/src/scripts/build.ts', counts);
+    applyOverridesForFile(baseline, ov, '/repo/src/scripts/test.ts', counts);
+    applyOverridesForFile(baseline, ov, '/repo/src/app.ts', counts);
+    expect(counts).toEqual([2, 0]);
+  });
+});
+
+describe('runProject — overrideMatchCounts surfaces dead entries (alpha.10)', () => {
+  it('reports zero for an entry that matched no files', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aicq-overrides-counts-'));
+    try {
+      await writeFile(join(cwd, 'a.ts'), 'const x = "y";\n', 'utf-8');
+      const rule = fakeRule('flag-strings', 'warning');
+      const overrides: RuleOverride[] = [
+        { paths: ['scripts/**'], rules: { 'flag-strings': 'off' } },
+        { paths: ['nonexistent/**'], rules: { 'flag-strings': 'off' } },
+      ];
+      const result = await runProject({
+        cwd,
+        include: ['**/*.ts'],
+        exclude: [],
+        rules: [rule],
+        overrides,
+      });
+      expect(result.overrideMatchCounts).toEqual([0, 0]);
+    } finally {
+      await rm(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('counts matches across multiple files for a live entry', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aicq-overrides-counts-live-'));
+    try {
+      await mkdir(join(cwd, 'src', 'scripts'), { recursive: true });
+      await writeFile(join(cwd, 'src', 'app.ts'), 'const x = "y";\n', 'utf-8');
+      await writeFile(join(cwd, 'src', 'scripts', 'a.ts'), 'const y = "z";\n', 'utf-8');
+      await writeFile(join(cwd, 'src', 'scripts', 'b.ts'), 'const z = "w";\n', 'utf-8');
+      const rule = fakeRule('flag-strings', 'warning');
+      const overrides: RuleOverride[] = [
+        { paths: ['scripts/**'], rules: { 'flag-strings': 'off' } },
+      ];
+      const result = await runProject({
+        cwd,
+        include: ['**/*.ts'],
+        exclude: [],
+        rules: [rule],
+        overrides,
+      });
+      expect(result.overrideMatchCounts?.[0]).toBe(2);
+    } finally {
+      await rm(cwd, { recursive: true, force: true });
+    }
+  });
+
+  it('omits the field entirely when no overrides are configured (fast path)', async () => {
+    const cwd = await mkdtemp(join(tmpdir(), 'aicq-overrides-fastpath-'));
+    try {
+      await writeFile(join(cwd, 'a.ts'), 'const x = 1;\n', 'utf-8');
+      const result = await runProject({
+        cwd,
+        include: ['**/*.ts'],
+        exclude: [],
+        rules: [fakeRule('alpha', 'warning')],
+      });
+      expect(result.overrideMatchCounts).toBeUndefined();
     } finally {
       await rm(cwd, { recursive: true, force: true });
     }

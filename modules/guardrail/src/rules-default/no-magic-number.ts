@@ -30,7 +30,7 @@ const ALLOWED_NUMBERS = new Set([
   '0', '1', '-1', '2', '-2', '10', '16', '24', '60', '100', '1000', '1024',
 ]);
 
-const SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|fixtures|\.config\.|\.polyfill\.|[/\\]polyfills[/\\]|[/\\]seeders[/\\]|[/\\]migrations[/\\])/;
+const SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|fixtures|\.config\.|\.polyfill\.|[/\\]polyfills[/\\]|[/\\]seeders[/\\]|[/\\]migrations[/\\]|[/\\](scripts|tools|bin)[/\\]|[/\\](native-bridge|service-worker)\.[jt]sx?$)/;
 
 // Callee names whose numeric args are almost always intentional, not magic numbers.
 // Matched on the leaf identifier (last name segment) — covers both `parseInt(...)` and

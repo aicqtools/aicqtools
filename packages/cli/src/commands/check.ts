@@ -102,6 +102,25 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     cache?.close();
   }
 
+  // Per-entry "matched no files" warnings (alpha.10). Mirrors `unknownRuleIdInOverride`
+  // in surface and tone — a dead override entry surfaces immediately rather than silently
+  // no-op'ing. Skipped when overrides is empty (no counts produced).
+  const counts = result.overrideMatchCounts;
+  if (counts && overrides.length > 0) {
+    for (let i = 0; i < overrides.length; i++) {
+      const ov = overrides[i];
+      if (!ov) continue;
+      if ((counts[i] ?? 0) === 0) {
+        process.stderr.write(
+          t(locale, 'cli.check.overridePathsNoMatch', {
+            index: String(i),
+            paths: ov.paths.join(', '),
+          }) + '\n',
+        );
+      }
+    }
+  }
+
   // Advisory: large scan with no config and no respectGitignore → most likely the user is
   // scanning build artifacts. Output goes to stderr so it never pollutes machine-consumable
   // formats (json/sarif). Never affects exit code.

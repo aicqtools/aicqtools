@@ -2,7 +2,8 @@ import { defineRule } from '@aicqtools/rule-sdk';
 
 /**
  * Forbid assignment to `<obj>.id`. IDs should be immutable after creation.
- * Catches the TalkUp class of bugs where conv_* IDs get overwritten with resp_*.
+ * Catches a common class of bugs where IDs are overwritten after creation
+ * (e.g. a record's id field reassigned to a child entity's id).
  */
 export default defineRule({
   id: 'no-id-overwrite',

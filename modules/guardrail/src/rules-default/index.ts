@@ -3,7 +3,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { Rule } from '@aicqtools/rule-sdk';
 import { parseYamlRule } from '../matcher/yaml-rule.js';
-// Phase 0 (TalkUp 사례 + 기본)
+// Phase 0 — first-wave deterministic rules
 import noConsoleLog from './no-console-log.js';
 import noIdOverwrite from './no-id-overwrite.js';
 import routeNeedsRateLimit from './route-needs-rate-limit.js';

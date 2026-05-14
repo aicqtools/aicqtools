@@ -11,7 +11,7 @@ describe('getCliVersion', () => {
     const expected = (JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version: string }).version;
     expect(getCliVersion()).toBe(expected);
   });
-  it('matches the alpha.9 release', () => {
-    expect(getCliVersion()).toBe('1.0.0-alpha.9');
+  it('matches the alpha.10 release', () => {
+    expect(getCliVersion()).toBe('1.0.0-alpha.10');
   });
 });

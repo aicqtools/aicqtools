@@ -6,6 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { runFileWithSource } from '../runner/run-file.js';
 import { parseYamlRule } from '../matcher/yaml-rule.js';
 import noBareThrow from '../rules-default/no-bare-throw.js';
+import noConsoleLog from '../rules-default/no-console-log.js';
 import noEmptyCatch from '../rules-default/no-empty-catch.js';
 import noProcessEnvLeak from '../rules-default/no-process-env-leak.js';
 import routeNeedsAuth from '../rules-default/route-needs-auth.js';
@@ -78,6 +79,15 @@ describe('no-empty-catch', () => {
   });
   it('passes when catch logs', () => {
     const r = runFileWithSource('a.ts', `try { f(); } catch (e) { console.error(e); }\n`, 'typescript', [noEmptyCatch]);
+    expect(r.diagnostics).toHaveLength(0);
+  });
+  // alpha.10: skip Capacitor/PWA bridge files where swallowing exceptions on purpose is the norm.
+  it('skips empty catch in Capacitor `native-bridge.js`', () => {
+    const r = runFileWithSource('public/native-bridge.js', `try { f(); } catch (e) {}\n`, 'javascript', [noEmptyCatch]);
+    expect(r.diagnostics).toHaveLength(0);
+  });
+  it('skips empty catch in PWA `service-worker.ts`', () => {
+    const r = runFileWithSource('public/service-worker.ts', `try { f(); } catch (e) {}\n`, 'typescript', [noEmptyCatch]);
     expect(r.diagnostics).toHaveLength(0);
   });
 });
@@ -177,6 +187,29 @@ describe('no-jsonb-circular', () => {
   });
   it('passes for plain object literal', () => {
     const r = runFileWithSource('a.ts', `function f() { JSON.stringify({ a: 1 }); }\n`, 'typescript', [noJsonbCircular]);
+    expect(r.diagnostics).toHaveLength(0);
+  });
+});
+
+describe('no-console-log — scripts/tools/bin path skip (alpha.10)', () => {
+  it('flags console.log in application source', () => {
+    const r = runFileWithSource('src/app.ts', `console.log("hi");\n`, 'typescript', [noConsoleLog]);
+    expect(r.diagnostics).toHaveLength(1);
+  });
+  it('skips console.log under scripts/', () => {
+    const r = runFileWithSource('backend/scripts/build.ts', `console.log("building");\n`, 'typescript', [noConsoleLog]);
+    expect(r.diagnostics).toHaveLength(0);
+  });
+  it('skips console.log under tools/', () => {
+    const r = runFileWithSource('apps/tools/gen.ts', `console.log("gen");\n`, 'typescript', [noConsoleLog]);
+    expect(r.diagnostics).toHaveLength(0);
+  });
+  it('skips console.log under bin/', () => {
+    const r = runFileWithSource('packages/cli/bin/launcher.ts', `console.log("cli");\n`, 'typescript', [noConsoleLog]);
+    expect(r.diagnostics).toHaveLength(0);
+  });
+  it('matches Windows-style backslash paths', () => {
+    const r = runFileWithSource('backend\\scripts\\build.ts', `console.log("building");\n`, 'typescript', [noConsoleLog]);
     expect(r.diagnostics).toHaveLength(0);
   });
 });

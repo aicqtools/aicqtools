@@ -85,3 +85,42 @@ describe('no-magic-number — seeders/migrations/fixtures path skip (alpha.8)', 
     expect(countMagic(noisy, 'typescript', 'backend/src/services/score.ts')).toBeGreaterThan(0);
   });
 });
+
+describe('no-magic-number — scripts/tools/bin + Capacitor/PWA bridge skip (alpha.10)', () => {
+  const noisy =
+    'export function score(x: number): number {\n  if (x > 4242) return 1500;\n  return x * 90;\n}\n';
+
+  it('skips a build-script directory (scripts/)', () => {
+    expect(countMagic(noisy, 'typescript', 'backend/scripts/migrate.ts')).toBe(0);
+  });
+
+  it('skips a tools directory', () => {
+    expect(countMagic(noisy, 'typescript', 'apps/tools/gen-types.ts')).toBe(0);
+  });
+
+  it('skips a bin directory', () => {
+    expect(countMagic(noisy, 'typescript', 'packages/cli/bin/launcher.ts')).toBe(0);
+  });
+
+  it('skips Capacitor `native-bridge.js`', () => {
+    expect(countMagic(noisy, 'javascript', 'frontend/public/native-bridge.js')).toBe(0);
+  });
+
+  it('skips PWA `service-worker.ts`', () => {
+    expect(countMagic(noisy, 'typescript', 'frontend/public/service-worker.ts')).toBe(0);
+  });
+
+  it('matches Windows-style backslash paths for scripts/tools/bin and bridge files', () => {
+    expect(countMagic(noisy, 'typescript', 'backend\\scripts\\migrate.ts')).toBe(0);
+    expect(countMagic(noisy, 'javascript', 'frontend\\public\\native-bridge.js')).toBe(0);
+  });
+
+  it('still fires on application code that contains `scripts` only as a path substring (e.g. `scripts-utils.ts` at top level)', () => {
+    // `scripts-utils.ts` lacks the `/scripts/` segment, so the skip must not trigger.
+    expect(countMagic(noisy, 'typescript', 'src/scripts-utils.ts')).toBeGreaterThan(0);
+  });
+
+  it('does NOT skip a bare `bridge.ts` (only `native-bridge` is the Capacitor convention)', () => {
+    expect(countMagic(noisy, 'typescript', 'src/bridge.ts')).toBeGreaterThan(0);
+  });
+});

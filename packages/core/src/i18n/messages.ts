@@ -24,6 +24,8 @@ export const messages = {
     'cli.check.unknownRuleId': 'aicq.config.yaml references unknown rule `{id}` — ignored.',
     'cli.check.unknownRuleIdInOverride':
       'aicq.config.yaml overrides[{index}] references unknown rule `{id}` (paths: {paths}) — ignored.',
+    'cli.check.overridePathsNoMatch':
+      'aicq.config.yaml overrides[{index}] paths {paths} matched no files — ignored.',
     'cli.check.noisyRuleHint':
       'hint: `{id}` fired {count} times. Consider setting `{id}: off` under `modules.guardrail.rules` in aicq.config.yaml, or narrow it with project-specific tuning.',
     'cli.rules.suggest.header': '{files} files scanned ({langs}), {ms}ms',
@@ -57,6 +59,8 @@ export const messages = {
     'cli.check.unknownRuleId': 'aicq.config.yaml에서 알 수 없는 룰 `{id}` 참조 — 무시함.',
     'cli.check.unknownRuleIdInOverride':
       'aicq.config.yaml overrides[{index}]에서 알 수 없는 룰 `{id}` 참조 (paths: {paths}) — 무시함.',
+    'cli.check.overridePathsNoMatch':
+      'aicq.config.yaml overrides[{index}]의 paths {paths}가 어떤 파일에도 매치되지 않음 — 무시함.',
     'cli.check.noisyRuleHint':
       '안내: `{id}`이(가) {count}회 적중했습니다. aicq.config.yaml의 `modules.guardrail.rules`에 `{id}: off` 또는 프로젝트별 튜닝을 검토하세요.',
     'cli.rules.suggest.header': '파일 {files}개 검사 ({langs}), {ms}ms',

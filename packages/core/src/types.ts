@@ -32,4 +32,11 @@ export interface CheckResult {
   readonly diagnostics: readonly Diagnostic[];
   readonly filesScanned: number;
   readonly durationMs: number;
+  /**
+   * Per-override-entry match counts (alpha.10). `overrideMatchCounts[i]` is the number of
+   * scanned files matched by `overrides[i]` after auto-anchoring. Zero means the entry was
+   * dead config — the CLI surfaces this on stderr so typos and unreachable globs are visible.
+   * Omitted when no overrides are configured.
+   */
+  readonly overrideMatchCounts?: readonly number[];
 }

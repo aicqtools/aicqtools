@@ -68,6 +68,35 @@ export function applyRuleConfig(
 }
 
 /**
+ * Auto-anchor a single `overrides.paths` glob (alpha.10).
+ *
+ * `fast-glob` returns absolute file paths, so a user-written `scripts/**` would silently never
+ * match. We prepend `**\/` unless the glob already carries an anchor token, mirroring the
+ * ESLint mental model where `paths: ['scripts/**']` means "any `scripts/` in the project":
+ *
+ * - leading `**` (with or without `/`) — already anchored, leave alone
+ * - leading `/` — Unix absolute path, user opted out of auto-anchor
+ * - leading `<letter>:/` — Windows drive path, same
+ * - leading `!` — negation; preserve the marker, normalize the body
+ *
+ * The function is pure and never throws. Empty input returns empty.
+ */
+export function normalizeOverridePath(glob: string): string {
+  if (!glob) return glob;
+  let negation = '';
+  let body = glob;
+  if (body.startsWith('!')) {
+    negation = '!';
+    body = body.slice(1);
+  }
+  if (!body) return negation;
+  if (body.startsWith('**')) return negation + body;
+  if (body.startsWith('/')) return negation + body;
+  if (/^[A-Za-z]:\//.test(body)) return negation + body;
+  return negation + '**/' + body;
+}
+
+/**
  * Apply per-path `overrides` (alpha.8) on top of an already-globally-resolved rule list.
  *
  * For each override entry whose `paths` globs match `filePath`, merge its `rules` map into a
@@ -76,23 +105,32 @@ export function applyRuleConfig(
  *
  * Fast path: if no overrides are configured, returns the input list unchanged so the file loop
  * stays cheap when this feature is unused.
+ *
+ * Alpha.10: `paths` globs are auto-anchored via `normalizeOverridePath` so users can write
+ * `scripts/**` instead of `**\/scripts/**` and get the expected ESLint semantics. When the
+ * optional `matchCounts` array is provided, each matched override entry's slot is incremented;
+ * the caller (CLI) reads zero-valued slots to emit "matched no files — ignored." warnings.
  */
 export function applyOverridesForFile(
   baselineRules: readonly Rule[],
   overrides: readonly RuleOverride[],
   filePath: string,
+  matchCounts?: number[],
 ): readonly Rule[] {
   if (overrides.length === 0) return baselineRules;
   const normalized = filePath.replace(/\\/g, '/');
   const effective = new Map<string, RuleLevel>();
   let anyMatch = false;
-  for (const ov of overrides) {
-    const paths = [...ov.paths];
+  for (let i = 0; i < overrides.length; i++) {
+    const ov = overrides[i];
+    if (!ov) continue;
+    const paths = ov.paths.map(normalizeOverridePath);
     const matched =
       micromatch.isMatch(normalized, paths, { dot: true }) ||
       micromatch.isMatch(filePath, paths, { dot: true });
     if (!matched) continue;
     anyMatch = true;
+    if (matchCounts) matchCounts[i] = (matchCounts[i] ?? 0) + 1;
     for (const [id, level] of Object.entries(ov.rules)) {
       effective.set(id, level);
     }

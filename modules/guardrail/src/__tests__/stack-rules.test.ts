@@ -23,7 +23,7 @@ query: |
 
 describe('no-id-overwrite', () => {
   it('flags assignment to .id', () => {
-    const r = runFileWithSource('a.ts', `obj.id = "resp_123";\n`, 'typescript', [noIdOverwrite]);
+    const r = runFileWithSource('a.ts', `obj.id = "new-id-123";\n`, 'typescript', [noIdOverwrite]);
     expect(r.diagnostics).toHaveLength(1);
   });
   it('does not flag .name assignment', () => {

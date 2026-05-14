@@ -67,6 +67,11 @@ const ruleLevelSchema = z.union([z.literal('off'), z.literal('warn'), z.literal(
  * Multiple matching entries are merged in declaration order — later entries win for the same rule.
  * `off` drops the rule for that file; `warn`/`error` overrides its severity. Unknown rule ids are
  * collected and reported via stderr once, so config typos surface early instead of silently no-op'ing.
+ *
+ * Alpha.10: `paths` globs are auto-anchored — a leading `**\/` is prepended unless one is already
+ * present, so `scripts/**` and `**\/scripts/**` behave identically. To opt out (anchor to the
+ * repo root or an absolute path), lead the glob with `/`, `<drive>:/`, or write `**` yourself.
+ * After the scan, any entry whose globs matched zero files emits a per-entry stderr warning.
  */
 export const ruleOverrideSchema = z.object({
   paths: z.array(z.string().min(1)).min(1),
