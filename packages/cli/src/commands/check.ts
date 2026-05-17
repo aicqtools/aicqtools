@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import { writeFile } from 'node:fs/promises';
 import pc from 'picocolors';
 import { FileCache, findConfigPath, loadConfig, ParserError, reportJson, reportSarif, reportText, resolveLocale, t } from '@aicqtools/core';
-import { applyRuleConfig, collectUnknownOverrideIds, loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
+import { applyRuleConfig, collectNegationPaths, collectUnknownOverrideIds, loadAllBuiltinRules, loadFunctionRulesFromDir, runProject } from '@aicqtools/guardrail';
 import type { Rule } from '@aicqtools/rule-sdk';
 import { getCliVersion } from '../version.js';
 
@@ -43,6 +43,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   const { rules: effectiveRules, unknownIds } = applyRuleConfig(rules, config.modules.guardrail.rules);
   const overrides = config.modules.guardrail.overrides;
   const unknownOverrideIds = collectUnknownOverrideIds(rules, overrides);
+  const negationPaths = collectNegationPaths(overrides);
 
   const cache = opts.cache !== false ? new FileCache(resolve(cwd, '.aicq/cache.sqlite')) : undefined;
 
@@ -63,6 +64,17 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
         index: String(u.index),
         id: u.id,
         paths: u.paths.join(', '),
+      }) + '\n',
+    );
+  }
+  // Alpha.11: surface negation patterns inside overrides.paths — they're silently no-op'd by
+  // micromatch.isMatch's array OR semantics, so a user writing ESLint-style `!src/app.ts`
+  // would otherwise get no signal. One stderr line per offending entry, pointing at `exclude:`.
+  for (const n of negationPaths) {
+    process.stderr.write(
+      t(locale, 'cli.check.overridePathsNegationUnsupported', {
+        index: String(n.index),
+        paths: n.paths.join(', '),
       }) + '\n',
     );
   }

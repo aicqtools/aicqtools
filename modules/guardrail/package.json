@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/guardrail",
-  "version": "1.0.0-alpha.10",
+  "version": "1.0.0-alpha.11",
   "type": "module",
   "description": "Deterministic AI code guardrail engine — 37 built-in rules, hybrid YAML/function DSL, MCP server, .cursorrules sync, sqlite cache.",
   "keywords": [

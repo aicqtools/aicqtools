@@ -6,12 +6,15 @@ export {
   applyRuleConfig,
   applyOverridesForFile,
   collectUnknownOverrideIds,
+  collectNegationPaths,
+  normalizeOverridePath,
 } from './runner/index.js';
 export type {
   RunFileResult,
   RunProjectOptions,
   ApplyRuleConfigResult,
   UnknownOverrideId,
+  NegationOverridePath,
 } from './runner/index.js';
 
 export { traverse, parseYamlRule } from './matcher/index.js';

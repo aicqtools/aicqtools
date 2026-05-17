@@ -20,6 +20,29 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ---
 
+## [v1.0.0-alpha.11] - 2026-05-14
+
+DX hotfix on top of alpha.10. The TalkUp alpha.10 acceptance verification surfaced one PASS-with-caveat — `overrides.paths` negation patterns (`!vendor/**`, `!src/app.ts`) silently no-op because `micromatch.isMatch` over an array uses any-match (OR) semantics, so a negation never subtracts from a sibling positive glob. Alpha.10 documented the caveat in CHANGELOG/jsdoc, but users who write ESLint-style configs without reading the docs would still get bitten. Alpha.11 emits an explicit per-entry stderr warning pointing at the top-level `exclude:` field as the real opt-out path. Same release also locks in a regression test for the alpha.10 multi-entry unmatched-paths warning (the dogfood only exercised one). No rule logic change, no schema change. (Korean: 알파.10 위 DX hotfix. 토크업 알파.10 acceptance verification에서 PASS-with-caveat 1건 발견 — `overrides.paths`의 negation 패턴(`!vendor/**`, `!src/app.ts`)이 `micromatch.isMatch` array OR 시맨틱으로 silent no-op됨(negation이 형제 positive glob을 빼주지 못함). 알파.10이 CHANGELOG/jsdoc에 부기했지만 README 안 읽고 ESLint식 config 작성하는 사용자는 함정에 빠짐. 알파.11은 명시적 entry별 stderr 경고로 최상위 `exclude:` 필드를 안내. 같은 릴리스에서 알파.10의 다중 entry 매치 없음 경고 회귀 가드 테스트도 확정(dogfood는 1 entry만 검증). 룰 로직 변경 없음, 스키마 변경 없음.)
+
+### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.11
+- `@aicqtools/rule-sdk` 1.0.0-alpha.11
+- `@aicqtools/guardrail` 1.0.0-alpha.11
+- `@aicqtools/provenance` 1.0.0-alpha.11
+- `@aicqtools/cli` 1.0.0-alpha.11
+
+### Added
+- **Per-entry stderr warning for negation patterns inside `overrides.paths`.** When `overrides[i].paths` contains a `!`-prefixed glob, `aicq check` writes one stderr line per offending entry that names the offending negation globs, explains that `micromatch.isMatch`'s array semantics drop them, and points users at the top-level `exclude:` field as the actual way to remove paths from the scan. The warning fires once per entry per run regardless of file count (no fan-out across the file loop). New i18n key `cli.check.overridePathsNegationUnsupported` (en/ko). (Korean: `overrides.paths` 안의 negation 패턴에 대한 entry별 stderr 경고. `overrides[i].paths`에 `!`로 시작하는 글롭이 있으면 `aicq check`가 해당 entry당 한 줄씩 stderr emit — 문제의 negation 글롭 명시, `micromatch.isMatch` array 시맨틱으로 무시됨 안내, 최상위 `exclude:` 필드를 실제 opt-out 경로로 안내. 파일 수와 무관하게 entry당 1회만 출력. 신규 i18n 키 `cli.check.overridePathsNegationUnsupported` (en/ko).)
+- **New `@aicqtools/guardrail` export**: `collectNegationPaths(overrides)` + `NegationOverridePath` type. Pure helper that scans `overrides[i].paths` for `!`-prefixed entries — the CLI calls it once per run alongside the alpha.8 `collectUnknownOverrideIds`. External tooling that pre-validates user configs can reuse it. (Korean: `@aicqtools/guardrail` 신규 export — `collectNegationPaths(overrides)` + `NegationOverridePath` 타입. `overrides[i].paths`에서 `!`로 시작하는 entry를 스캔하는 순수 헬퍼. CLI가 알파.8의 `collectUnknownOverrideIds` 옆에서 한 번 호출. 사용자 config를 사전 검증하는 외부 도구는 그대로 재사용 가능.)
+- **New test cases**: 5 `collectNegationPaths` cases (empty list, no negation, single negation, multi-entry × multi-negation, `!**/...` already-anchored form), 2 CLI emit cases (en + ko), 2 multi-entry unmatched-paths regression cases (locks in the alpha.10 multi-entry behavior — two unmatched entries → two stderr lines; one matched + one not → exactly one line). (Korean: 신규 테스트 — `collectNegationPaths` 5건, CLI emit 2건(en/ko), 다중 entry 매치 없음 회귀 가드 2건(2 무매치 → 2줄, 1 매치 + 1 무매치 → 1줄).)
+
+### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: previous 238 + 5 new (`collectNegationPaths`). CLI tests: previous 21 + 4 new (`overrides-cli.test.ts`). Total 268, 0 regressions vs alpha.10. (Korean: Guardrail 238 + 신규 5, CLI 21 + 신규 4. 총 268 통과, 알파.10 대비 회귀 0.)
+- Real-project dogfood expected (TalkUp monorepo, alpha.10 baseline frontend 741 / backend 2,857 / frontend_admin 179): all module totals unchanged because rule logic is untouched — stderr only adds new lines when a user has a negation pattern in `aicq.config.yaml`. The alpha.10 preservation set (`camelcase-migration-column` 2, `no-direct-openai` 0, `parse-failed` 0/0/0, `controller-needs-async-wrapper` 18) stays intact. (Korean: 실 프로젝트 도그푸드 예상(토크업, 알파.10 baseline frontend 741 / backend 2,857 / frontend_admin 179) — 룰 로직 미변경이라 모듈 합계 동일. stderr에 negation 경고 줄만 추가(사용자 config에 negation 있을 때). 알파.10 보존 항목(`camelcase-migration-column` 2, `no-direct-openai` 0, `parse-failed` 0/0/0, `controller-needs-async-wrapper` 18) 그대로.)
+
+---
+
 ## [v1.0.0-alpha.10] - 2026-05-14
 
 DX-focused sequenced release on top of alpha.9. One footgun closes: `overrides.paths` globs are now ESLint-style auto-anchored, so `paths: ['scripts/**']` finally means what users expect ("any `scripts/` in the project"). A complementary stderr warning surfaces override entries whose globs matched zero files — typos and dead config no longer silently no-op. No new config knobs, no schema breaks beyond the changed glob semantics. (Korean: 알파.9 위 DX 시퀀스 릴리스. 한 가지 함정 해소 — `overrides.paths` 글롭이 ESLint식으로 자동 anchoring되어 `paths: ['scripts/**']`이 드디어 사용자가 기대한 대로 "프로젝트 어디서든 scripts/"를 의미함. 짝으로 어떤 파일에도 매치되지 않은 override entry는 stderr 경고가 출력 — 오타·dead config는 더 이상 silent no-op되지 않음. 신규 config 손잡이 없음, 글롭 의미 변경 외 스키마 BREAKING 없음.)

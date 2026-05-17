@@ -6,6 +6,7 @@ import type { Rule } from '@aicqtools/rule-sdk';
 import type { RuleOverride } from '@aicqtools/core';
 import {
   applyOverridesForFile,
+  collectNegationPaths,
   collectUnknownOverrideIds,
   normalizeOverridePath,
 } from '../runner/apply-rule-config.js';
@@ -73,6 +74,49 @@ describe('applyOverridesForFile — per-file rule resolution (alpha.8)', () => {
     const ov: RuleOverride[] = [{ paths: ['x.ts'], rules: { beta: 'error' } }];
     const out = applyOverridesForFile(baseline, ov, 'x.ts');
     expect(out.find((r) => r.id === 'beta')?.kind).toBe('function');
+  });
+});
+
+describe('collectNegationPaths — negation footgun surface (alpha.11)', () => {
+  it('returns an empty list when no entry has a negation pattern', () => {
+    const ov: RuleOverride[] = [
+      { paths: ['**/scripts/**', 'public/native-bridge.js'], rules: { alpha: 'off' } },
+    ];
+    expect(collectNegationPaths(ov)).toEqual([]);
+  });
+
+  it('returns an empty list when overrides is empty (fast path)', () => {
+    expect(collectNegationPaths([])).toEqual([]);
+  });
+
+  it('reports a single entry with one negation glob', () => {
+    const ov: RuleOverride[] = [
+      { paths: ['src/**', '!src/app.ts'], rules: { alpha: 'off' } },
+    ];
+    expect(collectNegationPaths(ov)).toEqual([
+      { index: 0, paths: ['!src/app.ts'] },
+    ]);
+  });
+
+  it('reports multiple entries with multiple negation globs', () => {
+    const ov: RuleOverride[] = [
+      { paths: ['**/*.ts', '!vendor/**', '!**/legacy/**'], rules: { alpha: 'off' } },
+      { paths: ['scripts/**'], rules: { beta: 'off' } },
+      { paths: ['!third-party/**'], rules: { gamma: 'warn' } },
+    ];
+    expect(collectNegationPaths(ov)).toEqual([
+      { index: 0, paths: ['!vendor/**', '!**/legacy/**'] },
+      { index: 2, paths: ['!third-party/**'] },
+    ]);
+  });
+
+  it('detects negation even when leading `**/` is already present after `!`', () => {
+    const ov: RuleOverride[] = [
+      { paths: ['!**/vendor/**'], rules: { alpha: 'off' } },
+    ];
+    expect(collectNegationPaths(ov)).toEqual([
+      { index: 0, paths: ['!**/vendor/**'] },
+    ]);
   });
 });
 

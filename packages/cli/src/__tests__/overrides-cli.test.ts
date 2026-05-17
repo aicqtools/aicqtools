@@ -185,4 +185,106 @@ describe('runCheck — overrides unmatched-paths stderr (alpha.10)', () => {
     const stderrText = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
     expect(stderrText).not.toContain('matched no files');
   });
+
+  // N2 regression guard (alpha.11): the unmatched-paths warning must fan out across multiple
+  // unmatched entries. The alpha.10 acceptance dogfood only exercised one — these cases lock
+  // the multi-entry behavior in vitest so a future change can't silently collapse it.
+  it('emits one warning per unmatched entry when multiple entries miss (alpha.11 regression guard)', async () => {
+    mockedRunProject.mockResolvedValueOnce({
+      diagnostics: [],
+      filesScanned: 3,
+      durationMs: 1,
+      overrideMatchCounts: [0, 0],
+    });
+    const cfg = [
+      'modules:',
+      '  guardrail:',
+      '    overrides:',
+      '      - paths: ["nowhere/**"]',
+      '        rules:',
+      '          real-rule: off',
+      '      - paths: ["also-nowhere/**"]',
+      '        rules:',
+      '          real-rule: warn',
+      '',
+    ].join('\n');
+    await writeFile(join(cwd, 'aicq.config.yaml'), cfg, 'utf-8');
+
+    await runCheck({ cwd, format: 'text', locale: 'en', cache: false });
+    const stderrText = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(stderrText).toContain('overrides[0]');
+    expect(stderrText).toContain('nowhere/**');
+    expect(stderrText).toContain('overrides[1]');
+    expect(stderrText).toContain('also-nowhere/**');
+  });
+
+  it('emits exactly one warning when one entry matched and another did not', async () => {
+    mockedRunProject.mockResolvedValueOnce({
+      diagnostics: [],
+      filesScanned: 3,
+      durationMs: 1,
+      overrideMatchCounts: [5, 0],
+    });
+    const cfg = [
+      'modules:',
+      '  guardrail:',
+      '    overrides:',
+      '      - paths: ["**/scripts/**"]',
+      '        rules:',
+      '          real-rule: off',
+      '      - paths: ["dead-folder/**"]',
+      '        rules:',
+      '          real-rule: warn',
+      '',
+    ].join('\n');
+    await writeFile(join(cwd, 'aicq.config.yaml'), cfg, 'utf-8');
+
+    await runCheck({ cwd, format: 'text', locale: 'en', cache: false });
+    const stderrText = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(stderrText).toContain('overrides[1]');
+    expect(stderrText).toContain('dead-folder/**');
+    expect(stderrText).not.toContain('overrides[0]');
+  });
+});
+
+describe('runCheck — overrides negation stderr (alpha.11)', () => {
+  it('emits a per-entry stderr warning for negation paths inside overrides (en)', async () => {
+    const cfg = [
+      'modules:',
+      '  guardrail:',
+      '    overrides:',
+      '      - paths: ["src/**", "!src/app.ts"]',
+      '        rules:',
+      '          real-rule: off',
+      '',
+    ].join('\n');
+    await writeFile(join(cwd, 'aicq.config.yaml'), cfg, 'utf-8');
+
+    await runCheck({ cwd, format: 'text', locale: 'en', cache: false });
+    const stderrText = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(stderrText).toContain('overrides[0]');
+    expect(stderrText).toContain('!src/app.ts');
+    expect(stderrText).toContain('not supported');
+    expect(stderrText).toContain('exclude:');
+  });
+
+  it('emits a per-entry stderr warning for negation paths inside overrides (ko)', async () => {
+    const cfg = [
+      'modules:',
+      '  guardrail:',
+      '    overrides:',
+      '      - paths: ["**/*.ts", "!vendor/**"]',
+      '        rules:',
+      '          real-rule: warn',
+      '',
+    ].join('\n');
+    await writeFile(join(cwd, 'aicq.config.yaml'), cfg, 'utf-8');
+
+    await runCheck({ cwd, format: 'text', locale: 'ko', cache: false });
+    const stderrText = stderrSpy.mock.calls.map((c) => String(c[0])).join('');
+    expect(stderrText).toContain('overrides[0]');
+    expect(stderrText).toContain('!vendor/**');
+    expect(stderrText).toContain('지원되지 않습니다');
+    expect(stderrText).toContain('exclude:');
+  });
 });

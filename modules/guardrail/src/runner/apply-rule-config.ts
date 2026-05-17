@@ -185,3 +185,32 @@ export function collectUnknownOverrideIds(
   }
   return out;
 }
+
+/**
+ * Collect leading-`!` negation globs inside `overrides[i].paths` entries (alpha.11).
+ *
+ * Background: `applyOverridesForFile` matches a file via `micromatch.isMatch(file, paths)`, and
+ * `isMatch` with an array uses any-match (OR) semantics. A `!vendor/**` entry in `paths` therefore
+ * does NOT subtract from a sibling positive glob the way ESLint's `ignores` field would — it just
+ * silently no-ops. The CLI emits one stderr warning per offending entry so the silent footgun
+ * surfaces; users get pointed at the top-level `exclude:` field as the real opt-out path.
+ */
+export interface NegationOverridePath {
+  readonly index: number;
+  /** The negation globs found in this entry (leading `!` preserved). */
+  readonly paths: readonly string[];
+}
+
+export function collectNegationPaths(
+  overrides: readonly RuleOverride[],
+): readonly NegationOverridePath[] {
+  if (overrides.length === 0) return [];
+  const out: NegationOverridePath[] = [];
+  for (let i = 0; i < overrides.length; i++) {
+    const ov = overrides[i];
+    if (!ov) continue;
+    const negations = ov.paths.filter((p) => p.startsWith('!'));
+    if (negations.length > 0) out.push({ index: i, paths: negations });
+  }
+  return out;
+}
