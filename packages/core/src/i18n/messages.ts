@@ -44,6 +44,7 @@ export const messages = {
       'Auto-suggested draft pattern rules — review & edit, then place each under your rulesDir.',
     'cli.rules.suggest.experimentalLabel': 'EXPERIMENTAL',
     'cli.rules.suggest.written': 'wrote {count} suggestion(s) to {path}',
+    'cli.rules.suggest.skipPatternsHint': '↳ auto-skipped paths: {patterns}',
   },
   ko: {
     'cli.check.scanned': '파일 {files}개 검사, 위반 {violations}개, {ms}ms 소요',
@@ -81,6 +82,7 @@ export const messages = {
       '자동 제안된 패턴 룰 초안 — 검토·수정 후 rulesDir에 배치하세요.',
     'cli.rules.suggest.experimentalLabel': '실험적',
     'cli.rules.suggest.written': '제안 {count}건을 {path}에 기록',
+    'cli.rules.suggest.skipPatternsHint': '↳ 자동 스킵 경로: {patterns}',
   },
 } as const;
 

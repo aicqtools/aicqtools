@@ -152,3 +152,37 @@ describe('formatSuggestText / formatSuggestYaml', () => {
     if (hasInfoOrNoisy) expect(hasCommentedRule).toBe(true);
   });
 });
+
+describe('formatSuggest — skipPatterns surfacing (alpha.12)', () => {
+  it('renders ↳ auto-skipped paths hint in en text under a rule with SKIP_FILE_RE meta', async () => {
+    const rules = await loadAllBuiltinRules();
+    const report = await analyzeRepo({ ...base, rules, top: 10 });
+
+    const en = formatSuggestText(report, 'en');
+    const noConsole = report.suggestions.find((s) => s.ruleId === 'no-console-log');
+    expect(noConsole?.skipPatterns?.length ?? 0).toBeGreaterThan(0);
+    expect(en).toContain('↳ auto-skipped paths:');
+  });
+
+  it('renders ↳ 자동 스킵 경로 hint in ko text', async () => {
+    const rules = await loadAllBuiltinRules();
+    const report = await analyzeRepo({ ...base, rules, top: 10 });
+
+    const ko = formatSuggestText(report, 'ko');
+    expect(ko).toContain('↳ 자동 스킵 경로:');
+  });
+
+  it('embeds auto-skips comment in yaml snippet without breaking parseYaml', async () => {
+    const rules = await loadAllBuiltinRules();
+    const report = await analyzeRepo({ ...base, rules, top: 10 });
+    const yaml = formatSuggestYaml(report);
+
+    // At least one rule must carry the auto-skips note.
+    expect(yaml).toMatch(/auto-skips:/);
+
+    // The yaml must still parse — the auto-skips note lives inside a `#` comment, so the
+    // parser treats it as a no-op even if the regex source contains `:` or other YAML-significant
+    // characters.
+    expect(() => parseYaml(yaml)).not.toThrow();
+  });
+});

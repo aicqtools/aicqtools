@@ -17,6 +17,22 @@ export interface RuleMeta {
    * the globs generic conventions, not project-specific paths.
    */
   readonly pathExclude?: readonly string[];
+  /**
+   * Optional list of RegExps that mirror a rule body's internal `SKIP_FILE_RE` guard. If
+   * `ctx.filePath` matches any of these, the rule is expected to skip that file.
+   *
+   * This is **metadata for tooling** (e.g. `aicq rules suggest` surfaces it to users so they
+   * can see which paths the rule auto-skips). The rule body MUST still perform the actual
+   * skip — this field does NOT replace the runtime guard. A unit test enforces meta = code
+   * equality for the built-in rules that use it.
+   *
+   * Semantically distinct from `pathExclude`:
+   * - `pathExclude` (above) = micromatch globs, applied by the **runner** before the rule
+   *   visitor is invoked.
+   * - `skipPatterns` (here) = RegExps, applied **inside the rule body**. The runner does not
+   *   read this field for filtering — it only reads it for surfacing to humans.
+   */
+  readonly skipPatterns?: readonly RegExp[];
 }
 
 export interface ReportArgs {

@@ -137,6 +137,9 @@ function makeSuggestion(
     ...(rule.docs ? { docs: rule.docs } : {}),
     sampleLocations: samples,
     ...(stackMatch ? { stackMatch: true } : {}),
+    ...(rule.skipPatterns && rule.skipPatterns.length > 0
+      ? { skipPatterns: rule.skipPatterns.map((re) => re.source) }
+      : {}),
   };
 }
 

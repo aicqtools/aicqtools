@@ -8,7 +8,7 @@ import { defineRule } from '@aicqtools/rule-sdk';
  * swallow exceptions on purpose (the bridge/SW must never crash the host). The rule still
  * fires elsewhere on the same files via other lints.
  */
-const SKIP_FILE_RE = /[/\\](native-bridge|service-worker)\.[jt]sx?$/;
+export const SKIP_FILE_RE = /[/\\](native-bridge|service-worker)\.[jt]sx?$/;
 
 export default defineRule({
   id: 'no-empty-catch',
@@ -16,6 +16,7 @@ export default defineRule({
   severity: 'error',
   message: 'catch block must not be empty — log or rethrow.',
   messageKo: 'catch 블록은 비어 있을 수 없습니다 — log하거나 rethrow하세요.',
+  skipPatterns: [SKIP_FILE_RE],
   visitors: {
     catch_clause(node, ctx) {
       if (SKIP_FILE_RE.test(ctx.filePath)) return;

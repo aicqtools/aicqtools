@@ -24,6 +24,13 @@ export interface RuleSuggestion {
    * YAML config-snippet builder (to emit such rules as commented-out lines).
    */
   readonly noisy?: boolean;
+  /**
+   * Human-readable mirror of `RuleMeta.skipPatterns`: the `.source` of each RegExp the rule
+   * auto-skips internally. Surfaced by the text reporter (`↳ auto-skipped paths: …`) and as
+   * a YAML comment in the config snippet so users can see which built-in skips are active
+   * without reading the rule body.
+   */
+  readonly skipPatterns?: readonly string[];
 }
 
 export type DependencySource = 'package.json' | 'requirements.txt';

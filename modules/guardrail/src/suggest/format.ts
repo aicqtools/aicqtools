@@ -4,6 +4,7 @@ import { t } from '@aicqtools/core';
 import type { PatternRuleDraft, RuleSuggestion, RuleSuggestionReport } from './types.js';
 
 const MESSAGE_WIDTH = 64;
+const SKIP_PATTERNS_WIDTH = 80;
 
 /**
  * A paste-ready `aicq.config.yaml` fragment that enables the suggested rules.
@@ -22,6 +23,9 @@ export function buildConfigSnippet(suggestions: readonly RuleSuggestion[]): stri
     if (s.stackMatch) noteParts.push('stack match');
     const commentOut = s.severity === 'info' || s.noisy === true;
     if (commentOut) noteParts.push(`${s.severity} severity, likely noisy — review & tune before enabling`);
+    if (s.skipPatterns && s.skipPatterns.length > 0) {
+      noteParts.push(`auto-skips: ${truncate(s.skipPatterns.join(', '), SKIP_PATTERNS_WIDTH)}`);
+    }
     const note = noteParts.length > 0 ? `  # ${noteParts.join(', ')}` : '';
     const prefix = commentOut ? '#      ' : '      ';
     lines.push(`${prefix}${s.ruleId}: ${level}${note}`);
@@ -63,6 +67,13 @@ export function formatSuggestText(report: RuleSuggestionReport, locale: Locale):
       const flagStr = flags.length > 0 ? ` ${flags.join(' ')}` : '';
       lines.push(`  ${s.ruleId}  ${s.hits}  ${s.severity}  ${truncate(s.message, MESSAGE_WIDTH)}${flagStr}`);
       for (const loc of s.sampleLocations) lines.push(`      ${loc.file}:${loc.line}:${loc.column}`);
+      if (s.skipPatterns && s.skipPatterns.length > 0) {
+        lines.push(
+          `      ${t(locale, 'cli.rules.suggest.skipPatternsHint', {
+            patterns: truncate(s.skipPatterns.join(', '), SKIP_PATTERNS_WIDTH),
+          })}`,
+        );
+      }
     });
   }
 
