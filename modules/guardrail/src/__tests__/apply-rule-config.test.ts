@@ -70,4 +70,16 @@ describe('applyRuleConfig', () => {
     expect(alphas).toHaveLength(2);
     expect(alphas.every((r) => r.severity === 'warning')).toBe(true);
   });
+
+  it('alpha.14 union shape: object entry with only severity behaves like the legacy string', () => {
+    const out = applyRuleConfig(rules, { alpha: { severity: 'warn' } });
+    const alpha = out.rules.find((r) => r.id === 'alpha');
+    expect(alpha?.severity).toBe('warning');
+  });
+
+  it('alpha.14 back-compat: legacy `off` string keeps dropping the rule', () => {
+    const out = applyRuleConfig(rules, { gamma: 'off' });
+    const ids = out.rules.map((r) => r.id);
+    expect(ids).toEqual(['alpha', 'beta']);
+  });
 });

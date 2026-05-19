@@ -10,13 +10,77 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - Split `@aicq/parse-failed` into `@aicq/parse-failed` + `@aicq/rule-error` once enough data accumulates on which path fails more often.
 - Cursor SQLite extraction: scope which workspace `state.vscdb` to read by matching `<hash>/workspace.json`'s `folder` URI against the cwd (currently best-effort, takes the most-recent DB regardless of project).
 - `aicq rules suggest`: pattern-mining v2 — generalize literal arguments, dedupe near-equivalent shapes, optionally re-evaluate the user's own `rulesDir` rules. Also: emit `overrides:` recommendations alongside the existing `rules:` map.
-- Full per-rule options framework: rule-specific zod-validated option schemas plumbed through `RuleContext.options`, with auto-generated doc tables. Alpha.7 wired the `rules: off|warn|error` map but per-rule options are still hardcoded inside each rule.
+- Per-rule options framework — migrate remaining built-in rules (`no-console-log`, `no-empty-catch`, korean/python/pci/fsc) to `RuleMeta.options` so users can tune each rule's hardcoded constants. Alpha.14 shipped the framework + first migration (`no-magic-number.allowedNumbers`).
 - Nested `.gitignore` / dedicated `.aicqignore` support. Alpha.9 honors only the root `.gitignore` (auto-on by default).
 - `@aicq/unused-suppression`: an info-severity diagnostic when an `aicq-disable-*` directive matched zero diagnostics (mirrors ESLint's `--report-unused-disable-directives`).
 - Line-level `.gitignore` parse-error logging (`aicq: .gitignore line N could not be parsed`). Alpha.9 silently tolerates unparseable lines; the next sweep should surface them on stderr for debuggability.
 - `--overrides` CLI flag for one-off path-rule application without writing `aicq.config.yaml`. Alpha.10 ships `overrides:` as a config-only feature.
 - Broader auto-distinction of "real source under `public/`" beyond the Capacitor `native-bridge.js` / PWA `service-worker` conventions that alpha.10 already skips (e.g. wildcard `*-bridge.{js,ts}`, bare `sw.{js,ts}`) — needs more dogfood data to avoid false-positive silent skips.
 - `overrides.anchoring: 'auto' | 'strict'` opt-out if alpha.10 dogfood surfaces unexpected match growth. Alpha.10 ships `'auto'` as the only behavior.
+
+---
+
+## [v1.0.0-alpha.14] - 2026-05-19
+
+### 🇰🇷 한국어
+
+알파.13의 `RuleContext.skipBuiltinSkips` first instance를 일반화한 **per-rule options framework**. 룰이 zod schema + defaults를 self-declare하면 사용자가 `aicq.config.yaml`의 `rules: { <id>: { options: {...} } }`로 룰별 옵션을 조정할 수 있고, runner는 schema validation → `RuleContext.options` plumbing → 캐시 hash 합류까지 자동 처리. 첫 마이그레이션 사례로 `no-magic-number.allowedNumbers`를 적용 — 사용자가 프로젝트 고유 허용 숫자(16진수, 시간 단위 등)를 추가할 수 있게 함. **기본값 = 무옵션 = 알파.13 동작과 비트 단위 동일**, dogfood 카운트 회귀 0. BREAKING 아님 — `RuleMeta.options` / `RuleContext.options` / config 객체 shape 모두 옵셔널.
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.14
+- `@aicqtools/rule-sdk` 1.0.0-alpha.14
+- `@aicqtools/guardrail` 1.0.0-alpha.14
+- `@aicqtools/provenance` 1.0.0-alpha.14
+- `@aicqtools/cli` 1.0.0-alpha.14
+
+#### 추가
+- **`RuleMeta.options?` 필드** (`@aicqtools/rule-sdk`). 룰이 `{ schema: ZodTypeAny; defaults: Readonly<Record<string, unknown>> }`로 옵션 surface self-declare. zod는 type-only import + `peerDependenciesMeta.zod.optional: true` — 옵션 미사용 룰은 zod 불필요. 외부 룰 작성자 backward-compat 0.
+- **`RuleContext.options?` 필드**. 룰 본체가 `ctx.options as MyOptions ?? DEFAULTS` 패턴으로 읽음. 옵셔널이라 알파.13 외부 사용자 룰 그대로 컴파일.
+- **`aicq.config.yaml` `rules` map의 객체 shape** (`@aicqtools/core`). 기존 `rules: { foo: 'off' }` 외에 `rules: { foo: { severity: 'warn', options: { ... } } }`를 union으로 허용. `.strict()`로 오타 키(`severityy`, `option`) 캐치. `overrides[].rules`도 동일 패턴. 기존 string shape는 union의 한 갈래로 그대로 파싱 (back-compat).
+- **`resolveRuleOptions` 헬퍼** (`@aicqtools/guardrail`). 룰의 zod schema로 사용자 옵션을 `safeParse` → defaults와 merge → unknown keys + parse error 수집. 실패 시 defaults fallback (run never crashes).
+- **`applyRuleConfig` 확장 + 신규 `applyOverridesForFileResolved`**. 사이드 맵 `ruleOptions: ReadonlyMap<string, ...>`로 Rule immutability 유지. `applyOverridesForFile` 알파.8 시그니처는 그대로 보존 (기존 호출자 회귀 0). Per-file 옵션 layering = global → overrides[i] (last-write-wins).
+- **`no-magic-number.allowedNumbers` 옵션** — 알파.13 11개 default(`['0', '1', '-1', '2', '-2', '10', '16', '24', '60', '100', '1000', '1024']`)를 zod schema default로 옮김. 사용자가 좁히거나 늘릴 수 있음. `aicq rules suggest` 출력 + `aicq docs build` 자동 생성 docs에 옵션 표 포함.
+- **CLI stderr 경고** — 알 수 없는 옵션 키(`cli.check.unknownRuleOptionKey`)와 zod 파싱 실패(`cli.check.ruleOptionParseError`) 각각 한 줄. exit code 미변경 (알파.7 unknownIds 패턴 일관). i18n en/ko 양쪽.
+- **Docs render 확장** — `renderRuleMarkdown`이 `rule.options`를 zod schema introspection으로 `## Options` (en) / `## 옵션` (ko) 섹션 자동 생성. `key | type | default` 표 + 예제 yaml.
+- **신규 테스트 11건**: guardrail 8건 (`rule-options.test.ts` 6 + `apply-rule-config.test.ts` +2: union shape 객체형 / back-compat 'off') + cli 3건 (`rule-options-cli.test.ts` — config 객체 shape / unknown key stderr / zod fallback).
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 테스트: 알파.13 258 + 신규 8 = 266. CLI 테스트: 알파.13 29 + 신규 3 = 32. 회귀 0.
+- 알파.12 메타-실코드 동일성 가드 + 알파.13 `skipBuiltinSkips` 매트릭스 모두 그대로 통과 — `SKIP_FILE_RE` 패턴 / `skipPatterns` 메타 미접촉.
+- 실 프로젝트 도그푸드 예상(TalkUp 알파.12 baseline frontend 742 / backend 2,865 / admin 179, `no-magic-number` 옵션 미설정) — 기본값 그대로라 카운트 0 delta.
+- 알파.9 `respectGitignore` / 알파.10 `overrides.anchoring: 'auto'` / 알파.11 negation 경고 / 알파.12 paste-ready 가드 / 알파.13 `skipBuiltinSkips` — 본 PR에서 미접촉.
+
+---
+
+### 🇬🇧 English
+
+Generalization of alpha.13's `RuleContext.skipBuiltinSkips` first instance into a full **per-rule options framework**. Rules self-declare a zod schema + defaults via `RuleMeta.options`, and users tune them through `aicq.config.yaml`'s `rules: { <id>: { options: {...} } }` object shape. The runner handles schema validation, plumbs resolved values into `RuleContext.options`, and folds option hashes into the cache key automatically. First migration: `no-magic-number.allowedNumbers` — users can now extend the 11-number allowlist with project-specific constants (hex, time units, etc.). **Default behavior = no options = bitwise-identical to alpha.13**, dogfood counts unchanged. Not BREAKING — `RuleMeta.options`, `RuleContext.options`, and the new config object shape are all optional.
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.14
+- `@aicqtools/rule-sdk` 1.0.0-alpha.14
+- `@aicqtools/guardrail` 1.0.0-alpha.14
+- `@aicqtools/provenance` 1.0.0-alpha.14
+- `@aicqtools/cli` 1.0.0-alpha.14
+
+#### Added
+- **`RuleMeta.options?` field** (`@aicqtools/rule-sdk`). Rules self-declare option surface via `{ schema: ZodTypeAny; defaults: Readonly<Record<string, unknown>> }`. Zod is a type-only import + `peerDependenciesMeta.zod.optional: true` so rules without options never pull zod in. External rule author backward-compat: 0 impact.
+- **`RuleContext.options?` field**. Rule bodies read `ctx.options as MyOptions ?? DEFAULTS`. Optional, so existing external rules from alpha.13 compile unchanged.
+- **`aicq.config.yaml` object shape for `rules`** (`@aicqtools/core`). The legacy `rules: { foo: 'off' }` string shape is now union'd with `rules: { foo: { severity: 'warn', options: { ... } } }`. `.strict()` catches typos in the top-level keys. `overrides[].rules` follows the same pattern. Existing string-shape configs parse via the union's first branch (back-compat).
+- **`resolveRuleOptions` helper** (`@aicqtools/guardrail`). Runs the rule's zod schema in `safeParse` mode, merges with defaults, and collects unknown keys + parse errors. On failure, returns defaults — the runner never crashes on a broken option config.
+- **`applyRuleConfig` extended + new `applyOverridesForFileResolved`**. Resolved options live in a side map (`ruleOptions: ReadonlyMap<string, ...>`) so the `Rule` objects stay immutable. The alpha.8 `applyOverridesForFile` signature is preserved verbatim — existing callers see zero regression. Per-file layering = global → overrides[i] (last-write-wins).
+- **`no-magic-number.allowedNumbers` option** — the alpha.13 default list (`['0', '1', '-1', '2', '-2', '10', '16', '24', '60', '100', '1000', '1024']`) is now exposed as a zod schema default. Users can shrink or extend it. `aicq rules suggest` and the auto-generated docs (`aicq docs build`) both surface the options table.
+- **CLI stderr warnings** — unknown option keys (`cli.check.unknownRuleOptionKey`) and zod parse failures (`cli.check.ruleOptionParseError`) each emit one line. Exit code stays 0 (consistent with the alpha.7 unknownIds pattern). i18n en/ko both included.
+- **Docs render extension** — `renderRuleMarkdown` introspects `rule.options` via zod and renders `## Options` (en) / `## 옵션` (ko) with a `key | type | default` table + example YAML.
+- **Eleven new tests**: guardrail ×8 (`rule-options.test.ts` ×6 + `apply-rule-config.test.ts` +2: union object shape / back-compat `off`) + cli ×3 (`rule-options-cli.test.ts` — config object shape / unknown key stderr / zod fallback).
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: alpha.13 258 + 8 new = 266. CLI tests: alpha.13 29 + 3 new = 32. 0 regressions.
+- Alpha.12 meta-vs-code equality guard and alpha.13 `skipBuiltinSkips` matrix all still pass — `SKIP_FILE_RE` patterns and `skipPatterns` meta are untouched.
+- Real-project dogfood expected (TalkUp alpha.12 baseline frontend 742 / backend 2,865 / admin 179, `no-magic-number` options unset): counts unchanged because the defaults preserve alpha.13 behavior.
+- Alpha.9 `respectGitignore` / alpha.10 `overrides.anchoring: 'auto'` / alpha.11 negation warning / alpha.12 paste-ready guard / alpha.13 `skipBuiltinSkips` — all untouched.
 
 ---
 

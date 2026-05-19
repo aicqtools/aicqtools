@@ -1,5 +1,6 @@
 import type { Severity } from '@aicqtools/core';
 import type { Rule } from '@aicqtools/rule-sdk';
+import type { ZodTypeAny } from 'zod';
 
 const SEVERITY_LABEL_EN: Record<Severity, string> = {
   error: '🔴 error',
@@ -23,6 +24,100 @@ function ruleKindLabel(rule: Rule, locale: 'ko' | 'en'): string {
   return locale === 'ko' ? 'JS/TS 함수' : 'JS/TS function';
 }
 
+/**
+ * Alpha.14 — render the rule's `options` zod schema as a markdown table. Best-effort
+ * introspection: works for `z.object({ key: z.array(z.string()).default(...) })` shapes and
+ * similar. Anything we can't introspect cleanly falls back to "see source for shape".
+ */
+function describeZodType(schema: ZodTypeAny): string {
+  const def = (schema as { _def?: { typeName?: string } })._def;
+  switch (def?.typeName) {
+    case 'ZodString':
+      return 'string';
+    case 'ZodNumber':
+      return 'number';
+    case 'ZodBoolean':
+      return 'boolean';
+    case 'ZodArray': {
+      const inner = (def as { type?: ZodTypeAny }).type;
+      return inner ? `array<${describeZodType(inner)}>` : 'array';
+    }
+    case 'ZodDefault': {
+      const inner = (def as { innerType?: ZodTypeAny }).innerType;
+      return inner ? describeZodType(inner) : 'unknown';
+    }
+    case 'ZodOptional': {
+      const inner = (def as { innerType?: ZodTypeAny }).innerType;
+      return inner ? `${describeZodType(inner)}?` : 'unknown?';
+    }
+    case 'ZodEnum': {
+      const values = (def as { values?: readonly string[] }).values;
+      return values ? values.map((v) => `'${v}'`).join(' | ') : 'enum';
+    }
+    case 'ZodUnion':
+      return 'union';
+    case 'ZodObject':
+      return 'object';
+    default:
+      return 'unknown';
+  }
+}
+
+function renderOptionsTable(
+  schema: ZodTypeAny,
+  defaults: Readonly<Record<string, unknown>>,
+  locale: 'ko' | 'en',
+): string | null {
+  const def = (schema as { _def?: { typeName?: string; shape?: () => Record<string, ZodTypeAny> } })._def;
+  if (def?.typeName !== 'ZodObject' || typeof def.shape !== 'function') {
+    return locale === 'ko' ? '_옵션 스키마 구조 확인은 룰 소스를 참고하세요._' : '_See rule source for option schema shape._';
+  }
+  const shape = def.shape();
+  const keys = Object.keys(shape);
+  if (keys.length === 0) return null;
+  const header =
+    locale === 'ko'
+      ? '| 키 | 타입 | 기본값 |\n|----|------|--------|'
+      : '| Key | Type | Default |\n|-----|------|---------|';
+  const rows = keys.map((key) => {
+    const fieldSchema = shape[key]!;
+    const type = describeZodType(fieldSchema);
+    const def = defaults[key];
+    const defaultStr =
+      def === undefined ? '—' : '`' + JSON.stringify(def) + '`';
+    return `| \`${key}\` | \`${type}\` | ${defaultStr} |`;
+  });
+  return [header, ...rows].join('\n');
+}
+
+function renderOptionsSection(rule: Rule, locale: 'ko' | 'en'): string[] {
+  if (!rule.options) return [];
+  const heading = locale === 'ko' ? '## 옵션 (alpha.14)' : '## Options (alpha.14)';
+  const intro =
+    locale === 'ko'
+      ? '`aicq.config.yaml`에서 `rules.<룰 id>.options`로 재정의 가능. 잘못된 키/타입은 stderr 경고 후 기본값으로 복귀.'
+      : 'Override under `rules.<rule id>.options` in `aicq.config.yaml`. Invalid keys/types trigger a stderr warning and fall back to defaults.';
+  const table = renderOptionsTable(rule.options.schema, rule.options.defaults, locale);
+  const lines = [heading, '', intro, ''];
+  if (table) lines.push(table, '');
+  const example = locale === 'ko' ? '예시:' : 'Example:';
+  lines.push(
+    example,
+    '',
+    '```yaml',
+    'modules:',
+    '  guardrail:',
+    '    rules:',
+    `      ${rule.id}:`,
+    '        options:',
+  );
+  for (const [k, v] of Object.entries(rule.options.defaults)) {
+    lines.push(`          ${k}: ${JSON.stringify(v)}`);
+  }
+  lines.push('```', '');
+  return lines;
+}
+
 export function renderRuleMarkdown(rule: Rule, locale: 'ko' | 'en'): string {
   const messages = locale === 'ko' && rule.messageKo ? rule.messageKo : rule.message;
   const severityLabel = locale === 'ko' ? SEVERITY_LABEL_KO[rule.severity] : SEVERITY_LABEL_EN[rule.severity];
@@ -40,6 +135,7 @@ export function renderRuleMarkdown(rule: Rule, locale: 'ko' | 'en'): string {
       '',
       messages,
       '',
+      ...renderOptionsSection(rule, 'ko'),
       '## 위반 예시',
       '',
       '```typescript',
@@ -81,6 +177,7 @@ export function renderRuleMarkdown(rule: Rule, locale: 'ko' | 'en'): string {
     '',
     messages,
     '',
+    ...renderOptionsSection(rule, 'en'),
     '## Violation example',
     '',
     '```typescript',

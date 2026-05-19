@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/cli",
-  "version": "1.0.0-alpha.13",
+  "version": "1.0.0-alpha.14",
   "type": "module",
   "description": "aicq command-line interface — `aicq check`, `aicq mcp`, `aicq sync-ai-rules`, `aicq provenance`, `aicq docs build`.",
   "keywords": [
@@ -57,6 +57,7 @@
   "devDependencies": {
     "@types/node": "^22.10.0",
     "typescript": "^5.7.2",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "zod": "^3.23.8"
   }
 }

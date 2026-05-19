@@ -1,5 +1,6 @@
 import type { Language, Severity, Range } from '@aicqtools/core';
 import type Parser from 'tree-sitter';
+import type { ZodTypeAny } from 'zod';
 
 export type NodeType = string;
 
@@ -33,6 +34,21 @@ export interface RuleMeta {
    *   read this field for filtering — it only reads it for surfacing to humans.
    */
   readonly skipPatterns?: readonly RegExp[];
+  /**
+   * Alpha.14 — per-rule options framework. A rule declares its option surface here so the
+   * runner can validate user-supplied values against `schema` and expose the resolved values
+   * via `RuleContext.options`. `defaults` is what `ctx.options` evaluates to when the user
+   * provides no config (it's also what auto-generated docs render). Optional — rules that
+   * have no tunable behavior simply omit the field and observe `ctx.options === undefined`.
+   *
+   * `schema` is a `ZodTypeAny` so rules can pick any zod shape (most commonly `z.object({...})`).
+   * The `zod` peer dependency is declared as `optional: true` — only rules that actually use
+   * this field need to import zod themselves.
+   */
+  readonly options?: {
+    readonly schema: ZodTypeAny;
+    readonly defaults: Readonly<Record<string, unknown>>;
+  };
 }
 
 export interface ReportArgs {
@@ -54,6 +70,14 @@ export interface RuleContext {
    * alpha.10~12 behavior. Optional so external rule authors are unaffected (backward-compat).
    */
   readonly skipBuiltinSkips?: boolean;
+  /**
+   * Alpha.14 — resolved per-rule options. Set when the rule declared `RuleMeta.options` and
+   * the runner merged its `defaults` with any user-supplied values (validated against the
+   * rule's zod schema). Rule bodies typically cast this to their own inferred option type:
+   * `const opts = ctx.options as MyOptions ?? DEFAULTS;`. Undefined for rules without an
+   * options declaration, so existing external rules compile unchanged.
+   */
+  readonly options?: Readonly<Record<string, unknown>>;
 }
 
 export type Visitor = (node: Parser.SyntaxNode, ctx: RuleContext) => void;

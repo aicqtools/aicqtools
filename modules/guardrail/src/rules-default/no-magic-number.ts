@@ -1,4 +1,5 @@
 import type Parser from 'tree-sitter';
+import { z } from 'zod';
 import { defineRule } from '@aicqtools/rule-sdk';
 
 /**
@@ -26,9 +27,25 @@ import { defineRule } from '@aicqtools/rule-sdk';
  * Allowed-numbers default extended to common-sense values: powers of two, common bases,
  * time/clock constants, etc.
  */
-const ALLOWED_NUMBERS = new Set([
+/**
+ * Default allowed-number literals. Common-sense values: -2..2, base-10 / base-16 / base-2,
+ * time/clock constants. Alpha.14 exposes this list as `options.allowedNumbers` so users can
+ * extend (`['0', '1', '-1', '2', '60', '3600', '86400']` for time-heavy projects) or shrink
+ * the allow-list per project.
+ */
+const DEFAULT_ALLOWED_NUMBERS: readonly string[] = [
   '0', '1', '-1', '2', '-2', '10', '16', '24', '60', '100', '1000', '1024',
-]);
+] as const;
+
+const optionsSchema = z
+  .object({
+    allowedNumbers: z.array(z.string()).default([...DEFAULT_ALLOWED_NUMBERS]),
+  })
+  .strict();
+
+interface NoMagicNumberOptions {
+  readonly allowedNumbers: readonly string[];
+}
 
 export const SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|fixtures|\.config\.|\.polyfill\.|[/\\]polyfills[/\\]|[/\\]seeders[/\\]|[/\\]migrations[/\\]|[/\\](scripts|tools|bin)[/\\]|[/\\](native-bridge|service-worker)\.[jt]sx?$)/;
 
@@ -130,11 +147,19 @@ export default defineRule({
   message: 'Magic number — extract to a named constant for clarity.',
   messageKo: '매직 넘버 — 명명된 상수로 추출해 의미를 명확히 하세요.',
   skipPatterns: [SKIP_FILE_RE],
+  options: {
+    schema: optionsSchema,
+    defaults: { allowedNumbers: [...DEFAULT_ALLOWED_NUMBERS] },
+  },
   visitors: {
     number(node, ctx) {
       if (!ctx.skipBuiltinSkips && isInSkippedFile(ctx.filePath)) return;
+      const opts = (ctx.options as NoMagicNumberOptions | undefined) ?? {
+        allowedNumbers: DEFAULT_ALLOWED_NUMBERS,
+      };
+      const allowed = new Set(opts.allowedNumbers);
       const text = ctx.textOf(node);
-      if (ALLOWED_NUMBERS.has(text)) return;
+      if (allowed.has(text)) return;
       if (hasSkippableAncestor(node)) return;
       if (isArgOfNumericApi(node, ctx.textOf)) return;
       if (isInTimeoutMsContext(node, ctx.textOf)) return;
