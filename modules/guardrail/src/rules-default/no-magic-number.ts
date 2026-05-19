@@ -132,7 +132,7 @@ export default defineRule({
   skipPatterns: [SKIP_FILE_RE],
   visitors: {
     number(node, ctx) {
-      if (isInSkippedFile(ctx.filePath)) return;
+      if (!ctx.skipBuiltinSkips && isInSkippedFile(ctx.filePath)) return;
       const text = ctx.textOf(node);
       if (ALLOWED_NUMBERS.has(text)) return;
       if (hasSkippableAncestor(node)) return;

@@ -22,6 +22,12 @@ export interface CheckOptions {
    * `'auto'`, in which case the presence of a root `.gitignore` decides).
    */
   readonly respectGitignore?: boolean;
+  /**
+   * CLI override for `skipBuiltinSkips` (alpha.13). `true` bypasses built-in `SKIP_FILE_RE`
+   * guards in default rules; `false` enforces them. `undefined` defers to config (default
+   * `false`).
+   */
+  readonly skipBuiltinSkips?: boolean;
 }
 
 export async function runCheck(opts: CheckOptions): Promise<number> {
@@ -91,6 +97,10 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
     respectGitignore = config.respectGitignore;
   }
 
+  // Alpha.13 escape hatch: explicit CLI flag > config boolean (default false).
+  const skipBuiltinSkips =
+    opts.skipBuiltinSkips !== undefined ? opts.skipBuiltinSkips : config.skipBuiltinSkips;
+
   let result;
   try {
     result = await runProject({
@@ -101,6 +111,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       ...(cache ? { cache } : {}),
       ...(respectGitignore ? { respectGitignore: true } : {}),
       ...(overrides.length > 0 ? { overrides } : {}),
+      ...(skipBuiltinSkips ? { skipBuiltinSkips: true } : {}),
     });
   } catch (err) {
     if (err instanceof ParserError) {

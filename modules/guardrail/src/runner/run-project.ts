@@ -26,6 +26,13 @@ export interface RunProjectOptions {
    * (or omitted) is the fast path — runner falls back to the baseline list unchanged.
    */
   readonly overrides?: readonly RuleOverride[];
+  /**
+   * Alpha.13 escape hatch. When `true`, built-in `SKIP_FILE_RE` guards inside default rules
+   * (`no-console-log` / `no-empty-catch` / `no-magic-number`) are bypassed for the whole run.
+   * Default `false` preserves alpha.10~12 behavior. Forwarded into each `runFile` call so the
+   * rule body can read it from `ctx.skipBuiltinSkips`.
+   */
+  readonly skipBuiltinSkips?: boolean;
 }
 
 export async function runProject(opts: RunProjectOptions): Promise<CheckResult> {
@@ -41,6 +48,7 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
 
   const cache = opts.cache;
   const overrides = opts.overrides ?? [];
+  const runFileOpts = { skipBuiltinSkips: opts.skipBuiltinSkips ?? false };
   // Per-entry match counters (alpha.10). Allocated only when overrides is non-empty so the
   // unused-feature fast path stays allocation-free. Slots that remain 0 after the scan are
   // reported by the CLI as "matched no files — ignored." warnings.
@@ -53,6 +61,7 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
     ? hashRulesetSignature([
         ...rulesetSignature(opts.rules),
         'overrides=' + JSON.stringify(overrides),
+        'skipBuiltinSkips=' + String(runFileOpts.skipBuiltinSkips),
       ])
     : '';
   const diagnostics: Diagnostic[] = [];
@@ -72,14 +81,14 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
           diagnostics.push(...cached);
           continue;
         }
-        const result = await runFile(file, fileRules);
+        const result = await runFile(file, fileRules, runFileOpts);
         cache.set(
           { filePath: file, mtime: Math.floor(st.mtimeMs), size: st.size, rulesHash },
           result.diagnostics,
         );
         diagnostics.push(...result.diagnostics);
       } else {
-        const result = await runFile(file, fileRules);
+        const result = await runFile(file, fileRules, runFileOpts);
         diagnostics.push(...result.diagnostics);
       }
     } catch (err) {

@@ -115,6 +115,64 @@ CI(GitHub Actions) 통합은 [packages/action/README.md](packages/action/README.
 
 ---
 
+## `aicq.config.yaml` 핵심 옵션
+
+기본값만으로도 동작하지만, 실제 프로젝트에서 자주 쓰는 옵션 세 가지를 묶어 정리합니다. 전체 schema는 [`packages/core/src/config/schema.ts`](packages/core/src/config/schema.ts).
+
+### `exclude` — 스캔에서 빠질 경로
+
+```yaml
+# aicq.config.yaml
+exclude:
+  - 'node_modules/**'
+  - 'dist/**'
+  - 'build/**'
+  - '**/__generated__/**'
+  - 'vendor/**'
+```
+
+`exclude`는 micromatch 글롭 목록입니다. 기본값은 일반적인 빌드 산출물·캐시(`.next/`, `coverage/`, `ios/`, `android/` 등)을 자동 제거하니, 거기 위에 프로젝트 고유 경로만 더하면 됩니다.
+
+**언제 쓰나** — 빌드 산출물·자동 생성 코드·vendor 디렉토리를 통째로 빼고 싶을 때. 룰별 토글이 아니라 **모든 룰의 시야 자체를 줄이는** 가장 강력한 도구.
+
+### `overrides` — 경로별 룰 on/off
+
+```yaml
+overrides:
+  - paths: ['**/scripts/**', '**/tools/**']
+    rules:
+      no-console-log: off
+
+  - paths: ['**/integration-tests/**']
+    rules:
+      no-direct-openai: off
+      no-magic-number: warn
+```
+
+- `paths`는 **글롭 OR 매치** 시맨틱(`micromatch.isMatch`). 알파.10부터 cwd 기준 auto-anchor (`scripts/**` → `**/scripts/**`).
+- `paths`에 매치되는 파일에 한해 `rules` 맵을 적용. 기존 활성 룰 위에 덮어쓰기.
+
+**negation은 silent no-op 함정** — `paths: ['src/**', '!src/app.ts']`처럼 ESLint식으로 쓰면 알파.11부터 stderr 경고가 한 줄 뜹니다 (`micromatch.isMatch`의 array OR 시맨틱이라 negation이 형제 positive glob을 빼주지 못함). **경로를 빼고 싶으면 최상위 `exclude:` 필드를 사용**.
+
+### `skipBuiltinSkips` (alpha.13+) — 빌트인 자동 스킵 끄기
+
+3개 빌트인 룰(`no-console-log` / `no-empty-catch` / `no-magic-number`)은 내부에 자체 정규식 가드가 있어 `scripts/`·`native-bridge.js`·`__tests__/` 같은 관례 경로에서 자동으로 스킵됩니다. 빌트인 스킵이 과도하다고 느낄 때만 꺼세요:
+
+```yaml
+skipBuiltinSkips: true  # 빌트인 가드 무력화, 룰은 모든 파일에서 fire
+```
+
+CLI flag로 한 번만 끄기:
+
+```bash
+aicq check --skip-builtin-skips     # 끄기
+aicq check --no-skip-builtin-skips  # 강제 켜기 (config가 true여도)
+```
+
+기본값 `false` — 알파.10~12 동작 그대로. `aicq rules suggest` 출력의 `↳ auto-skipped paths:` 줄로 어떤 패턴이 적용되는지 미리 볼 수 있습니다.
+
+---
+
 ## 패키지 5종 (npm `@aicqtools` 스코프)
 
 | 패키지 | 용도 |

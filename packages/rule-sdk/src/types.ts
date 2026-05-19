@@ -48,6 +48,12 @@ export interface RuleContext {
   readonly report: (args: ReportArgs) => void;
   readonly textOf: (node: Parser.SyntaxNode) => string;
   readonly rangeOf: (node: Parser.SyntaxNode) => Range;
+  /**
+   * Alpha.13 escape hatch. When `true`, built-in rules' internal `SKIP_FILE_RE` guards should
+   * be bypassed so the rule fires even on conventionally-skipped paths. Default `false` keeps
+   * alpha.10~12 behavior. Optional so external rule authors are unaffected (backward-compat).
+   */
+  readonly skipBuiltinSkips?: boolean;
 }
 
 export type Visitor = (node: Parser.SyntaxNode, ctx: RuleContext) => void;

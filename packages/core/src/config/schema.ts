@@ -124,6 +124,15 @@ export const aicqConfigSchema = z.object({
    * Only the root `.gitignore` is honored; nested gitignore files are left for a future release.
    */
   respectGitignore: z.union([z.boolean(), z.literal('auto')]).default('auto'),
+  /**
+   * Escape hatch (alpha.13) — when `true`, built-in `SKIP_FILE_RE` guards inside default rules
+   * (`no-console-log` / `no-empty-catch` / `no-magic-number`) are bypassed so those rules fire
+   * on the conventionally-skipped paths (`scripts/`, `native-bridge.js`, `__tests__/`, …).
+   * Default `false` preserves alpha.10~12 behavior. The skip metadata exposed by
+   * `aicq rules suggest` (alpha.12) is unaffected — only the runtime guard is toggled.
+   * Per-rule toggling is left for the v1.0 per-rule options framework.
+   */
+  skipBuiltinSkips: z.boolean().default(false),
   modules: z
     .object({
       guardrail: guardrailModuleSchema,

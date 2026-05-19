@@ -16,7 +16,7 @@ export default defineRule({
   skipPatterns: [SKIP_FILE_RE],
   visitors: {
     call_expression(node, ctx) {
-      if (SKIP_FILE_RE.test(ctx.filePath)) return;
+      if (!ctx.skipBuiltinSkips && SKIP_FILE_RE.test(ctx.filePath)) return;
       const fn = node.childForFieldName('function');
       if (!fn) return;
       const text = ctx.textOf(fn);

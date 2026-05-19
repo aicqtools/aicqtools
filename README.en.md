@@ -115,6 +115,64 @@ Then reinstall. Forces the same single-instance resolution as the alpha.5 fix.
 
 ---
 
+## `aicq.config.yaml` essentials
+
+The defaults work out of the box, but here are the three options you'll reach for most. Full schema lives in [`packages/core/src/config/schema.ts`](packages/core/src/config/schema.ts).
+
+### `exclude` — paths the scanner skips entirely
+
+```yaml
+# aicq.config.yaml
+exclude:
+  - 'node_modules/**'
+  - 'dist/**'
+  - 'build/**'
+  - '**/__generated__/**'
+  - 'vendor/**'
+```
+
+`exclude` is a micromatch glob list. The default already drops common build/cache directories (`.next/`, `coverage/`, `ios/`, `android/`, …), so you only add project-specific paths on top.
+
+**Use it for** — build artifacts, generated code, and vendor directories you never want any rule to see. This is the strongest knob — not per-rule, just **remove paths from every rule's view**.
+
+### `overrides` — per-path rule toggles
+
+```yaml
+overrides:
+  - paths: ['**/scripts/**', '**/tools/**']
+    rules:
+      no-console-log: off
+
+  - paths: ['**/integration-tests/**']
+    rules:
+      no-direct-openai: off
+      no-magic-number: warn
+```
+
+- `paths` uses **glob OR matching** (`micromatch.isMatch`). Since alpha.10, paths are auto-anchored to the cwd (`scripts/**` → `**/scripts/**`).
+- For files matching `paths`, the `rules` map is layered on top of the global rule set.
+
+**Negation is a silent no-op trap** — writing `paths: ['src/**', '!src/app.ts']` ESLint-style triggers a single stderr warning since alpha.11 (`micromatch.isMatch`'s array OR semantics means a negation never subtracts from a sibling positive glob). **To remove paths from the scan, use the top-level `exclude:` field instead.**
+
+### `skipBuiltinSkips` (alpha.13+) — turn off built-in auto-skips
+
+Three built-in rules (`no-console-log` / `no-empty-catch` / `no-magic-number`) carry an internal regex guard that auto-skips conventional paths like `scripts/`, `native-bridge.js`, and `__tests__/`. Turn it off only if you find the built-in skip too aggressive:
+
+```yaml
+skipBuiltinSkips: true  # bypass the guard; rules fire on every file
+```
+
+Or once-off via CLI:
+
+```bash
+aicq check --skip-builtin-skips     # disable
+aicq check --no-skip-builtin-skips  # force-enable (overrides config: true)
+```
+
+Default `false` — same as alpha.10~12 behavior. The `↳ auto-skipped paths:` line in `aicq rules suggest` output shows you which patterns are active.
+
+---
+
 ## The 5 packages (npm `@aicqtools` scope)
 
 | Package | Purpose |

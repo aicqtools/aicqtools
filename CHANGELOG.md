@@ -20,6 +20,66 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ---
 
+## [v1.0.0-alpha.13] - 2026-05-19
+
+### 🇰🇷 한국어
+
+알파.10/11/12 3버전 연속 후순위로 밀린 backlog 항목 처리 — `skipBuiltinSkips` escape hatch. 3개 빌트인 룰(`no-console-log`/`no-empty-catch`/`no-magic-number`)이 내부에서 `SKIP_FILE_RE`로 자동 스킵하던 파일(`scripts/`, `native-bridge.js`, `__tests__/` 등)을 사용자가 켜고 싶을 때 `aicq.config.yaml`에 `skipBuiltinSkips: true` 한 줄로 무력화. 룰 ON/OFF는 무관 — 빌트인 가드만 토글. **기본값 `false`라 알파.10~12 동작과 동일, dogfood 카운트 회귀 0 보장.** SKIP_FILE_RE 정규식 자체와 알파.12의 skipPatterns 메타 노출은 전혀 미접촉.
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.13
+- `@aicqtools/rule-sdk` 1.0.0-alpha.13
+- `@aicqtools/guardrail` 1.0.0-alpha.13
+- `@aicqtools/provenance` 1.0.0-alpha.13
+- `@aicqtools/cli` 1.0.0-alpha.13
+
+#### 추가
+- **`skipBuiltinSkips` config 필드** (`@aicqtools/core`). `aicq.config.yaml`의 최상위 boolean (default `false`). `respectGitignore` 옆 위치. `true`로 두면 3개 빌트인 룰의 `SKIP_FILE_RE` 가드가 비활성화되어 자동 스킵되던 파일에서도 룰이 fire. 사용자가 빌트인 스킵이 과도하다고 느낄 때 사용. 알파.12에서 `aicq rules suggest`가 노출하는 skipPatterns 메타와 짝을 이루는 escape hatch.
+- **`RuleContext.skipBuiltinSkips` 옵셔널 필드** (`@aicqtools/rule-sdk`). 룰 본체가 `ctx.skipBuiltinSkips`로 읽어 가드 분기. 옵셔널이라 기존 외부 사용자 rule은 type 변경 없이 그대로 컴파일.
+- **3개 빌트인 룰 가드 조건문 확장**: `if (SKIP_FILE_RE.test(ctx.filePath)) return;` → `if (!ctx.skipBuiltinSkips && SKIP_FILE_RE.test(ctx.filePath)) return;`. `no-magic-number`는 `isInSkippedFile` 헬퍼 호출부에서 AND (헬퍼 시그니처 미변경).
+- **runner 통과**: `RunProjectOptions` / `RunFileOptions` / `RunContext`에 옵셔널 필드 추가, CLI가 `config.skipBuiltinSkips`를 spread로 전달. 캐시 ruleset hash에 `skipBuiltinSkips` 키 합류 → 사용자가 옵션을 토글하면 캐시 자동 무효화.
+- **CLI flag `--skip-builtin-skips` / `--no-skip-builtin-skips`**. 알파.9 `--gitignore`/`--no-gitignore` 패턴 그대로. 우선순위: 명시적 CLI flag > config boolean > default `false`. 한 번만 끄거나 켜고 싶을 때 config 수정 없이 사용 가능.
+- **README `aicq.config.yaml` 핵심 옵션 섹션** (한·영 동시). `exclude` / `overrides` / `skipBuiltinSkips` 세 항목의 사용 예제 + 알파.11 negation silent no-op 함정 안내. 알파.11 acceptance 잔존 backlog 항목(README에 overrides/exclude 사용 예제 부재) 정리.
+- **신규 테스트 10건**: guardrail 6건 (`skip-builtin-skips.test.ts` — 항목 A 3 back-compat + 항목 B 3 escape hatch on) + cli 4건 (`skip-builtin-skips-cli.test.ts` — config/CLI 우선순위 매트릭스).
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 테스트: 알파.12 base + 신규 6건. CLI 테스트: 알파.12 base + 신규 4건. 회귀 0.
+- 알파.12 메타-실코드 동일성 가드(`rules-default-skip-patterns-meta.test.ts`) 그대로 통과 — SKIP_FILE_RE 패턴 자체 미변경.
+- 실 프로젝트 도그푸드 예상(TalkUp 알파.12 baseline frontend 742 / backend 2,865 / admin 179, `skipBuiltinSkips` 미설정) — 기본값 `false`라 모든 카운트 동일.
+- 알파.9 `respectGitignore` / 알파.10 `overrides.anchoring: 'auto'` / 알파.11 negation 경고 / 알파.12 paste-ready 가드 — 본 PR에서 한 줄도 미접촉.
+
+---
+
+### 🇬🇧 English
+
+Cleanup of a backlog item that lingered three releases (alpha.10/11/12) — the `skipBuiltinSkips` escape hatch. Three built-in rules (`no-console-log` / `no-empty-catch` / `no-magic-number`) carry an internal `SKIP_FILE_RE` guard that auto-skips conventional paths (`scripts/`, `native-bridge.js`, `__tests__/`, …). Users who find that auto-skip too aggressive can now flip a single line — `skipBuiltinSkips: true` in `aicq.config.yaml` — to bypass the guard while leaving the rule itself enabled. **Default `false` preserves alpha.10~12 behavior; dogfood counts stay at 0 delta.** The `SKIP_FILE_RE` patterns themselves and the alpha.12 skipPatterns meta surface are both untouched.
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.13
+- `@aicqtools/rule-sdk` 1.0.0-alpha.13
+- `@aicqtools/guardrail` 1.0.0-alpha.13
+- `@aicqtools/provenance` 1.0.0-alpha.13
+- `@aicqtools/cli` 1.0.0-alpha.13
+
+#### Added
+- **`skipBuiltinSkips` config field** (`@aicqtools/core`). Top-level boolean (default `false`) on `aicq.config.yaml`, placed next to `respectGitignore`. When `true`, the three built-in rules' `SKIP_FILE_RE` guards are bypassed and the rules fire on the conventionally-skipped paths. Pairs with the alpha.12 `skipPatterns` meta that `aicq rules suggest` already surfaces — users can see which paths are auto-skipped, then opt out as a single line.
+- **`RuleContext.skipBuiltinSkips` optional field** (`@aicqtools/rule-sdk`). Rule bodies read `ctx.skipBuiltinSkips` to fork the guard. Optional, so existing external rules compile unchanged.
+- **Three built-in rule guards extended**: `if (SKIP_FILE_RE.test(ctx.filePath)) return;` → `if (!ctx.skipBuiltinSkips && SKIP_FILE_RE.test(ctx.filePath)) return;`. `no-magic-number` ANDs the flag at the `isInSkippedFile` call site (helper signature stays put).
+- **Runner threading**: `RunProjectOptions` / `RunFileOptions` / `RunContext` gain optional fields; the CLI spreads `config.skipBuiltinSkips` into `runProject()`. The ruleset hash that drives cache invalidation now mixes in `skipBuiltinSkips=...`, so flipping the flag invalidates stale cache entries automatically.
+- **CLI flags `--skip-builtin-skips` / `--no-skip-builtin-skips`**, following the alpha.9 `--gitignore` / `--no-gitignore` pattern. Precedence: explicit CLI flag > config boolean > default `false`. Lets a single run override config without editing `aicq.config.yaml`.
+- **README `aicq.config.yaml` essentials section** (ko + en in lockstep). Walkthroughs for `exclude`, `overrides`, and `skipBuiltinSkips`, plus a callout on the alpha.11 negation silent no-op trap. Clears the alpha.11 acceptance backlog item that flagged missing user-facing overrides/exclude examples in the README.
+- **Ten new tests**: guardrail ×6 (`skip-builtin-skips.test.ts` — item A ×3 back-compat + item B ×3 escape hatch on) + cli ×4 (`skip-builtin-skips-cli.test.ts` — config/CLI precedence matrix).
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: alpha.12 baseline + 6 new. CLI tests: alpha.12 baseline + 4 new. 0 regressions.
+- Alpha.12 meta-vs-code equality guard (`rules-default-skip-patterns-meta.test.ts`) keeps passing — `SKIP_FILE_RE` patterns themselves are unchanged.
+- Real-project dogfood expected (TalkUp alpha.12 baseline frontend 742 / backend 2,865 / admin 179 with `skipBuiltinSkips` unset): all counts unchanged because the default is `false`.
+- Alpha.9 `respectGitignore` / alpha.10 `overrides.anchoring: 'auto'` / alpha.11 negation warning / alpha.12 paste-ready guard — all untouched.
+
+---
+
 ## [v1.0.0-alpha.12] - 2026-05-18
 
 ### 🇰🇷 한국어

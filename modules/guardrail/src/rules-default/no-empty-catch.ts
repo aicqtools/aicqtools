@@ -19,7 +19,7 @@ export default defineRule({
   skipPatterns: [SKIP_FILE_RE],
   visitors: {
     catch_clause(node, ctx) {
-      if (SKIP_FILE_RE.test(ctx.filePath)) return;
+      if (!ctx.skipBuiltinSkips && SKIP_FILE_RE.test(ctx.filePath)) return;
       const body = node.childForFieldName('body');
       if (!body) return;
       let hasStmt = false;

@@ -14,6 +14,7 @@ export interface RunContext {
   readonly source: string;
   readonly language: Language;
   readonly diagnostics: Diagnostic[];
+  readonly skipBuiltinSkips?: boolean;
 }
 
 export function makeRuleContext(run: RunContext, meta: RuleMeta): RuleContext {
@@ -21,6 +22,7 @@ export function makeRuleContext(run: RunContext, meta: RuleMeta): RuleContext {
     filePath: run.filePath,
     source: run.source,
     language: run.language,
+    skipBuiltinSkips: run.skipBuiltinSkips ?? false,
     textOf(node) {
       return run.source.slice(node.startIndex, node.endIndex);
     },

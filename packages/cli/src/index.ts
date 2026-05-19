@@ -19,6 +19,14 @@ export function buildProgram(): Command {
     .option('--no-cache', 'disable incremental sqlite cache')
     .option('--gitignore', 'force-enable reading the root .gitignore (overrides config)')
     .option('--no-gitignore', 'force-disable reading the root .gitignore (overrides config)')
+    .option(
+      '--skip-builtin-skips',
+      'bypass built-in SKIP_FILE_RE guards in default rules (alpha.13, overrides config)',
+    )
+    .option(
+      '--no-skip-builtin-skips',
+      'enforce built-in SKIP_FILE_RE guards in default rules (alpha.13, overrides config)',
+    )
     .action(
       async (opts: {
         cwd: string;
@@ -27,6 +35,7 @@ export function buildProgram(): Command {
         locale?: string;
         cache: boolean;
         gitignore?: boolean;
+        skipBuiltinSkips?: boolean;
       }) => {
         const format = (['text', 'json', 'sarif'] as const).find((f) => f === opts.format) ?? 'text';
         const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
@@ -37,6 +46,7 @@ export function buildProgram(): Command {
           ...(locale !== undefined ? { locale } : {}),
           cache: opts.cache,
           ...(opts.gitignore !== undefined ? { respectGitignore: opts.gitignore } : {}),
+          ...(opts.skipBuiltinSkips !== undefined ? { skipBuiltinSkips: opts.skipBuiltinSkips } : {}),
         });
         process.exit(code);
       },

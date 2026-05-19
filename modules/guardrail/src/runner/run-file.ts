@@ -11,12 +11,20 @@ export interface RunFileResult {
   readonly diagnostics: readonly Diagnostic[];
 }
 
-export async function runFile(filePath: string, rules: readonly Rule[]): Promise<RunFileResult> {
+export interface RunFileOptions {
+  readonly skipBuiltinSkips?: boolean;
+}
+
+export async function runFile(
+  filePath: string,
+  rules: readonly Rule[],
+  opts?: RunFileOptions,
+): Promise<RunFileResult> {
   const language = detectLanguage(filePath);
   if (!language) return { filePath, language: null, diagnostics: [] };
 
   const source = await readFile(filePath, 'utf-8');
-  return runFileWithSource(filePath, source, language, rules);
+  return runFileWithSource(filePath, source, language, rules, opts);
 }
 
 export function runFileWithSource(
@@ -24,10 +32,17 @@ export function runFileWithSource(
   source: string,
   language: Language,
   rules: readonly Rule[],
+  opts?: RunFileOptions,
 ): RunFileResult {
   const tree = parseSource(language, source);
   const diagnostics: Diagnostic[] = [];
-  const run = { filePath, source, language, diagnostics };
+  const run = {
+    filePath,
+    source,
+    language,
+    diagnostics,
+    skipBuiltinSkips: opts?.skipBuiltinSkips ?? false,
+  };
   for (const rule of rules) {
     try {
       runRule(rule, run, tree);
