@@ -10,13 +10,123 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - Split `@aicq/parse-failed` into `@aicq/parse-failed` + `@aicq/rule-error` once enough data accumulates on which path fails more often.
 - Cursor SQLite extraction: scope which workspace `state.vscdb` to read by matching `<hash>/workspace.json`'s `folder` URI against the cwd (currently best-effort, takes the most-recent DB regardless of project).
 - `aicq rules suggest`: pattern-mining v2 — generalize literal arguments, dedupe near-equivalent shapes, optionally re-evaluate the user's own `rulesDir` rules. Also: emit `overrides:` recommendations alongside the existing `rules:` map.
-- Per-rule options framework — migrate remaining built-in rules (`no-console-log`, `no-empty-catch`, korean/python/pci/fsc) to `RuleMeta.options` so users can tune each rule's hardcoded constants. Alpha.14 shipped the framework + first migration (`no-magic-number.allowedNumbers`).
+- Per-rule options framework — migrate remaining built-in rules (korean/python/pci/fsc) to `RuleMeta.options` so users can tune each rule's hardcoded constants. Alpha.14 shipped the framework + first migration (`no-magic-number.allowedNumbers`); alpha.15 added `no-console-log.flagMethods` + `no-empty-catch.skipFilePatterns`; alpha.16 added `camelcase-migration-column.migrationFunctions` + `mask-pii-in-ai-prompt.piiPatterns` + `no-fstring-sql.sqlKeywords`.
 - Nested `.gitignore` / dedicated `.aicqignore` support. Alpha.9 honors only the root `.gitignore` (auto-on by default).
 - `@aicq/unused-suppression`: an info-severity diagnostic when an `aicq-disable-*` directive matched zero diagnostics (mirrors ESLint's `--report-unused-disable-directives`).
 - Line-level `.gitignore` parse-error logging (`aicq: .gitignore line N could not be parsed`). Alpha.9 silently tolerates unparseable lines; the next sweep should surface them on stderr for debuggability.
 - `--overrides` CLI flag for one-off path-rule application without writing `aicq.config.yaml`. Alpha.10 ships `overrides:` as a config-only feature.
 - Broader auto-distinction of "real source under `public/`" beyond the Capacitor `native-bridge.js` / PWA `service-worker` conventions that alpha.10 already skips (e.g. wildcard `*-bridge.{js,ts}`, bare `sw.{js,ts}`) — needs more dogfood data to avoid false-positive silent skips.
 - `overrides.anchoring: 'auto' | 'strict'` opt-out if alpha.10 dogfood surfaces unexpected match growth. Alpha.10 ships `'auto'` as the only behavior.
+
+---
+
+## [v1.0.0-alpha.16] - 2026-05-20
+
+### 🇰🇷 한국어
+
+알파.14 per-rule options framework, 알파.15 후속 — 빌트인 룰 **세 개 동시 추가 마이그레이션**. **A1 `camelcase-migration-column.migrationFunctions`** (default `['createTable', 'addColumn', 'changeColumn']`): Sequelize 검출 대상 함수 화이트리스트. Knex 등 다른 ORM 사용자는 `['create_table', 'add_column']`로 대체 가능. **A2 `mask-pii-in-ai-prompt.piiPatterns`** (default = RRN + 카드 정규식 source 두 개): 검출할 PII 정규식 source 배열. 여권번호 등 사용자 정의 PII 패턴 추가 가능. AI SDK 호출 패턴(`openai|anthropic|aiClient`)은 default 고정 — 본 사이클 옵션 surface에 포함 안 함. **A3 `no-fstring-sql.sqlKeywords`** (default 8개 — `SELECT`/`INSERT`/.../`VALUES`): Python f-string 안에서 검출할 SQL 키워드 화이트리스트. `escapeRegex`로 메타 문자 포함 키워드(`'CREATE TABLE'` 등) 안전. **세 룰 모두 옵션 미설정 시 알파.15와 비트 단위 동일** (회귀 가드). 옵션 명명은 "검출 대상" 관점 일관 (알파.15 `flagMethods`와 동일).
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.16
+- `@aicqtools/rule-sdk` 1.0.0-alpha.16
+- `@aicqtools/guardrail` 1.0.0-alpha.16
+- `@aicqtools/provenance` 1.0.0-alpha.16
+- `@aicqtools/cli` 1.0.0-alpha.16
+
+#### 추가
+- **`camelcase-migration-column.migrationFunctions: string[]`** (default 3개) — Sequelize 외 ORM 함수명으로 검출 대상 확장/대체. visitor에서 매 호출 `new Set(opts.migrationFunctions)` 변환.
+- **`mask-pii-in-ai-prompt.piiPatterns: string[]`** (default RRN + 카드 source) — 검출할 PII 정규식 source 배열. 모듈 스코프 RegExp 컴파일 캐시로 매 호출 비용 0. AI SDK 호출 패턴은 default 고정 (자체 LLM wrapper 사용자는 본 사이클 미지원).
+- **`no-fstring-sql.sqlKeywords: string[]`** (default 8 SQL 키워드) — Python f-string 안에서 검출할 키워드. 매 source 변경 시 `\b(K1|K2|...)\b` 정규식으로 컴파일 + 모듈 스코프 캐시. `escapeRegex` 인라인 헬퍼로 사용자 메타 문자 포함 키워드 안전.
+- **신규 테스트 9건**: guardrail 9건 (rule-options-camelcase-migration-column 3 + rule-options-mask-pii-in-ai-prompt 3 + rule-options-no-fstring-sql 3 — 각 룰별 defaults 회귀 / 옵션 확장 / 빈 배열 mute).
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 테스트: 알파.15 274 + 신규 9 = 283. CLI 32 그대로. 회귀 0.
+- 알파.12 메타-실코드 동일성 가드(3건) — 세 룰 모두 `skipPatterns` 미선언이라 가드 대상 외, 영향 0.
+- 알파.13 `skipBuiltinSkips` 매트릭스 — 세 룰 모두 `SKIP_FILE_RE` 미사용, 영향 0.
+- 알파.14 framework 6건 + 알파.15 추가 2건 + 알파.15 두 룰 옵션 매트릭스 6건 — 그대로 통과.
+- 실 프로젝트 도그푸드 예상(TalkUp 알파.15 baseline frontend 742 / backend 2,865 / admin 179, 옵션 미설정) — 기본값이 알파.15 비트 단위 동일이라 카운트 0 delta.
+
+---
+
+### 🇬🇧 English
+
+Alpha.14 per-rule options framework, second follow-up after alpha.15 — **three built-in rule migrations in one cycle**. **A1 `camelcase-migration-column.migrationFunctions`** (default `['createTable', 'addColumn', 'changeColumn']`): allowlist of function names treated as Sequelize migration calls. Knex / other ORM users can replace with `['create_table', 'add_column']`. **A2 `mask-pii-in-ai-prompt.piiPatterns`** (default = RRN + card-number regex source array): regex source array of PII patterns to detect. Users can add passport numbers etc. The AI SDK call pattern (`openai|anthropic|aiClient`) stays a fixed default — not exposed as an option this cycle. **A3 `no-fstring-sql.sqlKeywords`** (default 8 keywords — `SELECT`/`INSERT`/.../`VALUES`): allowlist of SQL keywords to detect inside Python f-strings. `escapeRegex` keeps user-supplied meta characters safe (e.g. `'CREATE TABLE'`). **All three rules are bit-for-bit identical to alpha.15 behavior when no option is set** (regression guard). Option naming mirrors alpha.15's `flagMethods` — "detection-target noun" consistency.
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.16
+- `@aicqtools/rule-sdk` 1.0.0-alpha.16
+- `@aicqtools/guardrail` 1.0.0-alpha.16
+- `@aicqtools/provenance` 1.0.0-alpha.16
+- `@aicqtools/cli` 1.0.0-alpha.16
+
+#### Added
+- **`camelcase-migration-column.migrationFunctions: string[]`** (default `['createTable', 'addColumn', 'changeColumn']`) — extend / replace the Sequelize-shaped function allowlist. `new Set(opts.migrationFunctions)` rebuilt per call.
+- **`mask-pii-in-ai-prompt.piiPatterns: string[]`** (default RRN + card regex source) — regex source array of PII patterns. Module-scope `RegExp` compile cache zeros the cost on repeated source-array references. The AI SDK call pattern stays a fixed default (custom LLM wrappers not supported this cycle).
+- **`no-fstring-sql.sqlKeywords: string[]`** (default 8 SQL keywords) — keywords to flag inside Python f-strings. Compiled into `\b(K1|K2|…)\b` with module-scope cache; inline `escapeRegex` helper keeps user-supplied meta characters safe.
+- **Nine new tests**: 9 guardrail tests (rule-options-camelcase-migration-column ×3 + rule-options-mask-pii-in-ai-prompt ×3 + rule-options-no-fstring-sql ×3 — each rule covers defaults regression / option extension / empty-array mute).
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: alpha.15 274 + 9 new = 283. CLI tests 32 unchanged. 0 regressions.
+- Alpha.12 meta-vs-code equality guard (3 tests) untouched — none of the three rules declares `skipPatterns`.
+- Alpha.13 `skipBuiltinSkips` matrix untouched — none of the three rules uses `SKIP_FILE_RE`.
+- Alpha.14 framework 6 tests + alpha.15 extras 2 tests + alpha.15 two-rule option matrices (6 tests) all pass.
+- Real-project dogfood expected (TalkUp alpha.15 baseline frontend 742 / backend 2,865 / admin 179, options unset): counts unchanged — defaults are bit-for-bit identical to alpha.15.
+
+---
+
+## [v1.0.0-alpha.15] - 2026-05-20
+
+### 🇰🇷 한국어
+
+알파.14 per-rule options framework 후속 — 빌트인 룰 두 개 추가 마이그레이션. **A1 `no-console-log.flagMethods`** (default `['log']`): 검출할 console 메서드 목록. `['log', 'debug', 'warn']`로 확장하면 `console.debug`/`console.warn`도 검출. 빈 배열 `[]`은 의도적 mute. **A2 `no-empty-catch.skipFilePatterns`** (default = native-bridge/service-worker 정규식 source): 빈 catch 검출을 스킵할 파일 정규식 배열. 사용자가 자체 sandbox 파일 패턴 추가 가능. **두 룰 모두 옵션 미설정 시 알파.14 동작과 비트 단위 동일** (회귀 가드). `skipBuiltinSkips`는 전역 escape hatch로 옵션을 일괄 무력화(우선순위 결정).
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.15
+- `@aicqtools/rule-sdk` 1.0.0-alpha.15
+- `@aicqtools/guardrail` 1.0.0-alpha.15
+- `@aicqtools/provenance` 1.0.0-alpha.15
+- `@aicqtools/cli` 1.0.0-alpha.15
+
+#### 추가
+- **`no-console-log.flagMethods: string[]`** (default `['log']`) — 검출할 console 메서드 화이트리스트. 기존 `console.log` 단일 매칭을 `console.${method}` 형태의 set 매칭으로 확장. zod schema `.strict()`로 오타 키 캐치.
+- **`no-empty-catch.skipFilePatterns: string[]`** (default = native-bridge/service-worker 정규식 source) — 빈 catch 검출을 스킵할 파일 패턴 정규식 source 배열. 사용자 패턴은 default를 대체. 모듈 스코프 RegExp 컴파일 캐시로 매 호출 컴파일 비용 0.
+- **`SKIP_FILE_RE` named export 보존** — 두 룰 모두 알파.12 메타-실코드 동일성 가드(`skipPatterns: [SKIP_FILE_RE]`)를 통과하기 위해 그대로 유지. jsdoc에 "옵션 override 시 메타와 실 매칭이 어긋남" 명시.
+- **신규 테스트 8건**: guardrail 8건 (rule-options-no-console-log 3 + rule-options-no-empty-catch 3 + rule-options 추가 2 — 세 룰 동시 옵션 / unknown key 두 룰 분리 보고).
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 테스트: 알파.14 266 + 신규 8 = 274. CLI 32 그대로. 회귀 0.
+- 알파.12 메타-실코드 동일성 가드(`rules-default-skip-patterns-meta.test.ts`) 3건 그대로 통과.
+- 알파.13 `skipBuiltinSkips` 매트릭스 + 알파.14 rule-options framework 그대로 작동.
+- 실 프로젝트 도그푸드 예상(TalkUp 알파.14 baseline frontend 742 / backend 2,865 / admin 179, 옵션 미설정) — 기본값이 알파.14 비트 단위 동일이라 카운트 0 delta.
+
+---
+
+### 🇬🇧 English
+
+Alpha.14 per-rule options framework follow-up — two additional built-in rule migrations. **A1 `no-console-log.flagMethods`** (default `['log']`): list of `console` methods to flag. Extending to `['log', 'debug', 'warn']` catches `console.debug`/`console.warn` too. Empty array `[]` is an intentional mute. **A2 `no-empty-catch.skipFilePatterns`** (default = native-bridge/service-worker regex source): regex source array of file paths to skip for empty-catch detection. User patterns replace the defaults. **Both rules are bit-for-bit identical to alpha.14 behavior when no option is set** (regression guard). `skipBuiltinSkips` retains alpha.13 semantics as a global escape hatch that short-circuits the option (precedence decision).
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.15
+- `@aicqtools/rule-sdk` 1.0.0-alpha.15
+- `@aicqtools/guardrail` 1.0.0-alpha.15
+- `@aicqtools/provenance` 1.0.0-alpha.15
+- `@aicqtools/cli` 1.0.0-alpha.15
+
+#### Added
+- **`no-console-log.flagMethods: string[]`** (default `['log']`) — allowlist of `console` methods to flag. The original `text === 'console.log'` single-match grew into a `console.${method}` set match. The zod schema is `.strict()` so typo keys are caught.
+- **`no-empty-catch.skipFilePatterns: string[]`** (default = native-bridge/service-worker regex source) — regex source array of file paths to skip for empty-catch detection. User patterns replace the defaults entirely. A module-scope compile cache zeros the `new RegExp` cost across calls when the source array reference repeats.
+- **`SKIP_FILE_RE` named export preserved** — both rules keep the named export so the alpha.12 meta-vs-code equality guard (`skipPatterns: [SKIP_FILE_RE]`) still passes. JSDoc notes that meta reflects only the built-in default — overriding `skipFilePatterns` makes meta and runtime matching diverge intentionally.
+- **Eight new tests**: 8 guardrail tests (rule-options-no-console-log ×3 + rule-options-no-empty-catch ×3 + rule-options ×2 additions: three-rule simultaneous options / two-rule unknown-key reporting).
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: alpha.14 266 + 8 new = 274. CLI tests 32 unchanged. 0 regressions.
+- Alpha.12 meta-vs-code equality guard (`rules-default-skip-patterns-meta.test.ts`) all 3 still pass.
+- Alpha.13 `skipBuiltinSkips` matrix + alpha.14 rule-options framework keep working.
+- Real-project dogfood expected (TalkUp alpha.14 baseline frontend 742 / backend 2,865 / admin 179, options unset): counts unchanged — defaults are bit-for-bit identical to alpha.14.
 
 ---
 

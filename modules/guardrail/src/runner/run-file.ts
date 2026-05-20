@@ -13,6 +13,11 @@ export interface RunFileResult {
 
 export interface RunFileOptions {
   readonly skipBuiltinSkips?: boolean;
+  /**
+   * Alpha.14 — per-rule resolved options for this file. Keyed by ruleId. The runner pulls the
+   * matching entry per rule and threads it into `RuleContext.options` via `makeRuleContext`.
+   */
+  readonly ruleOptions?: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
 }
 
 export async function runFile(
@@ -36,14 +41,18 @@ export function runFileWithSource(
 ): RunFileResult {
   const tree = parseSource(language, source);
   const diagnostics: Diagnostic[] = [];
-  const run = {
-    filePath,
-    source,
-    language,
-    diagnostics,
-    skipBuiltinSkips: opts?.skipBuiltinSkips ?? false,
-  };
+  const ruleOptions = opts?.ruleOptions;
+  const skipBuiltinSkips = opts?.skipBuiltinSkips ?? false;
   for (const rule of rules) {
+    const resolvedOptions = ruleOptions?.get(rule.id);
+    const run = {
+      filePath,
+      source,
+      language,
+      diagnostics,
+      skipBuiltinSkips,
+      ...(resolvedOptions !== undefined ? { options: resolvedOptions } : {}),
+    };
     try {
       runRule(rule, run, tree);
     } catch (err) {

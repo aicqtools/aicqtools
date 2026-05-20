@@ -62,6 +62,30 @@ export const DEFAULT_EXCLUDE: readonly string[] = Object.freeze([
 const ruleLevelSchema = z.union([z.literal('off'), z.literal('warn'), z.literal('error')]);
 
 /**
+ * Alpha.14 — per-rule options framework. Each entry in `rules` / `overrides[].rules` can be
+ * either the legacy string shape (`'off' | 'warn' | 'error'`) **or** an object with
+ * `severity` (optional, defaults to the rule's declared severity) and `options` (optional,
+ * a record validated against the rule's own zod schema). `.strict()` means typos in the
+ * top-level keys (`severityy`, `option`) are caught by the schema parser; typos inside
+ * `options` are surfaced as `cli.check.unknownRuleOptionKey` stderr warnings at run time.
+ *
+ * Back-compat: omitting the object shape entirely preserves alpha.7~13 parsing — existing
+ * `rules: { foo: 'off' }` configs go through the union's first branch unchanged.
+ */
+const ruleConfigObjectSchema = z
+  .object({
+    severity: ruleLevelSchema.optional(),
+    options: z.record(z.unknown()).optional(),
+  })
+  .strict();
+
+const ruleEntrySchema = z.union([ruleLevelSchema, ruleConfigObjectSchema]);
+
+export type RuleLevel = z.infer<typeof ruleLevelSchema>;
+export type RuleConfigObject = z.infer<typeof ruleConfigObjectSchema>;
+export type RuleEntry = z.infer<typeof ruleEntrySchema>;
+
+/**
  * Per-path rule overrides (alpha.8). Behaves like ESLint's `overrides`: each entry matches a list
  * of micromatch globs against the file path and applies its `rules` map on top of the global one.
  * Multiple matching entries are merged in declaration order — later entries win for the same rule.
@@ -72,10 +96,13 @@ const ruleLevelSchema = z.union([z.literal('off'), z.literal('warn'), z.literal(
  * present, so `scripts/**` and `**\/scripts/**` behave identically. To opt out (anchor to the
  * repo root or an absolute path), lead the glob with `/`, `<drive>:/`, or write `**` yourself.
  * After the scan, any entry whose globs matched zero files emits a per-entry stderr warning.
+ *
+ * Alpha.14: `rules` map values accept the object shape `{ severity?, options? }` alongside the
+ * legacy `'off'|'warn'|'error'` strings (see `ruleEntrySchema`).
  */
 export const ruleOverrideSchema = z.object({
   paths: z.array(z.string().min(1)).min(1),
-  rules: z.record(ruleLevelSchema).default({}),
+  rules: z.record(ruleEntrySchema).default({}),
 });
 
 export type RuleOverride = z.infer<typeof ruleOverrideSchema>;
@@ -85,7 +112,7 @@ export const guardrailModuleSchema = z
     enabled: z.boolean().default(true),
     rulesDir: z.string().default('aicq/rules'),
     extends: z.array(z.string()).default([]),
-    rules: z.record(ruleLevelSchema).default({}),
+    rules: z.record(ruleEntrySchema).default({}),
     overrides: z.array(ruleOverrideSchema).default([]),
   })
   .default({});

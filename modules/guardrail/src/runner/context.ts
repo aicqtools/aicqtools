@@ -15,6 +15,12 @@ export interface RunContext {
   readonly language: Language;
   readonly diagnostics: Diagnostic[];
   readonly skipBuiltinSkips?: boolean;
+  /**
+   * Alpha.14 — resolved options for the rule currently being run on this file. The caller
+   * (`run-file.ts`) builds one `RunContext` per rule and looks up `ruleOptions.get(rule.id)`.
+   * Undefined when the rule has no options declaration.
+   */
+  readonly options?: Readonly<Record<string, unknown>>;
 }
 
 export function makeRuleContext(run: RunContext, meta: RuleMeta): RuleContext {
@@ -23,6 +29,7 @@ export function makeRuleContext(run: RunContext, meta: RuleMeta): RuleContext {
     source: run.source,
     language: run.language,
     skipBuiltinSkips: run.skipBuiltinSkips ?? false,
+    ...(run.options !== undefined ? { options: run.options } : {}),
     textOf(node) {
       return run.source.slice(node.startIndex, node.endIndex);
     },

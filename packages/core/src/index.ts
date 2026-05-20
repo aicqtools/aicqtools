@@ -10,7 +10,7 @@ export type {
 
 export { getParser, parseSource, detectLanguage, loadLanguage } from './parser/index.js';
 export { loadConfig, findConfigPath, aicqConfigSchema, DEFAULT_EXCLUDE, ruleOverrideSchema } from './config/index.js';
-export type { AicqConfig, RuleOverride } from './config/index.js';
+export type { AicqConfig, RuleOverride, RuleLevel, RuleConfigObject, RuleEntry } from './config/index.js';
 export { reportJson, reportText, reportSarif } from './reporter/index.js';
 export { FileCache, hashRulesetSignature } from './cache/index.js';
 export type { CacheKey } from './cache/index.js';

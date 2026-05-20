@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import type { CheckResult, Diagnostic, RuleOverride } from '@aicqtools/core';
 import { FileCache, hashRulesetSignature } from '@aicqtools/core';
 import type { Rule } from '@aicqtools/rule-sdk';
-import { applyOverridesForFile } from './apply-rule-config.js';
+import { applyOverridesForFileResolved } from './apply-rule-config.js';
 import { runFile } from './run-file.js';
 import { rulesetSignature } from './ruleset-signature.js';
 
@@ -33,6 +33,13 @@ export interface RunProjectOptions {
    * rule body can read it from `ctx.skipBuiltinSkips`.
    */
   readonly skipBuiltinSkips?: boolean;
+  /**
+   * Alpha.14 — pre-resolved per-rule options from `applyRuleConfig`. The runner threads these
+   * into each `runFile` call so rule bodies can read `ctx.options`. Per-file overrides may
+   * further augment this map via `applyOverridesForFile`. Empty map / omitted = no options
+   * (every rule sees `ctx.options === undefined` or its own declared defaults).
+   */
+  readonly ruleOptions?: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
 }
 
 export async function runProject(opts: RunProjectOptions): Promise<CheckResult> {
@@ -48,7 +55,8 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
 
   const cache = opts.cache;
   const overrides = opts.overrides ?? [];
-  const runFileOpts = { skipBuiltinSkips: opts.skipBuiltinSkips ?? false };
+  const baselineRuleOptions = opts.ruleOptions ?? new Map();
+  const skipBuiltinSkips = opts.skipBuiltinSkips ?? false;
   // Per-entry match counters (alpha.10). Allocated only when overrides is non-empty so the
   // unused-feature fast path stays allocation-free. Slots that remain 0 after the scan are
   // reported by the CLI as "matched no files — ignored." warnings.
@@ -56,19 +64,28 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
     overrides.length > 0 ? new Array(overrides.length).fill(0) : undefined;
   // The ruleset hash mixes in the overrides shape so cache entries invalidate when a user adds,
   // removes, or edits override paths/rules. Without this, a stale entry could survive a config
-  // change that should have flipped a diagnostic on or off.
+  // change that should have flipped a diagnostic on or off. Alpha.14 also folds the per-rule
+  // options into the hash so flipping `options.allowedNumbers` invalidates stale entries.
   const rulesHash = cache
     ? hashRulesetSignature([
         ...rulesetSignature(opts.rules),
         'overrides=' + JSON.stringify(overrides),
-        'skipBuiltinSkips=' + String(runFileOpts.skipBuiltinSkips),
+        'skipBuiltinSkips=' + String(skipBuiltinSkips),
+        'ruleOptions=' + serializeRuleOptions(baselineRuleOptions),
       ])
     : '';
   const diagnostics: Diagnostic[] = [];
 
   for (const file of files) {
     try {
-      const fileRules = applyOverridesForFile(opts.rules, overrides, file, matchCounts);
+      const { rules: fileRules, ruleOptions: fileRuleOptions } = applyOverridesForFileResolved(
+        opts.rules,
+        overrides,
+        file,
+        matchCounts,
+        baselineRuleOptions,
+      );
+      const runFileOpts = { skipBuiltinSkips, ruleOptions: fileRuleOptions };
       if (cache) {
         const st = await stat(file);
         const cached = cache.get({
@@ -140,6 +157,19 @@ export async function resolveIgnores(
     // `.gitignore` missing / unreadable / not a regular file — fall through with static excludes.
   }
   return ignores;
+}
+
+/**
+ * Deterministic JSON serialization of the per-rule options map (alpha.14). Map iteration order
+ * follows insertion order in V8, but a callsite could populate the map in different orders
+ * across runs (e.g. two overrides reordered). Sorting by ruleId keeps the cache hash stable.
+ */
+function serializeRuleOptions(
+  map: ReadonlyMap<string, Readonly<Record<string, unknown>>>,
+): string {
+  if (map.size === 0) return '{}';
+  const sorted = Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+  return JSON.stringify(sorted);
 }
 
 function parseFailedDiagnostic(file: string, err: unknown): Diagnostic {

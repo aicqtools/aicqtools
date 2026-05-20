@@ -46,7 +46,8 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   }
 
   // Apply per-rule on/off/severity overrides from config.modules.guardrail.rules
-  const { rules: effectiveRules, unknownIds } = applyRuleConfig(rules, config.modules.guardrail.rules);
+  const { rules: effectiveRules, unknownIds, ruleOptions, unknownOptions, optionParseErrors } =
+    applyRuleConfig(rules, config.modules.guardrail.rules);
   const overrides = config.modules.guardrail.overrides;
   const unknownOverrideIds = collectUnknownOverrideIds(rules, overrides);
   const negationPaths = collectNegationPaths(overrides);
@@ -84,6 +85,22 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       }) + '\n',
     );
   }
+  // Alpha.14: per-rule options framework — surface unknown option keys (typos) and zod parse
+  // failures. Same exit-code-stays-0 pattern as unknown rule ids: the rule still runs with
+  // its declared defaults so a config bug never crashes the scan.
+  for (const u of unknownOptions) {
+    process.stderr.write(
+      t(locale, 'cli.check.unknownRuleOptionKey', {
+        ruleId: u.ruleId,
+        keys: u.unknownKeys.join(', '),
+      }) + '\n',
+    );
+  }
+  for (const [ruleId, error] of optionParseErrors) {
+    process.stderr.write(
+      t(locale, 'cli.check.ruleOptionParseError', { ruleId, error }) + '\n',
+    );
+  }
 
   // Resolve `respectGitignore` precedence: explicit CLI flag > config boolean > config 'auto'.
   // 'auto' enables only when a root `.gitignore` is present so the default is friendly without
@@ -112,6 +129,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       ...(respectGitignore ? { respectGitignore: true } : {}),
       ...(overrides.length > 0 ? { overrides } : {}),
       ...(skipBuiltinSkips ? { skipBuiltinSkips: true } : {}),
+      ...(ruleOptions.size > 0 ? { ruleOptions } : {}),
     });
   } catch (err) {
     if (err instanceof ParserError) {
