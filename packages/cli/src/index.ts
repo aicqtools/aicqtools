@@ -27,6 +27,14 @@ export function buildProgram(): Command {
       '--no-skip-builtin-skips',
       'enforce built-in SKIP_FILE_RE guards in default rules (alpha.13, overrides config)',
     )
+    .option(
+      '--report-unused-suppressions',
+      'emit @aicq/unused-suppression info diagnostics for aicq-disable-* directives that matched zero violations (alpha.17, overrides config)',
+    )
+    .option(
+      '--no-report-unused-suppressions',
+      'suppress @aicq/unused-suppression info diagnostics (alpha.17, overrides config)',
+    )
     .action(
       async (opts: {
         cwd: string;
@@ -36,6 +44,7 @@ export function buildProgram(): Command {
         cache: boolean;
         gitignore?: boolean;
         skipBuiltinSkips?: boolean;
+        reportUnusedSuppressions?: boolean;
       }) => {
         const format = (['text', 'json', 'sarif'] as const).find((f) => f === opts.format) ?? 'text';
         const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
@@ -47,6 +56,9 @@ export function buildProgram(): Command {
           cache: opts.cache,
           ...(opts.gitignore !== undefined ? { respectGitignore: opts.gitignore } : {}),
           ...(opts.skipBuiltinSkips !== undefined ? { skipBuiltinSkips: opts.skipBuiltinSkips } : {}),
+          ...(opts.reportUnusedSuppressions !== undefined
+            ? { reportUnusedSuppressions: opts.reportUnusedSuppressions }
+            : {}),
         });
         process.exit(code);
       },

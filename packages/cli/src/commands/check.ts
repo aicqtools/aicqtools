@@ -28,6 +28,12 @@ export interface CheckOptions {
    * `false`).
    */
   readonly skipBuiltinSkips?: boolean;
+  /**
+   * CLI override for `reportUnusedSuppressions` (alpha.17). `true` emits
+   * `@aicq/unused-suppression` info diagnostics for directives that matched zero violations;
+   * `false` keeps the report quiet. `undefined` defers to config (default `false`).
+   */
+  readonly reportUnusedSuppressions?: boolean;
 }
 
 export async function runCheck(opts: CheckOptions): Promise<number> {
@@ -118,6 +124,12 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
   const skipBuiltinSkips =
     opts.skipBuiltinSkips !== undefined ? opts.skipBuiltinSkips : config.skipBuiltinSkips;
 
+  // Alpha.17 opt-in: explicit CLI flag > config boolean (default false). Mirrors alpha.13.
+  const reportUnusedSuppressions =
+    opts.reportUnusedSuppressions !== undefined
+      ? opts.reportUnusedSuppressions
+      : config.reportUnusedSuppressions;
+
   let result;
   try {
     result = await runProject({
@@ -130,6 +142,7 @@ export async function runCheck(opts: CheckOptions): Promise<number> {
       ...(overrides.length > 0 ? { overrides } : {}),
       ...(skipBuiltinSkips ? { skipBuiltinSkips: true } : {}),
       ...(ruleOptions.size > 0 ? { ruleOptions } : {}),
+      ...(reportUnusedSuppressions ? { reportUnusedSuppressions: true } : {}),
     });
   } catch (err) {
     if (err instanceof ParserError) {

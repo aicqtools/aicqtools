@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import type { Diagnostic } from '@aicqtools/core';
 import { parseSource } from '@aicqtools/core';
-import { applySuppressions, parseSuppressions } from '../runner/suppressions.js';
+import {
+  applySuppressions,
+  parseSuppressions,
+  type Suppressions,
+} from '../runner/suppressions.js';
 import { runFileWithSource } from '../runner/run-file.js';
 import { loadAllBuiltinRules } from '../rules-default/index.js';
 
@@ -13,6 +17,24 @@ function fakeDiag(ruleId: string, line: number): Diagnostic {
     file: 'x.ts',
     range: { start: { line, column: 1 }, end: { line, column: 1 } },
   };
+}
+
+/**
+ * Alpha.17 compatibility helper — older tests passed inline `{ byLine, fileLevel }` objects
+ * and called `applySuppressions(...)` expecting `Diagnostic[]`. The signature now requires
+ * `directives` and returns `{ filtered, unused }`. This helper fills in the missing field
+ * and unwraps `.filtered` so the body of each test stays focused on the suppression logic.
+ */
+function applyFiltered(
+  diagnostics: readonly Diagnostic[],
+  sup: Partial<Suppressions>,
+): Diagnostic[] {
+  const complete: Suppressions = {
+    byLine: sup.byLine ?? new Map(),
+    fileLevel: sup.fileLevel ?? null,
+    directives: sup.directives ?? [],
+  };
+  return applySuppressions(diagnostics, complete).filtered;
 }
 
 describe('parseSuppressions — directive parsing', () => {
@@ -101,7 +123,7 @@ describe('applySuppressions — diagnostic filtering', () => {
       byLine: new Map([[2, new Set(['no-console-log'])]]),
       fileLevel: null,
     };
-    const filtered = applySuppressions(diags, sup);
+    const filtered = applyFiltered(diags, sup);
     expect(filtered).toHaveLength(1);
     expect(filtered[0]?.range.start.line).toBe(5);
   });
@@ -109,19 +131,19 @@ describe('applySuppressions — diagnostic filtering', () => {
   it('drops all diagnostics for a `*` line suppression', () => {
     const diags = [fakeDiag('a', 2), fakeDiag('b', 2), fakeDiag('a', 3)];
     const sup = { byLine: new Map<number, Set<string> | '*'>([[2, '*']]), fileLevel: null };
-    expect(applySuppressions(diags, sup)).toHaveLength(1);
+    expect(applyFiltered(diags, sup)).toHaveLength(1);
   });
 
   it('drops all diagnostics for a `*` file-level suppression', () => {
     const diags = [fakeDiag('a', 1), fakeDiag('b', 2), fakeDiag('c', 99)];
     const sup = { byLine: new Map(), fileLevel: '*' as const };
-    expect(applySuppressions(diags, sup)).toEqual([]);
+    expect(applyFiltered(diags, sup)).toEqual([]);
   });
 
   it('honors a file-level suppression scoped to specific rule ids', () => {
     const diags = [fakeDiag('a', 1), fakeDiag('b', 2)];
     const sup = { byLine: new Map(), fileLevel: new Set(['a']) };
-    const out = applySuppressions(diags, sup);
+    const out = applyFiltered(diags, sup);
     expect(out).toHaveLength(1);
     expect(out[0]?.ruleId).toBe('b');
   });
@@ -129,7 +151,7 @@ describe('applySuppressions — diagnostic filtering', () => {
   it('returns the input untouched when there are no suppressions', () => {
     const diags = [fakeDiag('a', 1)];
     const sup = { byLine: new Map(), fileLevel: null };
-    expect(applySuppressions(diags, sup)).toEqual(diags);
+    expect(applyFiltered(diags, sup)).toEqual(diags);
   });
 });
 

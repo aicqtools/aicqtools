@@ -3,6 +3,14 @@ language: python
 severity: warning
 message: Avoid bare print() in production code; use the standard `logging` module.
 messageKo: 운영 코드에서 print() 사용 지양 — 표준 `logging` 모듈을 사용하세요.
+options:
+  # Alpha.18 — YAML PatternRule framework consistency demo. The `query` below is static
+  # (`print` literal), so `disallowedFunctions` doesn't drive matching today; it's exposed
+  # purely so users can see the option via `aicq rules suggest` and override it in their
+  # config. Dynamic query substitution is deferred to a v1.0+ release.
+  defaults:
+    disallowedFunctions:
+      - print
 query: |
   (call
     function: (identifier) @fn

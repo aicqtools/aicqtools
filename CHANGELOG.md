@@ -12,11 +12,135 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 - `aicq rules suggest`: pattern-mining v2 — generalize literal arguments, dedupe near-equivalent shapes, optionally re-evaluate the user's own `rulesDir` rules. Also: emit `overrides:` recommendations alongside the existing `rules:` map.
 - Per-rule options framework — migrate remaining built-in rules (korean/python/pci/fsc) to `RuleMeta.options` so users can tune each rule's hardcoded constants. Alpha.14 shipped the framework + first migration (`no-magic-number.allowedNumbers`); alpha.15 added `no-console-log.flagMethods` + `no-empty-catch.skipFilePatterns`; alpha.16 added `camelcase-migration-column.migrationFunctions` + `mask-pii-in-ai-prompt.piiPatterns` + `no-fstring-sql.sqlKeywords`.
 - Nested `.gitignore` / dedicated `.aicqignore` support. Alpha.9 honors only the root `.gitignore` (auto-on by default).
-- `@aicq/unused-suppression`: an info-severity diagnostic when an `aicq-disable-*` directive matched zero diagnostics (mirrors ESLint's `--report-unused-disable-directives`).
+- ~~`@aicq/unused-suppression`~~ — shipped in alpha.17 as an opt-in `reportUnusedSuppressions` toggle (config + CLI flag).
 - Line-level `.gitignore` parse-error logging (`aicq: .gitignore line N could not be parsed`). Alpha.9 silently tolerates unparseable lines; the next sweep should surface them on stderr for debuggability.
 - `--overrides` CLI flag for one-off path-rule application without writing `aicq.config.yaml`. Alpha.10 ships `overrides:` as a config-only feature.
 - Broader auto-distinction of "real source under `public/`" beyond the Capacitor `native-bridge.js` / PWA `service-worker` conventions that alpha.10 already skips (e.g. wildcard `*-bridge.{js,ts}`, bare `sw.{js,ts}`) — needs more dogfood data to avoid false-positive silent skips.
 - `overrides.anchoring: 'auto' | 'strict'` opt-out if alpha.10 dogfood surfaces unexpected match growth. Alpha.10 ships `'auto'` as the only behavior.
+
+---
+
+## [v1.0.0-alpha.18] - 2026-05-20
+
+### 🇰🇷 한국어
+
+알파.14 per-rule options framework **마지막 마무리** — YAML PatternRule도 옵션 framework 동등 지원. `yamlRuleSchema`에 `options.defaults: Record<string, unknown>` 필드 추가, `parseYamlRule`이 defaults의 키 set으로 strict object schema를 자동 합성(`buildOptionsSchemaFromDefaults`). 결과 PatternRule은 FunctionRule과 동일하게 `RuleMeta.options` 보유, `applyRuleConfig` resolve + `ctx.options` 노출까지 통과. **query 동적 substitution은 v1.0+ 후속** — 본 사이클은 type-level 일관성 + runtime options resolve까지. YAML 작성자가 zod schema를 직접 적을 수 없으므로 값 타입 검증은 `z.unknown()`만, strict object가 typo 키만 캐치. `no-print-in-prod.yaml`에 framework 일관성 데모(`disallowedFunctions: ['print']`) 추가. **알파.19 = `1.0.0-beta.1` 전환** 예정 — framework 동결, BREAKING 0 강제.
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.18
+- `@aicqtools/rule-sdk` 1.0.0-alpha.18
+- `@aicqtools/guardrail` 1.0.0-alpha.18
+- `@aicqtools/provenance` 1.0.0-alpha.18
+- `@aicqtools/cli` 1.0.0-alpha.18
+
+#### 추가
+- **YAML PatternRule `options.defaults` 필드** — `yamlRuleSchema`에 옵셔널 필드. `parseYamlRule`이 defaults 키 set으로 strict zod object schema 자동 합성. FunctionRule과 동등하게 `applyRuleConfig` resolve + `ctx.options` 노출.
+- **`no-print-in-prod.yaml` framework 일관성 데모** — `defaults.disallowedFunctions: ['print']`. query 자체는 정적 `print` 매칭 그대로 (동적 substitution v1.0+).
+- **신규 테스트 4건** (`yaml-rule-options.test.ts`): options 없는 YAML rule back-compat / options 있는 rule schema+defaults attach / config override resolve / unknown key strict 캐치.
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 테스트: 알파.17 289 + 신규 4 = 293. CLI 36 그대로. 회귀 0.
+- 알파.7~17 회귀 가드 매트릭스 전체 통과. YAML rule 기존 6개 미접촉(options 미선언).
+
+#### 알려진 한계
+- YAML rule 작성자가 zod schema 직접 적을 수 없음 — `z.unknown()` 값 검증만. mini-DSL은 v1.0+ 후속.
+- PatternRule query는 정적 — 옵션이 query에 substitution 안 됨. PatternRule visitor가 옵션을 적극 활용하려면 함수형 확장 필요 (v1.0+ 후속).
+
+#### 베타 전환 로드맵
+- **알파.19 = `1.0.0-beta.1` 전환** — branch `release/beta.1`, npm dist-tag `beta`, framework 동결, BREAKING 0 강제, 외부 dogfood 수렴.
+
+---
+
+### 🇬🇧 English
+
+Final wrap-up of the alpha.14 per-rule options framework — YAML PatternRule now participates on equal footing with FunctionRule. `yamlRuleSchema` gains an optional `options.defaults: Record<string, unknown>` field; `parseYamlRule` synthesizes a strict zod object schema from the defaults' key set (`buildOptionsSchemaFromDefaults`). The resulting PatternRule carries `RuleMeta.options` and flows through `applyRuleConfig` resolve + `ctx.options` exposure identically to FunctionRule. **Query-level dynamic substitution is deferred to v1.0+** — this cycle nails down type-level consistency + runtime option resolution. YAML rule authors cannot declare zod schemas inline, so value type validation stays at `z.unknown()`; the `.strict()` object catches typo keys. `no-print-in-prod.yaml` carries a framework-consistency demo (`disallowedFunctions: ['print']`). **Alpha.19 ships `1.0.0-beta.1`** — framework freeze, BREAKING enforced to 0.
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.18
+- `@aicqtools/rule-sdk` 1.0.0-alpha.18
+- `@aicqtools/guardrail` 1.0.0-alpha.18
+- `@aicqtools/provenance` 1.0.0-alpha.18
+- `@aicqtools/cli` 1.0.0-alpha.18
+
+#### Added
+- **YAML PatternRule `options.defaults` field** — optional `yamlRuleSchema` field. `parseYamlRule` synthesizes a strict zod object schema from defaults' key set. Resolves through `applyRuleConfig` + `ctx.options` identically to FunctionRule.
+- **`no-print-in-prod.yaml` framework-consistency demo** — `defaults.disallowedFunctions: ['print']`. The query itself stays static `print` matching (dynamic substitution v1.0+).
+- **Four new tests** (`yaml-rule-options.test.ts`): YAML rule without options back-compat / with options schema+defaults attach / config override resolve / unknown key strict catch.
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: alpha.17 289 + 4 new = 293. CLI tests 36 unchanged. 0 regressions.
+- Alpha.7~17 regression matrix all passes. The existing six YAML rules are untouched (no `options` declared).
+
+#### Known limitations
+- YAML rule authors cannot inline a zod schema — value validation stays at `z.unknown()`. A mini-DSL is deferred to v1.0+.
+- PatternRule query is static — options don't substitute into the query string. Dynamic-query PatternRules await a v1.0+ extension to the visitor signature.
+
+#### Beta transition roadmap
+- **Alpha.19 = `1.0.0-beta.1` transition** — branch `release/beta.1`, npm dist-tag `beta`, framework freeze, BREAKING enforced to 0, external dogfood convergence.
+
+---
+
+## [v1.0.0-alpha.17] - 2026-05-20
+
+### 🇰🇷 한국어
+
+`@aicq/unused-suppression` info-severity 진단 신설 — ESLint `--report-unused-disable-directives` 패턴. `aicq-disable-line` / `aicq-disable-next-line` / `aicq-disable-file` 디렉티브가 한 번도 적중 안 한 경우 ("이 suppression 이제 필요 없어요") 진단 emit. **default `false`** (TalkUp dogfood 회귀 0 보장, ESLint opt-in 패턴 일관). 사용자가 `aicq.config.yaml`에 `reportUnusedSuppressions: true` 또는 CLI `--report-unused-suppressions`로 활성화. 우선순위: 명시 CLI > config > default false. **베타 전환 직전 framework 마지막 가시성 기능** — 알파.18(YAML PatternRule 옵션 framework 편입) 후 알파.19에서 `1.0.0-beta.1`로 전환 예정. `Suppressions` 내부 구조 확장(`SuppressionDirective[]` 추적), `applySuppressions` 반환 `{ filtered, unused }`로 변경 — 내부 surface(외부 export 0)라 외부 영향 0.
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.17
+- `@aicqtools/rule-sdk` 1.0.0-alpha.17
+- `@aicqtools/guardrail` 1.0.0-alpha.17
+- `@aicqtools/provenance` 1.0.0-alpha.17
+- `@aicqtools/cli` 1.0.0-alpha.17
+
+#### 추가
+- **`@aicq/unused-suppression` synthetic info 진단** — `aicq-disable-*` directive가 0회 적중 시 emit. range는 directive comment 1-based 위치. 메시지 한·영 hardcode. synthetic ID라 `rules:` map 외부, 끄려면 `reportUnusedSuppressions: false` 사용.
+- **`reportUnusedSuppressions` config 필드** (최상위, default `false`) + **CLI `--report-unused-suppressions` / `--no-report-unused-suppressions`** flag. 알파.13 `skipBuiltinSkips` 패턴 미러. 우선순위: 명시 CLI > config > default false.
+- **`Suppressions` 내부 확장** — `SuppressionDirective[]` 보존 + `applySuppressions` 반환 `{ filtered, unused }`. 외부 export 없는 internal surface.
+- **신규 테스트 10건**: guardrail 6건 (`unused-suppression.test.ts` — default off / opt-in unused / used / file-level / 부분 매칭 / bare wildcard) + cli 4건 (`unused-suppression-cli.test.ts` — config/CLI 우선순위 매트릭스).
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 테스트: 알파.16 283 + 신규 6 = 289. CLI 테스트: 알파.16 32 + 신규 4 = 36. 회귀 0.
+- 알파.7 `@aicq/parse-failed` synthetic 패턴 동일성 유지.
+- 알파.12 메타-실코드 동일성 / 알파.13 `skipBuiltinSkips` / 알파.14 framework / 알파.15~16 옵션 매트릭스 모두 그대로 통과.
+- 실 프로젝트 도그푸드 예상(TalkUp 알파.16 baseline frontend 742 / backend 2,865 / admin 179, `reportUnusedSuppressions` 미설정) — default off라 카운트 0 delta.
+
+#### 베타 전환 로드맵
+- **알파.18 = YAML PatternRule 옵션 framework 편입** 예정.
+- **알파.19 = `1.0.0-beta.1` 전환** — branch `release/beta.1`, npm dist-tag `beta`, framework 동결, BREAKING 0 강제, 외부 dogfood 수렴.
+
+---
+
+### 🇬🇧 English
+
+New `@aicq/unused-suppression` info-severity diagnostic — mirrors ESLint's `--report-unused-disable-directives` pattern. When any `aicq-disable-line` / `aicq-disable-next-line` / `aicq-disable-file` directive matches zero violations, the runner emits a diagnostic at the directive's comment line so users can clean up stale suppressions. **Default `false`** (TalkUp dogfood regression 0, ESLint opt-in parity). Activate via `reportUnusedSuppressions: true` in `aicq.config.yaml` or CLI `--report-unused-suppressions`. Precedence: explicit CLI > config > default false. **Final framework visibility feature before the beta cut** — alpha.18 (YAML PatternRule options) is the last framework cycle, then alpha.19 ships `1.0.0-beta.1`. The internal `Suppressions` shape gains a `SuppressionDirective[]` field and `applySuppressions` now returns `{ filtered, unused }` — zero external surface impact (the suppressions API is not exported from `@aicqtools/guardrail`).
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.17
+- `@aicqtools/rule-sdk` 1.0.0-alpha.17
+- `@aicqtools/guardrail` 1.0.0-alpha.17
+- `@aicqtools/provenance` 1.0.0-alpha.17
+- `@aicqtools/cli` 1.0.0-alpha.17
+
+#### Added
+- **`@aicq/unused-suppression` synthetic info diagnostic** — emitted when an `aicq-disable-*` directive matched zero violations. Range points at the directive comment's 1-based line / column. Messages hardcoded in en + ko. Synthetic id lives outside the `rules:` map, so the switch is `reportUnusedSuppressions: false` (or CLI `--no-report-unused-suppressions`).
+- **`reportUnusedSuppressions` config field** (top-level, default `false`) + **CLI `--report-unused-suppressions` / `--no-report-unused-suppressions`** flag. Mirrors the alpha.13 `skipBuiltinSkips` shape. Precedence: explicit CLI > config > default false.
+- **`Suppressions` internal extension** — `SuppressionDirective[]` is preserved + `applySuppressions` now returns `{ filtered, unused }`. Internal surface only (no external export change).
+- **Ten new tests**: guardrail 6 (`unused-suppression.test.ts` — default off / opt-in unused / used / file-level / partial match / bare wildcard) + cli 4 (`unused-suppression-cli.test.ts` — config/CLI precedence matrix).
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail tests: alpha.16 283 + 6 new = 289. CLI tests: alpha.16 32 + 4 new = 36. 0 regressions.
+- Alpha.7 `@aicq/parse-failed` synthetic pattern preserved.
+- Alpha.12 meta-vs-code / alpha.13 `skipBuiltinSkips` / alpha.14 framework / alpha.15~16 option matrices all still pass.
+- Real-project dogfood expected (TalkUp alpha.16 baseline frontend 742 / backend 2,865 / admin 179, `reportUnusedSuppressions` unset): counts unchanged — default off.
+
+#### Beta transition roadmap
+- **Alpha.18 = YAML PatternRule options framework integration** (planned).
+- **Alpha.19 = `1.0.0-beta.1` transition** — branch `release/beta.1`, npm dist-tag `beta`, framework freeze, BREAKING enforced to 0, external dogfood convergence.
 
 ---
 

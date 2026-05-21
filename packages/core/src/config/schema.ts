@@ -160,6 +160,17 @@ export const aicqConfigSchema = z.object({
    * Per-rule toggling is left for the v1.0 per-rule options framework.
    */
   skipBuiltinSkips: z.boolean().default(false),
+  /**
+   * Alpha.17 opt-in — when `true`, `aicq check` emits an info-severity `@aicq/unused-suppression`
+   * diagnostic for every `aicq-disable-*` directive that matched zero violations during the run.
+   * Mirrors ESLint's `--report-unused-disable-directives` pattern: default `false` so dogfood
+   * counts don't grow unexpectedly; users opt in once they want to clean stale suppressions.
+   *
+   * The synthetic diagnostic id `@aicq/unused-suppression` lives outside the `rules:` map (no
+   * `Rule` object backs it), so the only way to turn it off is to flip this flag back to false
+   * (or pass CLI `--no-report-unused-suppressions`). CLI flag wins over config when set.
+   */
+  reportUnusedSuppressions: z.boolean().default(false),
   modules: z
     .object({
       guardrail: guardrailModuleSchema,

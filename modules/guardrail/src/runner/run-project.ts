@@ -40,6 +40,12 @@ export interface RunProjectOptions {
    * (every rule sees `ctx.options === undefined` or its own declared defaults).
    */
   readonly ruleOptions?: ReadonlyMap<string, Readonly<Record<string, unknown>>>;
+  /**
+   * Alpha.17 opt-in — when `true`, the runner emits `@aicq/unused-suppression` info diagnostics
+   * for `aicq-disable-*` directives that matched zero violations in each file. Default `false`
+   * keeps the pre-alpha.17 output exactly. Forwarded into each `runFile` call.
+   */
+  readonly reportUnusedSuppressions?: boolean;
 }
 
 export async function runProject(opts: RunProjectOptions): Promise<CheckResult> {
@@ -57,6 +63,7 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
   const overrides = opts.overrides ?? [];
   const baselineRuleOptions = opts.ruleOptions ?? new Map();
   const skipBuiltinSkips = opts.skipBuiltinSkips ?? false;
+  const reportUnusedSuppressions = opts.reportUnusedSuppressions ?? false;
   // Per-entry match counters (alpha.10). Allocated only when overrides is non-empty so the
   // unused-feature fast path stays allocation-free. Slots that remain 0 after the scan are
   // reported by the CLI as "matched no files — ignored." warnings.
@@ -72,6 +79,7 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
         'overrides=' + JSON.stringify(overrides),
         'skipBuiltinSkips=' + String(skipBuiltinSkips),
         'ruleOptions=' + serializeRuleOptions(baselineRuleOptions),
+        'reportUnusedSuppressions=' + String(reportUnusedSuppressions),
       ])
     : '';
   const diagnostics: Diagnostic[] = [];
@@ -85,7 +93,11 @@ export async function runProject(opts: RunProjectOptions): Promise<CheckResult> 
         matchCounts,
         baselineRuleOptions,
       );
-      const runFileOpts = { skipBuiltinSkips, ruleOptions: fileRuleOptions };
+      const runFileOpts = {
+        skipBuiltinSkips,
+        ruleOptions: fileRuleOptions,
+        reportUnusedSuppressions,
+      };
       if (cache) {
         const st = await stat(file);
         const cached = cache.get({
