@@ -29,12 +29,21 @@ import { defineRule } from '@aicqtools/rule-sdk';
  */
 /**
  * Default allowed-number literals. Common-sense values: -2..2, base-10 / base-16 / base-2,
- * time/clock constants. Alpha.14 exposes this list as `options.allowedNumbers` so users can
- * extend (`['0', '1', '-1', '2', '60', '3600', '86400']` for time-heavy projects) or shrink
- * the allow-list per project.
+ * time/clock constants, plus RFC 7231 / RFC 6585 HTTP status codes (beta.1 — the
+ * `res.status(200/404/500)` pattern in Next.js/Express/Hono/Fastify routes is universal
+ * and not a magic number in any meaningful sense). Alpha.14 exposes this list as
+ * `options.allowedNumbers` so users can extend (`['0', '1', '-1', '2', '60', '3600', '86400']`
+ * for time-heavy projects) or shrink the allow-list per project.
  */
 const DEFAULT_ALLOWED_NUMBERS: readonly string[] = [
+  // -2..2, common bases, time/clock constants
   '0', '1', '-1', '2', '-2', '10', '16', '24', '60', '100', '1000', '1024',
+  // HTTP status codes (RFC 7231 / RFC 6585) — 100 already covered by base-10
+  '101',
+  '200', '201', '204',
+  '301', '302', '304',
+  '400', '401', '403', '404', '405', '409', '422', '429',
+  '500', '502', '503', '504',
 ] as const;
 
 const optionsSchema = z

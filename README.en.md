@@ -9,11 +9,30 @@
 > **A code-quality tool that deterministically validates AI-generated code.**
 > 50 guardrail rules + AI provenance tracking + EU AI Act Article 50 reports — all in one CLI.
 
-[![npm](https://img.shields.io/npm/v/@aicqtools/cli/alpha.svg)](https://www.npmjs.com/package/@aicqtools/cli)
+[![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-v1.0.0--alpha.2-orange.svg)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-v1.0.0--beta.1-blue.svg)](CHANGELOG.md)
 
 > **Deterministic** — same input, same result, no LLM in the loop. Unlike probabilistic tools (Codacy, Greptile), CI runs are stable and auditable.
+
+---
+
+## 🇰🇷 Why aicqtools? — Korean-localized for fintech/SaaS teams
+
+aicqtools is the only AI code-quality tool that Korean fintech/SaaS teams can use in place of global tools. CodeRabbit · Codacy · SonarQube · ESLint AI all ship **0** Korean IT rules, **0** Korean FSC (금감원) AI-guideline rules, and no Korean UI. aicqtools does:
+
+- **7 Korean IT-convention rules** — explicit KST timezone, broken-Hangul comment detection, RFC 5987 Korean filename `Content-Disposition`, Capacitor + Kakao/Naver OAuth WebView anti-pattern, KRW thousands separator, UTF-8 enforcement, Sequelize migration column camelCase.
+- **5 Korean FSC AI-guideline rules** — PII masking before AI prompts, explainability metadata, AI-decision audit logging, human-oversight checkpoints, AI model-version tracking. Combined with the EU AI Act Article 50 reporter (Korean-rendered), aicqtools covers **Korean + EU compliance in a single tool**.
+- **Full Korean i18n** — **44/45 = 97.8%** of rules have native Korean messages. CLI output is 100% Korean under `aicq check --locale ko` or `LANG=ko_KR.UTF-8`. `aicq docs build` generates Korean and English rule docs side-by-side.
+
+| Item | aicqtools | CodeRabbit | Codacy/SonarQube | ESLint AI |
+|---|---|---|---|---|
+| Korean IT rules | **7** | 0 | 0 | 0 |
+| FSC AI-guideline rules | **5** | 0 | 0 | 0 |
+| Korean UI | **97.8% native** | English only | English only | English only |
+| KST · KRW · Hangul filename | **Yes** | No | No | No |
+| Naver/Kakao OAuth anti-pattern | **Yes** | No | No | No |
+| EU AI Act Article 50 reporter | **Yes (Korean-rendered)** | No | No | No |
 
 ---
 
@@ -69,7 +88,12 @@ EU AI Act Article 50 forms in Korean/English bilingual HTML, PDF (`puppeteer` op
 
 ```bash
 # 1. Install — this one package is enough for most users
+#    Beta phase — `latest` tag points at beta, so no `@beta` suffix needed.
 npm install --save-dev @aicqtools/cli
+# Or explicitly:
+npm install --save-dev @aicqtools/cli@beta
+# To pin alpha:
+# npm install --save-dev @aicqtools/cli@alpha
 
 # 2. First check
 npx aicq check --locale en

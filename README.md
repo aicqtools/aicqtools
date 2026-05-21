@@ -9,11 +9,30 @@
 > **AI가 만든 코드를 결정론적으로 검증하는 코드 품질 도구.**
 > 가드레일 룰 50개 + AI 출처 추적 + EU AI Act Article 50 리포트를 한 번에.
 
-[![npm](https://img.shields.io/npm/v/@aicqtools/cli/alpha.svg)](https://www.npmjs.com/package/@aicqtools/cli)
+[![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-v1.0.0--alpha.2-orange.svg)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-v1.0.0--beta.1-blue.svg)](CHANGELOG.md)
 
 > **결정론적**(deterministic) — LLM 호출 없이 같은 입력에 항상 같은 결과를 내는 방식. Codacy/Greptile 같은 확률적 도구와 반대로 CI에서 안정적으로 동작합니다.
+
+---
+
+## 🇰🇷 왜 aicqtools인가? — 한국 핀테크/SaaS 팀이 글로벌 도구 대신 쓸 수 있는 유일한 AI 코드 품질 도구
+
+CodeRabbit · Codacy · SonarQube · ESLint AI는 한국 IT 룰 **0개**, 금감원 AI 가이드라인 **0개**, 한국어 UI **없음**. aicqtools만:
+
+- **한국 IT 컨벤션 룰 7개** — KST 타임존 명시, 깨진 한글 주석 검출, 한글 파일명 RFC 5987 Content-Disposition, Capacitor + 카카오/네이버 OAuth WebView 안티패턴, 원화 천단위 콤마, UTF-8 강제, Sequelize 마이그레이션 컬럼명 컨벤션.
+- **금감원 AI 가이드라인 룰 5개** — AI 호출 전 주민번호/카드번호 마스킹, 설명가능성 메타데이터, AI 의사결정 감사 로그, 인간 감독 체크포인트, AI 모델 버전 추적. EU AI Act Article 50 리포터 한국어 렌더링까지 묶어 **한국·EU 컴플라이언스 단일 도구 커버**.
+- **완전 한국어 i18n** — 룰 메시지 **44/45 = 97.8%** 한국어 native. `aicq check --locale ko` 또는 `LANG=ko_KR.UTF-8` 환경에서 CLI 출력 100% 한글. `aicq docs build` 시 룰 docs 한·영 동시 자동 생성.
+
+| 항목 | aicqtools | CodeRabbit | Codacy/SonarQube | ESLint AI |
+|---|---|---|---|---|
+| 한국 IT 룰 | **7** | 0 | 0 | 0 |
+| 금감원 AI 가이드라인 룰 | **5** | 0 | 0 | 0 |
+| 한국어 UI | **97.8% native** | 영어만 | 영어만 | 영어만 |
+| KST · 원화 · 한글파일명 | **O** | X | X | X |
+| Naver/Kakao OAuth 안티패턴 | **O** | X | X | X |
+| EU AI Act Article 50 리포터 | **O (한국어 렌더링)** | X | X | X |
 
 ---
 
@@ -69,7 +88,12 @@ EU AI Act Article 50 양식(한국어/영어 이중) HTML, PDF(puppeteer 옵션 
 
 ```bash
 # 1. 설치 — 대부분 이 패키지 하나면 충분합니다
+#    베타 진입 — `@beta` 명시하지 않아도 `latest` tag로 베타가 받아집니다.
 npm install --save-dev @aicqtools/cli
+# 또는 명시적으로:
+npm install --save-dev @aicqtools/cli@beta
+# 알파를 핀하려면:
+# npm install --save-dev @aicqtools/cli@alpha
 
 # 2. 첫 검사
 npx aicq check --locale ko

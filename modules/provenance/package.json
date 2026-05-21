@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/provenance",
-  "version": "1.0.0-alpha.19",
+  "version": "1.0.0-beta.1",
   "type": "module",
   "description": "AI code provenance tracker — Git pre-commit capture, CycloneDX 1.6 AI-BOM emitter, EU AI Act Article 50 reporter.",
   "keywords": [

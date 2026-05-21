@@ -124,3 +124,56 @@ describe('no-magic-number — scripts/tools/bin + Capacitor/PWA bridge skip (alp
     expect(countMagic(noisy, 'typescript', 'src/bridge.ts')).toBeGreaterThan(0);
   });
 });
+
+describe('no-magic-number — HTTP status code default allowlist (beta.1)', () => {
+  // RFC 7231 / RFC 6585 status codes are universally well-known identifiers, not magic numbers.
+  // beta.1 extends DEFAULT_ALLOWED_NUMBERS with 1xx/2xx/3xx/4xx/5xx common codes so Next.js /
+  // Express / Hono / Fastify API routes stop firing on `res.status(200/404/500)`.
+  it('allows res.status(200) without options', () => {
+    expect(countMagic('export default (_req, res) => { res.status(200).json({}); };\n')).toBe(0);
+  });
+
+  it('allows res.status(404) without options', () => {
+    expect(countMagic('export default (_req, res) => { res.status(404).json({}); };\n')).toBe(0);
+  });
+
+  it('allows res.status(500) without options', () => {
+    expect(countMagic('export default (_req, res) => { res.status(500).json({}); };\n')).toBe(0);
+  });
+
+  it('covers 2xx success codes (200, 201, 204)', () => {
+    expect(countMagic('function f() { return [200, 201, 204]; }\n')).toBe(0);
+  });
+
+  it('covers 3xx redirect codes (301, 302, 304)', () => {
+    expect(countMagic('function f() { return [301, 302, 304]; }\n')).toBe(0);
+  });
+
+  it('covers 4xx client error codes (400, 401, 403, 404, 405, 409, 422, 429)', () => {
+    expect(countMagic('function f() { return [400, 401, 403, 404, 405, 409, 422, 429]; }\n')).toBe(0);
+  });
+
+  it('covers 5xx server error codes (500, 502, 503, 504)', () => {
+    expect(countMagic('function f() { return [500, 502, 503, 504]; }\n')).toBe(0);
+  });
+
+  it('still flags non-standard 3-digit numbers that are not in the default allowlist', () => {
+    // 418 (teapot) is intentionally NOT in default allowlist — niche, not load-bearing.
+    expect(countMagic('function f() { return 418; }\n')).toBeGreaterThan(0);
+    // 8080 is a port, not a status code — must still fire.
+    expect(countMagic('function f() { return 8080; }\n')).toBeGreaterThan(0);
+  });
+
+  it('user-supplied allowedNumbers fully overrides the default (no implicit merge)', () => {
+    // With allowedNumbers: ['0', '1'] only, 200 must fire as a magic number again.
+    // Verified separately in rule-options.test.ts; this is a sanity hook here.
+    const result = runFileWithSource(
+      'app.ts',
+      'function f() { return 200; }\n',
+      'typescript',
+      [noMagicNumber],
+      { ruleOptions: new Map([['no-magic-number', { allowedNumbers: ['0', '1'] }]]) },
+    );
+    expect(result.diagnostics.length).toBeGreaterThan(0);
+  });
+});

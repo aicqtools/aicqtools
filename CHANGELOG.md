@@ -20,6 +20,108 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ---
 
+## [v1.0.0-beta.1] - 2026-05-21
+
+### 🇰🇷 한국어
+
+**알파→베타 phase 전환.** 알파.7~19 19 cycle 누적 자산 정식화. TalkUp 3 모듈 dogfood (frontend 742 / backend 2,865 / admin 179 — 0 delta) + Next.js 공식 `with-typescript` 외부 dogfood (11 files / 5 info violations, false positive 1건만) 양호 → 베타 진입 GO. 본 cycle은 **framework 동결 + BREAKING 0 강제** + 마이너 default 확장 1건만 포함: `no-magic-number.allowedNumbers` 기본값에 RFC 7231/6585 HTTP status code 19개 추가.
+
+#### 🇰🇷 베타부터 정식 가치 제안의 핵심 — 한국어 환경 차별점
+
+**aicqtools는 한국 핀테크/SaaS 팀이 글로벌 도구 대신 쓸 수 있는 유일한 AI 코드 품질 도구입니다.** 알파 cycle 동안 누적된 한국어 특화 자산이 베타부터 1급 시민으로:
+
+- **한국 IT 컨벤션 룰 7개** — `explicit-kst-timezone` (Asia/Seoul 명시), `korean-comment-encoding` (깨진 한글 검출), `rfc5987-korean-filename` (한글 파일명 Content-Disposition), `naver-kakao-oauth-webview` (Capacitor 카카오/네이버 OAuth 안티패턴), `won-format-thousands` (원화 천단위 콤마), `enforce-utf8-encoding` (UTF-8 강제), `camelcase-migration-column` (Sequelize 마이그레이션 컬럼명 컨벤션).
+- **금감원 AI 가이드라인 룰 5개** — `mask-pii-in-ai-prompt` (주민번호/카드번호 마스킹), `ai-explainability-metadata` (설명가능성), `audit-log-ai-decision` (감사 추적), `human-oversight-checkpoint` (인간 감독), `track-ai-model-version` (모델 거버넌스). EU AI Act Article 50 리포터 한국어 렌더링과 함께 **한국·EU 컴플라이언스 단일 도구 커버**.
+- **완전 한국어 i18n** — 룰 메시지 **44/45 = 97.8%** 한국어 native. `aicq check --locale ko` 또는 `LANG=ko_KR.UTF-8` 환경에서 CLI 출력 100% 한글. `aicq docs build` 시 룰 docs 한·영 동시 자동 생성.
+- **글로벌 도구 비교** — CodeRabbit / Codacy / SonarQube / ESLint AI 모두 한국 IT 룰 0개, 금감원 가이드라인 0개, 한국어 UI 없음. aicqtools만 12개 한국 도메인 룰 + 97.8% 한국어 native + EU AI Act Article 50 리포터.
+
+#### npm dist-tag 정책 전환
+- `beta` 신설 + `latest`도 베타로 이동 (알파 §6b 정책 일관).
+- 사용자가 `@beta` 명시하지 않아도 `pnpm add -D @aicqtools/cli`만으로 베타 설치됨.
+- 알파 사용자가 `@alpha` 명시 시 알파.19 그대로 유지 (호환).
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-beta.1
+- `@aicqtools/rule-sdk` 1.0.0-beta.1
+- `@aicqtools/guardrail` 1.0.0-beta.1
+- `@aicqtools/provenance` 1.0.0-beta.1
+- `@aicqtools/cli` 1.0.0-beta.1
+
+#### 변경
+- **`no-magic-number` 기본 `allowedNumbers` 확장** — RFC 7231/6585 HTTP status code 19개 추가 (`'101'`, `'200','201','204'`, `'301','302','304'`, `'400','401','403','404','405','409','422','429'`, `'500','502','503','504'`. 100은 기존 base-10으로 이미 포함). additive default 변경이라 BREAKING 아님. Next.js / Express / Hono / Fastify API 라우트의 `res.status(200/404/500)` 노이즈 해소. 회귀 가드 unit test 8건 추가.
+- **README 한·영에 "왜 aicqtools인가?" / "Why aicqtools?" 섹션 신설** — 한국 도메인 룰 12개 + i18n 97.8% + 글로벌 도구 비교 표 (intro 직후 배치, 한국어판 우선).
+- **README 설치 안내** — `@beta` 또는 plain `@aicqtools/cli` (latest tag) 표기. 알파 핀 사용자는 `@alpha` 명시.
+- **status / npm badge** alpha → beta tag 갱신.
+
+#### 베타 phase 정책 (1.0.0-beta.x 전체)
+- **framework 동결** — public surface (CLI bin/exports, guardrail/core/rule-sdk index 표면) 변경 금지.
+- **BREAKING 0 강제** — 베타 안에서 사용자 코드 깨지는 변경 금지.
+- **허용되는 변경** — additive default 확장, bug fix, docs, internal refactor (외부 영향 0).
+- 1.0.0 stable 진입 조건 — 베타 dogfood 안정 + 외부 사용자 1~2명 검증.
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- guardrail 293 → **301** (no-magic-number HTTP status 회귀 가드 8건 추가) / CLI 36 그대로.
+- Public surface diff alpha.19 ↔ beta.1 = 0 line (framework freeze 확인).
+- Next.js with-typescript dogfood 재실행 예정 (publish 후) — `no-magic-number` violation 0건 기대.
+
+#### 베타 soak → 1.0.0 stable 로드맵
+1. **TalkUp 베타.1 회귀 dogfood** — 3 모듈 0 delta 유지 확인.
+2. **외부 사용자 1~2명 베타 invite** (선택) — 1.0.0 stable 진입 전 마지막 검증.
+3. **베타 soak 1~2 cycle** — 큰 false positive 없으면 `1.0.0` stable cycle 진입 (brain `npm-publish-pitfalls` §8 stable dist-tag 정책 참고).
+
+---
+
+### 🇬🇧 English
+
+**Alpha → beta phase transition.** Alpha.7–19 (19 cycles) of accumulated assets are now first-class. TalkUp 3-module dogfood (frontend 742 / backend 2,865 / admin 179 — 0 delta) + Next.js official `with-typescript` external dogfood (11 files / 5 info violations, one false-positive pattern only) passed cleanly → beta GO. This cycle enforces **framework freeze + zero BREAKING** with one minor additive default change: `no-magic-number.allowedNumbers` defaults extended with 19 RFC 7231 / 6585 HTTP status codes.
+
+#### Korean-localized for fintech/SaaS teams
+
+**aicqtools is the only AI code-quality tool that Korean fintech/SaaS teams can use in place of global tools.** Korean-specific assets accumulated during the alpha cycles are first-class from beta onward:
+
+- **7 Korean IT-convention rules** — KST timezone enforcement, broken-Hangul comment detection, RFC 5987 Korean filename `Content-Disposition`, Capacitor + Kakao/Naver OAuth anti-pattern, KRW thousands formatting, UTF-8 enforcement, Sequelize migration column camelCase.
+- **5 Korean FSC (금감원) AI-guideline rules** — PII masking before AI prompts, explainability metadata, AI-decision audit logging, human-oversight checkpoints, AI model-version tracking. Combined with the EU AI Act Article 50 reporter (Korean-rendered), aicqtools covers **Korean + EU compliance in a single tool**.
+- **Full Korean i18n** — **44/45 = 97.8%** rules have native Korean messages. CLI output is 100% Korean under `aicq check --locale ko` or `LANG=ko_KR.UTF-8`. `aicq docs build` generates Korean + English rule docs side-by-side.
+- **Comparison vs global tools** — CodeRabbit / Codacy / SonarQube / ESLint AI all ship 0 Korean IT rules, 0 FSC guideline rules, no Korean UI. aicqtools is the only tool with 12 Korean-domain rules, 97.8% native Korean, plus an EU AI Act Article 50 reporter.
+
+#### npm dist-tag policy
+- New `beta` tag introduced; `latest` is also moved to beta (consistent with alpha §6b policy).
+- `pnpm add -D @aicqtools/cli` (no `@beta` needed) installs beta by default.
+- `@alpha`-pinned users remain on alpha.19 (compat).
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-beta.1
+- `@aicqtools/rule-sdk` 1.0.0-beta.1
+- `@aicqtools/guardrail` 1.0.0-beta.1
+- `@aicqtools/provenance` 1.0.0-beta.1
+- `@aicqtools/cli` 1.0.0-beta.1
+
+#### Changes
+- **`no-magic-number` default `allowedNumbers` extended** — 19 RFC 7231/6585 HTTP status codes added (`'101'`, `'200','201','204'`, `'301','302','304'`, `'400','401','403','404','405','409','422','429'`, `'500','502','503','504'`. 100 already covered via base-10). Additive default change — not BREAKING. Removes `res.status(200/404/500)` noise from Next.js / Express / Hono / Fastify API routes. 8 regression-guard unit tests added.
+- **README ko/en — new "Why aicqtools?" section** — 12 Korean-domain rules + 97.8% i18n + global-tool comparison table (placed right after the intro, Korean version first).
+- **README install** — show `@beta` or plain `@aicqtools/cli` (latest tag); document `@alpha` pin for alpha holdouts.
+- **status / npm badges** — flipped from alpha to beta tag.
+
+#### Beta phase policy (1.0.0-beta.x scope)
+- **Framework freeze** — no changes to public surface (CLI bin/exports, guardrail/core/rule-sdk index surface).
+- **Zero BREAKING enforced** — no user-code-breaking changes inside beta.
+- **Allowed changes** — additive default extensions, bug fixes, docs, internal refactors (zero external impact).
+- 1.0.0 stable criteria: beta dogfood stable + 1–2 external users verified.
+
+#### Validation
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- guardrail 293 → **301** (no-magic-number HTTP-status regression guards added) / CLI 36 unchanged.
+- Public surface diff alpha.19 ↔ beta.1 = 0 lines (framework freeze confirmed).
+- Next.js `with-typescript` dogfood re-run scheduled post-publish — expect 0 `no-magic-number` violations.
+
+#### Beta soak → 1.0.0 stable roadmap
+1. **TalkUp beta.1 regression dogfood** — confirm 0 delta across 3 modules.
+2. **Invite 1–2 external beta users** (optional) — final check before 1.0.0 stable.
+3. **Beta soak 1–2 cycles** — if no major false positives, enter the `1.0.0` stable cycle (see brain `npm-publish-pitfalls` §8 stable dist-tag policy).
+
+---
+
 ## [v1.0.0-alpha.19] - 2026-05-21
 
 ### 🇰🇷 한국어
