@@ -20,6 +20,70 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ---
 
+## [v1.0.0-alpha.19] - 2026-05-21
+
+### 🇰🇷 한국어
+
+베타 전환 직전 **docs 정비 cycle** — framework 변경 0. README의 `aicq.config.yaml` 핵심 옵션 섹션을 알파.14~18 반영해 한·영 lockstep 확장: `reportUnusedSuppressions` (알파.17), 6 마이그레이션 룰 옵션 패턴(`no-magic-number.allowedNumbers` / `no-console-log.flagMethods` / `no-empty-catch.skipFilePatterns` / `camelcase-migration-column.migrationFunctions` / `mask-pii-in-ai-prompt.piiPatterns` / `no-fstring-sql.sqlKeywords`), YAML PatternRule options (알파.18). MCP 가이드에 `aicq.checkSnippet` ↔ CLI 옵션 동치성 §7 추가. brain `npm-publish-pitfalls`에 §7 베타 dist-tag 정책 + §8 v1.0 stable 전환 정책 정착. **`aicq docs build` 시각 검증** — 6 마이그레이션 룰 + YAML rule `no-print-in-prod` 옵션 표 모두 정상 렌더 확인.
+
+알파.19 publish 후 사용자 영역에서 **TalkUp 알파.19 acceptance + Next.js 공식 example dogfood 1건** 수렴 → `1.0.0-beta.1` 전환 (별도 cycle, framework 동결, dist-tag `beta` 신설 + `latest`도 베타 이동).
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-alpha.19
+- `@aicqtools/rule-sdk` 1.0.0-alpha.19
+- `@aicqtools/guardrail` 1.0.0-alpha.19
+- `@aicqtools/provenance` 1.0.0-alpha.19
+- `@aicqtools/cli` 1.0.0-alpha.19
+
+#### 변경
+- **README 한·영 `aicq.config.yaml` 가이드 확장** — `reportUnusedSuppressions` + 6 룰 옵션 사용 예제 + YAML PatternRule options 안내. 베타 진입 전 외부 사용자에게 framework 전체 사용법을 한 곳에서 안내.
+- **MCP 가이드 §7 신규** — `aicq.checkSnippet`이 알파.13~18 옵션·flag와 default 동치성 명시. config 미적용 (단일 snippet 검증 목적) 한계도 명시.
+- **brain `npm-publish-pitfalls` §7 / §8** — 베타 전환 dist-tag 정책(beta + latest 동시 이동) + v1.0 stable 전환 dist-tag 정책 추가. 알파 §6b 정책과 일관.
+- **rule docs auto-gen 시각 검증** — `aicq docs build` 102 파일 (51 rules × 한·영). 6 마이그레이션 룰 + `no-print-in-prod` 옵션 표 정상 렌더.
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- Guardrail 293 / CLI 36 그대로 (framework 변경 0, docs only PR).
+- 알파.7~18 회귀 가드 매트릭스 전체 통과.
+
+#### 베타 전환 로드맵 (publish 후 사용자 영역)
+1. **TalkUp 알파.19 dogfood + brain 기록** — frontend 742 / backend 2,865 / admin 179 baseline 0 delta 확인, 알파.17 `--report-unused-suppressions` opt-in 시도.
+2. **Next.js 공식 example dogfood** — `vercel/next.js/examples/*` 중 사용 수 많은 1개(예: `with-tailwindcss` / `with-supabase` / `with-typescript`) fork → `aicq check` 실행 → false positive/negative 1~2건 brain 기록.
+3. **GO/NO-GO 결정** — 결과 양호 → `1.0.0-beta.1` cycle 시작. 큰 false positive 패턴 발견 → 알파.20 hotfix 후 베타.
+
+---
+
+### 🇬🇧 English
+
+**Docs polish cycle** before the beta cut — framework change 0. README's `aicq.config.yaml` essentials section gains lock-step ko + en expansion covering alpha.14~18 surface: `reportUnusedSuppressions` (alpha.17), the six migration-rule options (`no-magic-number.allowedNumbers` / `no-console-log.flagMethods` / `no-empty-catch.skipFilePatterns` / `camelcase-migration-column.migrationFunctions` / `mask-pii-in-ai-prompt.piiPatterns` / `no-fstring-sql.sqlKeywords`), and YAML PatternRule options (alpha.18). The MCP guide gains a new §7 documenting `aicq.checkSnippet` ↔ CLI option equivalence. Brain `npm-publish-pitfalls` adds §7 (beta dist-tag policy) and §8 (v1.0 stable transition policy). `aicq docs build` visually verified — all six migration rules + the `no-print-in-prod` YAML rule render their options tables correctly.
+
+After alpha.19 publish, the user-side dogfood cycle (TalkUp alpha.19 acceptance + a single Next.js official example) gates the `1.0.0-beta.1` transition (separate cycle, framework freeze, dist-tag `beta` introduced + `latest` also moved to beta).
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-alpha.19
+- `@aicqtools/rule-sdk` 1.0.0-alpha.19
+- `@aicqtools/guardrail` 1.0.0-alpha.19
+- `@aicqtools/provenance` 1.0.0-alpha.19
+- `@aicqtools/cli` 1.0.0-alpha.19
+
+#### Changed
+- **README ko + en `aicq.config.yaml` guide expansion** — `reportUnusedSuppressions` + 6 rule-option usage examples + YAML PatternRule options note. Single landing spot for the full framework surface ahead of beta dogfood.
+- **MCP guide §7 new** — equivalence between `aicq.checkSnippet` defaults and alpha.13~18 CLI options/flags. Calls out the snippet-mode config-load limitation explicitly.
+- **brain `npm-publish-pitfalls` §7 / §8** — beta dist-tag policy (beta + latest moved together) + v1.0 stable transition policy. Mirrors the alpha §6b convention.
+- **Visual verification of rule docs auto-gen** — `aicq docs build` writes 102 files (51 rules × ko + en). All six migration rules and the `no-print-in-prod` YAML rule render their options tables correctly.
+
+#### Verification
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- Guardrail 293 / CLI 36 unchanged (framework change 0, docs-only PR).
+- Alpha.7~18 regression matrix still passes.
+
+#### Beta transition roadmap (post-publish, user territory)
+1. **TalkUp alpha.19 dogfood + brain record** — verify frontend 742 / backend 2,865 / admin 179 baseline 0 delta; try alpha.17 `--report-unused-suppressions` opt-in.
+2. **Next.js official example dogfood** — pick one of the most-downloaded examples (`with-tailwindcss` / `with-supabase` / `with-typescript` etc.), fork, run `aicq check`, record 1~2 false positive/negative patterns in brain.
+3. **GO/NO-GO decision** — green → `1.0.0-beta.1` cycle. Major false-positive pattern surfaced → alpha.20 hotfix before beta.
+
+---
+
 ## [v1.0.0-alpha.18] - 2026-05-20
 
 ### 🇰🇷 한국어

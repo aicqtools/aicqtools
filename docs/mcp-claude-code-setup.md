@@ -141,7 +141,22 @@ aicq에 어떤 룰이 등록되어 있는지 listRules로 보여줘
 
 ---
 
-## 7. v1.0 이후 단순화
+## 7. MCP 도구 ↔ CLI 옵션 동치성 (alpha.13~18)
+
+`aicq mcp`가 노출하는 `aicq.checkSnippet({ source, language, filePath? })`는 내부적으로 `runFile` / `runFileWithSource`를 호출합니다. 알파.13~18에서 추가된 옵션·flag는 MCP 호출에도 동일한 default가 적용돼요:
+
+| Config / CLI 옵션 | 도입 알파 | MCP `checkSnippet` 동작 |
+|---|---|---|
+| `skipBuiltinSkips` (default `false`) | 알파.13 | 빌트인 `SKIP_FILE_RE` 가드 그대로 적용 — `scripts/`/`native-bridge.js`/`__tests__/` 등 자동 스킵 |
+| `reportUnusedSuppressions` (default `false`) | 알파.17 | unused-suppression 진단 미발생 — MCP 응답 노이즈 최소화 |
+| Per-rule `options` (rule defaults) | 알파.14~16 | 6 빌트인 룰이 자신의 defaults로 동작 — `aicq.config.yaml` 없이도 합리적 baseline |
+| YAML PatternRule `options` | 알파.18 | YAML rule도 framework 통과 — query 자체는 정적 매칭 |
+
+**MCP에서 사용자 옵션이 필요한 시점**: 현재 `checkSnippet` 도구는 `aicq.config.yaml`을 자동 로드하지 않습니다(단일 snippet 검증이 목적). 프로젝트 단위 config가 적용된 결과를 원한다면 `aicq check` CLI를 별도 호출하거나, v1.0 이후 MCP에 `--config` 인자를 추가하는 방안을 backlog에 둡니다.
+
+---
+
+## 8. v1.0 이후 단순화
 
 v1.0 출시 후에는 다음과 같이 npm 패키지로 직접 등록 가능:
 

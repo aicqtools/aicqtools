@@ -1,6 +1,6 @@
 {
   "name": "@aicqtools/cli",
-  "version": "1.0.0-alpha.18",
+  "version": "1.0.0-alpha.19",
   "type": "module",
   "description": "aicq command-line interface — `aicq check`, `aicq mcp`, `aicq sync-ai-rules`, `aicq provenance`, `aicq docs build`.",
   "keywords": [

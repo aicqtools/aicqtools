@@ -171,6 +171,73 @@ aicq check --no-skip-builtin-skips  # 강제 켜기 (config가 true여도)
 
 기본값 `false` — 알파.10~12 동작 그대로. `aicq rules suggest` 출력의 `↳ auto-skipped paths:` 줄로 어떤 패턴이 적용되는지 미리 볼 수 있습니다.
 
+### `reportUnusedSuppressions` (alpha.17+) — 안 쓰이는 suppression 청소
+
+`aicq-disable-line` / `aicq-disable-next-line` / `aicq-disable-file` 디렉티브가 한 번도 위반을 잡지 못하면 info-severity `@aicq/unused-suppression` 진단을 띄워 줍니다. ESLint `--report-unused-disable-directives` 패턴.
+
+```yaml
+reportUnusedSuppressions: true
+```
+
+```bash
+aicq check --report-unused-suppressions     # 한 번만 켜기
+aicq check --no-report-unused-suppressions  # 강제 끄기
+```
+
+기본값 `false` (opt-in). synthetic 진단이라 `rules.@aicq/unused-suppression: off` 같은 식으로는 못 끕니다 — 이 옵션 자체를 `false`로 두거나 CLI flag로 한 번만 끄세요.
+
+### per-rule options (alpha.14+) — 룰별 하드코드 상수 사용자 조정
+
+여섯 개 빌트인 룰이 `options` 필드로 사용자 조정을 허용합니다 — defaults는 알파.13 동작과 비트 단위 동일이라 config 미설정 시 회귀 0:
+
+```yaml
+modules:
+  guardrail:
+    rules:
+      # alpha.14: 매직 넘버 허용 목록 (default 11개)
+      no-magic-number:
+        options:
+          allowedNumbers: ['0', '1', '-1', '2', '60', '3600', '86400']
+
+      # alpha.15: 어떤 console 메서드를 검출할지 (default ['log'])
+      no-console-log:
+        options:
+          flagMethods: ['log', 'debug', 'warn']
+
+      # alpha.15: 빈 catch 검출에서 스킵할 파일 정규식 (default = native-bridge/service-worker)
+      no-empty-catch:
+        options:
+          skipFilePatterns:
+            - '[/\\](native-bridge|service-worker)\.[jt]sx?$'
+            - '[/\\]sentry-wrapper\.ts$'
+
+      # alpha.16: Sequelize 외 ORM 마이그레이션 함수 추가
+      camelcase-migration-column:
+        options:
+          migrationFunctions: ['createTable', 'addColumn', 'changeColumn', 'create_table']
+
+      # alpha.16: PII 정규식 source 배열 (default = RRN + 카드번호)
+      mask-pii-in-ai-prompt:
+        options:
+          piiPatterns:
+            - '\b\d{6}-\d{7}\b'        # RRN
+            - '\b(?:\d[ -]?){15,16}\b' # 카드번호
+            - '\b[A-Z]\d{8}\b'         # 여권번호 (사용자 추가)
+
+      # alpha.16: Python f-string SQL 키워드 (default 8개)
+      no-fstring-sql:
+        options:
+          sqlKeywords: ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE TABLE']
+```
+
+**알 수 없는 옵션 키** (예: `allowedNumberz`)는 stderr 경고로 알려주고 무시 (`.strict()` zod schema), **타입 위반**도 stderr 경고 후 defaults로 fallback. 잘못된 config가 점검을 멈추지 않습니다.
+
+각 룰의 옵션 표는 `aicq docs build`로 자동 생성된 `aicq-docs/rules/{en,ko}/<rule-id>.md`에서 확인할 수 있어요.
+
+### YAML PatternRule options (alpha.18+) — YAML 룰 framework 일관성
+
+알파.18부터 YAML PatternRule(`.yaml` 파일)에도 `options.defaults: Record<string, unknown>`를 적을 수 있어요. runtime에 strict object schema가 자동 합성되므로 사용자가 `aicq.config.yaml`에서 override할 때 typo 키가 잡힙니다. 다만 query는 정적이라 옵션이 실제 매칭 로직에 substitution되지는 않음(v1.0+ 후속).
+
 ---
 
 ## 패키지 5종 (npm `@aicqtools` 스코프)

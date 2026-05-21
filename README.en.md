@@ -171,6 +171,73 @@ aicq check --no-skip-builtin-skips  # force-enable (overrides config: true)
 
 Default `false` — same as alpha.10~12 behavior. The `↳ auto-skipped paths:` line in `aicq rules suggest` output shows you which patterns are active.
 
+### `reportUnusedSuppressions` (alpha.17+) — clean up stale suppression directives
+
+When an `aicq-disable-line` / `aicq-disable-next-line` / `aicq-disable-file` directive matches zero violations, the runner emits an info-severity `@aicq/unused-suppression` diagnostic at the directive's comment line. Mirrors ESLint's `--report-unused-disable-directives`.
+
+```yaml
+reportUnusedSuppressions: true
+```
+
+```bash
+aicq check --report-unused-suppressions     # one-off enable
+aicq check --no-report-unused-suppressions  # force off
+```
+
+Default `false` (opt-in). Synthetic diagnostic, so you cannot disable it via `rules.@aicq/unused-suppression: off` — flip this flag (or the CLI option) instead.
+
+### Per-rule options (alpha.14+) — tune the built-in hardcoded constants
+
+Six built-in rules accept user-supplied `options` — defaults are bit-for-bit identical to alpha.13, so leaving the config alone keeps zero regression:
+
+```yaml
+modules:
+  guardrail:
+    rules:
+      # alpha.14: allow-list for magic numbers (default = 11 entries)
+      no-magic-number:
+        options:
+          allowedNumbers: ['0', '1', '-1', '2', '60', '3600', '86400']
+
+      # alpha.15: which console methods to flag (default ['log'])
+      no-console-log:
+        options:
+          flagMethods: ['log', 'debug', 'warn']
+
+      # alpha.15: file path regexes the empty-catch rule should skip
+      no-empty-catch:
+        options:
+          skipFilePatterns:
+            - '[/\\](native-bridge|service-worker)\.[jt]sx?$'
+            - '[/\\]sentry-wrapper\.ts$'
+
+      # alpha.16: extend the Sequelize migration function allowlist (Knex / TypeORM etc.)
+      camelcase-migration-column:
+        options:
+          migrationFunctions: ['createTable', 'addColumn', 'changeColumn', 'create_table']
+
+      # alpha.16: PII regex source array (default = Korean RRN + card number)
+      mask-pii-in-ai-prompt:
+        options:
+          piiPatterns:
+            - '\b\d{6}-\d{7}\b'        # Korean RRN
+            - '\b(?:\d[ -]?){15,16}\b' # card number
+            - '\b[A-Z]\d{8}\b'         # passport number (user-added)
+
+      # alpha.16: Python f-string SQL keyword allowlist (default 8 entries)
+      no-fstring-sql:
+        options:
+          sqlKeywords: ['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'CREATE TABLE']
+```
+
+**Unknown option keys** (e.g. `allowedNumberz`) trigger a stderr warning and are ignored (`.strict()` zod schema). **Type violations** also warn on stderr and fall back to defaults — a bad config never aborts the scan.
+
+Run `aicq docs build` to generate per-rule markdown with the full options table at `aicq-docs/rules/{en,ko}/<rule-id>.md`.
+
+### YAML PatternRule options (alpha.18+) — framework consistency for YAML rules
+
+Since alpha.18 YAML PatternRules (`.yaml` files) can also declare `options.defaults: Record<string, unknown>`. The runtime synthesizes a strict object schema from the defaults' keys so user overrides catch typo keys. Note that the query stays static — options don't substitute into the query string (dynamic-query PatternRules await a v1.0+ visitor extension).
+
 ---
 
 ## The 5 packages (npm `@aicqtools` scope)
