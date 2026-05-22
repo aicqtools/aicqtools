@@ -16,5 +16,6 @@ Thumbs.db
 e2e/bench-fixture/
 e2e/large-file-fixture/src/
 **/aicq-docs/
+.aicq-docs-probe/
 .astro/
 **/.astro/
