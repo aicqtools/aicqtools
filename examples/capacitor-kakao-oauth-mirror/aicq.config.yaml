@@ -1,0 +1,19 @@
+# aicq.config.yaml — Capacitor 한국 OAuth 미러
+# `aicq init --stack capacitor` 출력과 동일 구조.
+locale: ko
+
+include:
+  - "src/**/*.{ts,tsx,js,mjs,cjs}"
+
+exclude:
+  - "ios/**"
+  - "android/**"
+  - "www/**"
+  - "public/native-bridge.*"
+  - "dist/**"
+  - "**/node_modules/**"
+
+overrides:
+  - paths: ['**/scripts/**']
+    rules:
+      no-console-log: off

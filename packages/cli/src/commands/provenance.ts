@@ -1,6 +1,7 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { loadConfig, resolveLocale, t } from '@aicqtools/core';
+import type { CheckResult } from '@aicqtools/core';
 import { getCliVersion } from '../version.js';
 import {
   buildRecord,
@@ -12,7 +13,7 @@ import {
   renderArticle50Pdf,
   writeProvenanceRecord,
 } from '@aicqtools/provenance';
-import type { ReaderName } from '@aicqtools/provenance';
+import type { BuildArticle50Options, ReaderName } from '@aicqtools/provenance';
 
 export interface ProvenanceCaptureOptions {
   readonly cwd: string;
@@ -50,13 +51,37 @@ export interface ProvenanceReportOptions {
   readonly recordPath: string;
   readonly locale?: 'ko' | 'en';
   readonly output?: string;
+  /**
+   * Path to a `aicq check --format json` output. When provided with any
+   * article-50 / article-50-html / article-50-pdf format, the report includes
+   * a `guardrailSummary` section summarizing severity counts, rule categories,
+   * and the number of files with violations. Sub 3b (beta.2) baseline: manual
+   * mode — the user runs `aicq check` first; auto mode (`--include-violations`)
+   * is a follow-up sub-cycle.
+   */
+  readonly guardrailResultPath?: string;
+}
+
+async function loadGuardrailResult(cwd: string, path: string): Promise<CheckResult> {
+  const abs = resolve(cwd, path);
+  const raw = await readFile(abs, 'utf-8');
+  return JSON.parse(raw) as CheckResult;
 }
 
 export async function runProvenanceReport(opts: ProvenanceReportOptions): Promise<number> {
-  const { readFile } = await import('node:fs/promises');
   const cwd = resolve(opts.cwd);
   const path = resolve(cwd, opts.recordPath);
   const record = JSON.parse(await readFile(path, 'utf-8'));
+
+  // Sub 3b: optionally load a guardrail CheckResult JSON to embed a summary.
+  // ai-bom is unaffected (it's a different CycloneDX-shaped emit).
+  const guardrail = opts.guardrailResultPath
+    ? await loadGuardrailResult(cwd, opts.guardrailResultPath)
+    : undefined;
+  const buildOpts: BuildArticle50Options | undefined = guardrail
+    ? { guardrail }
+    : undefined;
+
   if (opts.format === 'ai-bom') {
     process.stdout.write(JSON.stringify(emitAiBom(record, getCliVersion()), null, 2) + '\n');
     return 0;
@@ -68,7 +93,7 @@ export async function runProvenanceReport(opts: ProvenanceReportOptions): Promis
       configLocale: config.locale,
       env: process.env,
     });
-    process.stdout.write(renderArticle50Html(buildArticle50Report(record), { locale }));
+    process.stdout.write(renderArticle50Html(buildArticle50Report(record, buildOpts), { locale }));
     return 0;
   }
   if (opts.format === 'article-50-pdf') {
@@ -82,12 +107,12 @@ export async function runProvenanceReport(opts: ProvenanceReportOptions): Promis
       configLocale: config.locale,
       env: process.env,
     });
-    const pdf = await renderArticle50Pdf(buildArticle50Report(record), { locale });
+    const pdf = await renderArticle50Pdf(buildArticle50Report(record, buildOpts), { locale });
     const outPath = resolve(cwd, opts.output);
     await writeFile(outPath, pdf);
     process.stdout.write(`PDF written: ${outPath}\n`);
     return 0;
   }
-  process.stdout.write(JSON.stringify(buildArticle50Report(record), null, 2) + '\n');
+  process.stdout.write(JSON.stringify(buildArticle50Report(record, buildOpts), null, 2) + '\n');
   return 0;
 }

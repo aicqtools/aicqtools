@@ -49,6 +49,13 @@ export const messages = {
     'cli.rules.suggest.experimentalLabel': 'EXPERIMENTAL',
     'cli.rules.suggest.written': 'wrote {count} suggestion(s) to {path}',
     'cli.rules.suggest.skipPatternsHint': '↳ auto-skipped paths: {patterns}',
+    'cli.init.wrote': 'wrote: {path}',
+    'cli.init.conflict':
+      'aicq init: refusing to overwrite existing file(s): {paths}. Re-run with --force to overwrite.',
+    'cli.init.unknownStack':
+      'aicq init: unknown stack `{stack}`. Supported: next | nest | capacitor | generic.',
+    'cli.init.nextStep':
+      'next: run `aicq check --locale en` to scan the repo. Stack preset: {stack}.',
   },
   ko: {
     'cli.check.scanned': '파일 {files}개 검사, 위반 {violations}개, {ms}ms 소요',
@@ -91,6 +98,13 @@ export const messages = {
     'cli.rules.suggest.experimentalLabel': '실험적',
     'cli.rules.suggest.written': '제안 {count}건을 {path}에 기록',
     'cli.rules.suggest.skipPatternsHint': '↳ 자동 스킵 경로: {patterns}',
+    'cli.init.wrote': '작성됨: {path}',
+    'cli.init.conflict':
+      'aicq init: 기존 파일을 덮어쓰지 않습니다: {paths}. 덮어쓰려면 --force를 추가하세요.',
+    'cli.init.unknownStack':
+      'aicq init: 알 수 없는 스택 `{stack}`. 지원: next | nest | capacitor | generic.',
+    'cli.init.nextStep':
+      '다음 단계: `aicq check --locale ko`로 저장소를 검사하세요. 적용된 스택 프리셋: {stack}.',
   },
 } as const;
 

@@ -1,0 +1,9 @@
+{
+  "name": "@aicqtools/example-capacitor-kakao-oauth-mirror",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Capacitor + Kakao/Naver OAuth anti-pattern mirror — naver-kakao-oauth-webview rule dogfood",
+  "scripts": {
+    "check": "node ../../packages/cli/dist/bin.js check --locale ko --no-cache"
+  }
+}

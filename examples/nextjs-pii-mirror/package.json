@@ -1,0 +1,9 @@
+{
+  "name": "@aicqtools/example-nextjs-pii-mirror",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Next.js App Router mirror — intentional FSC PII / Korean rule violations for aicq check dogfood",
+  "scripts": {
+    "check": "node ../../packages/cli/dist/bin.js check --locale ko --no-cache"
+  }
+}

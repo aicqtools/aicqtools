@@ -23,7 +23,23 @@
 원문 핵심:
 > "Providers of AI systems generating synthetic audio, image, video or **text** content must ensure outputs are marked in a **machine-readable format** and **detectable as artificially generated or manipulated**, with technical solutions that are **effective, interoperable, robust and reliable** as far as technically feasible."
 
-→ **AI가 생성한 코드는 machine-readable한 방식으로 표시되어야 함**. 우리의 `attributions[].sessionId` + `sessions[].tool/model` 가 이 표시 역할.
+→ **AI가 생성한 코드가 "text" 범주에 포함되는지는 EC의 Code of Practice 확정(2026-08-02 발효 시점)에서 명시될 전망이며, 본 문서는 "포함된다"는 합리적 해석을 전제로 한다.** 그 가정 하에 우리의 `attributions[].sessionId` + `sessions[].tool/model` 이 50(2) 마킹 역할을 담당.
+
+### 1-2-1. GPAI 명시 포함
+
+조문 verbatim: "Providers of AI systems, **including general-purpose AI systems**, generating synthetic..."
+
+→ Claude (Anthropic) · GPT (OpenAI) · Cursor · Copilot 같은 범용 코딩 어시스턴트가 명시적으로 50(2) 대상. aicq의 Claude Code/Cursor 세션 자동 감지가 GPAI 출력을 마킹하는 컴플라이언스 보조 도구로 그대로 위치.
+
+### 1-2-2. 면제 조항 — assistive editing / no substantial alteration
+
+조문 verbatim: "This obligation shall not apply to the extent the AI systems perform an **assistive function for standard editing** or do not **substantially alter** the input data provided by the deployer or the semantics thereof"
+
+→ **포맷팅, 자동완성, 리네이밍 등은 일부 면제 가능**. 그러나 코드 *생성*(scaffolding, 함수 구현, 리팩토링 큰 단위)은 substantial alteration이라 적용 대상. aicq attribution은 후자에 한해 의미 있음.
+
+### 1-2-3. Transitional period — 6개월 유예
+
+Article 113 + 2025-2026 implementing acts에 따라 **2026-08-02 이전 시장 출시된 generative AI 시스템은 2026-12-02까지** 컴플라이언스 정비 기간. 새로 출시되는 시스템은 2026-08-02부터 즉시 적용.
 
 ### 1-3. Code of Practice
 
@@ -133,6 +149,7 @@ EU GDPR 동급. 우리가 캡처하는 prompt 본문은 사용자 PII 포함 가
 ## Sources
 
 - [Article 50 — Transparency Obligations (EU AI Act)](https://artificialintelligenceact.eu/article/50/)
+- [Article 50 — AI Act Service Desk (EC 공식)](https://ai-act-service-desk.ec.europa.eu/en/ai-act/article-50)
 - [Annex IV — Technical Documentation (EU AI Act)](https://artificialintelligenceact.eu/annex/4/)
 - [Article 11 — Technical Documentation Required](https://artificialintelligenceact.eu/article/11/)
 - [AI Act Technical Documentation: Annex IV Guide — aiacto.eu](https://www.aiacto.eu/en/blog/documentation-technique-ai-act-article-11-annexe-iv)

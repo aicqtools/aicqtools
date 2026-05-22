@@ -11,18 +11,21 @@
 
 [![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-v1.0.0--beta.1-blue.svg)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-v1.0.0--beta.2-blue.svg)](CHANGELOG.md)
+[![EU AI Act Article 50](https://img.shields.io/badge/EU%20AI%20Act%20Article%2050-D--72%20(2026--08--02)-orange.svg)](docs/eu-ai-act-data-requirements.md)
 
 > **결정론적**(deterministic) — LLM 호출 없이 같은 입력에 항상 같은 결과를 내는 방식. Codacy/Greptile 같은 확률적 도구와 반대로 CI에서 안정적으로 동작합니다.
 
+> ⏰ **EU AI Act Article 50 시행 D-73 (2026-08-02)** — AI 생성 코드를 EU 시장 대상 서비스에 쓰는 팀은 **공급자(provider)**라면 출력물 기계 가독 마킹, **배포자(deployer)**라면 공익 정보 텍스트 disclosure 의무를 집니다. aicqtools는 Claude Code/Cursor 세션을 자동 캡처해 Article 50 리포트(HTML/PDF, 한·영) + AI-BOM(CycloneDX 1.6)을 PR마다 생성 — 그 attribution을 같은 PR에 첨부하면 본 의무 이행의 출발선이 됩니다.
+
 ---
 
-## 🇰🇷 왜 aicqtools인가? — 한국 핀테크/SaaS 팀이 글로벌 도구 대신 쓸 수 있는 유일한 AI 코드 품질 도구
+## 🇰🇷 왜 aicqtools인가? — 한국 IT 컨벤션·금감원 AI 가이드라인을 룰로 다루는 OSS 코드 품질 도구 (베타)
 
-CodeRabbit · Codacy · SonarQube · ESLint AI는 한국 IT 룰 **0개**, 금감원 AI 가이드라인 **0개**, 한국어 UI **없음**. aicqtools만:
+현재 베타 단계(1.0.0-beta.1)에서 다음 영역을 룰로 다룹니다. 글로벌 도구(CodeRabbit · Codacy · SonarQube · ESLint AI)는 한국 IT 룰·금감원 가이드라인·한국어 UI를 기본 제공하지 않습니다 (2026-05 공개 정보 기준):
 
 - **한국 IT 컨벤션 룰 7개** — KST 타임존 명시, 깨진 한글 주석 검출, 한글 파일명 RFC 5987 Content-Disposition, Capacitor + 카카오/네이버 OAuth WebView 안티패턴, 원화 천단위 콤마, UTF-8 강제, Sequelize 마이그레이션 컬럼명 컨벤션.
-- **금감원 AI 가이드라인 룰 5개** — AI 호출 전 주민번호/카드번호 마스킹, 설명가능성 메타데이터, AI 의사결정 감사 로그, 인간 감독 체크포인트, AI 모델 버전 추적. EU AI Act Article 50 리포터 한국어 렌더링까지 묶어 **한국·EU 컴플라이언스 단일 도구 커버**.
+- **금감원 AI 가이드라인 룰 5개** — AI 호출 전 주민번호/카드번호 마스킹, 설명가능성 메타데이터, AI 의사결정 감사 로그, 인간 감독 체크포인트, AI 모델 버전 추적. EU AI Act Article 50 메타데이터 리포트도 한국어로 렌더링됩니다 (guardrail 검출 결과 통합은 1.0.0-beta.2 예정). 한국·EU 컴플라이언스 영역을 한 도구에서 함께 다루는 시도입니다.
 - **완전 한국어 i18n** — 룰 메시지 **44/45 = 97.8%** 한국어 native. `aicq check --locale ko` 또는 `LANG=ko_KR.UTF-8` 환경에서 CLI 출력 100% 한글. `aicq docs build` 시 룰 docs 한·영 동시 자동 생성.
 
 | 항목 | aicqtools | CodeRabbit | Codacy/SonarQube | ESLint AI |
@@ -32,7 +35,18 @@ CodeRabbit · Codacy · SonarQube · ESLint AI는 한국 IT 룰 **0개**, 금감
 | 한국어 UI | **97.8% native** | 영어만 | 영어만 | 영어만 |
 | KST · 원화 · 한글파일명 | **O** | X | X | X |
 | Naver/Kakao OAuth 안티패턴 | **O** | X | X | X |
-| EU AI Act Article 50 리포터 | **O (한국어 렌더링)** | X | X | X |
+| EU AI Act Article 50 메타데이터 리포트 | **있음** (한국어, 검출 결과 통합은 beta.2 예정) | 없음 | 없음 | 없음 |
+
+---
+
+### 🎯 일상 비유로 이해하기
+
+aicqtools를 처음 접하시면 이렇게 생각하세요.
+
+- **KS마크 + HACCP 인증의 코드 버전.** 콘센트에 KS마크가 있어야 한국 220V 환경에서 안전하듯, 코드에도 한국 환경에서만 통하는 표준(KST 시간대, 한글 인코딩, 원화 표기, 카카오·네이버 OAuth 패턴)이 있습니다. ESLint·SonarQube 같은 글로벌 도구는 110V용 검사기라 한국 룰을 못 찍어줍니다.
+- **HACCP처럼 사고 전 차단.** 식품 공장이 HACCP으로 식중독균이 들어올 지점을 미리 짚어서 막듯, aicqtools는 AI 코드의 위해요소(주민번호가 ChatGPT 프롬프트에 그대로 들어감, AI 결정 근거 미기록, 모델 버전 추적 부재)를 PR 머지 *전에* 자동으로 짚어냅니다. 금감원 AI 가이드라인 5종을 룰로 만들었습니다.
+- **자동차 정기검사처럼 매번 자동.** 자동차 2년 검사가 누적된 결함을 한 번에 드러내듯, GitHub PR이 올라올 때마다 aicqtools가 자동 검사를 돌립니다. 위반 있으면 머지 막힘 — 위험한 코드가 main에 절대 안 들어갑니다. ESLint·TypeScript와 **병행**(대체 아님) 운영.
+- **정밀안전진단처럼 대규모 한 번에.** 30년 된 아파트의 구조·전기·배관을 한꺼번에 점검하듯, 50개 빌트인 룰로 한국 상용 모노레포(TalkUp, 205,069 LOC)를 한 번에 진단. 첫 검사 3초, SQLite 캐시 히트 후 20ms.
 
 ---
 
@@ -52,7 +66,7 @@ Codacy · Semgrep · SonarQube 같은 글로벌 도구는 글로벌 IT 관례만
 aicqtools는 이 20개 한국 도메인 룰을 처음부터 번들링합니다.
 
 ### 3. EU AI Act Article 50 — 시행 D-3개월
-**2026-08-02부터** EU에 서비스하는 모든 AI 시스템은 학습 데이터 · 모델 · 운영자 정보를 **기계 가독 형식으로 문서화**해야 합니다. 한국 스타트업도 EU 진출 시 의무 적용. aicqtools는 Claude Code/Cursor 세션을 자동 감지해 AI-BOM(AI Bill of Materials — 사용된 모델/버전/라이선스 명세서, CycloneDX 1.6 포맷)과 Article 50 리포트(HTML/PDF)를 자동 생성합니다.
+**2026-08-02부터** EU에 서비스하는 AI 시스템의 **공급자(provider, GPAI 포함)**는 출력물을 **기계 가독 형식**으로 마킹하고, **배포자(deployer)**가 공익 정보 목적으로 publish하는 AI 생성 텍스트는 별도 disclosure 의무(50(4))를 집니다. 한국 사업자도 EU에 generative AI를 공급하거나 AI 출력을 EU 시장 대상으로 publish하면 동일하게 적용됩니다 (2026-08-02 이전 시장 출시된 generative AI는 **2026-12-02까지 유예**). aicqtools는 Claude Code/Cursor 세션을 자동 감지해 AI-BOM(AI Bill of Materials — 사용된 모델/버전/라이선스 명세서, CycloneDX 1.6 포맷)과 Article 50 리포트(HTML/PDF)를 자동 생성합니다.
 
 ---
 
@@ -95,7 +109,12 @@ npm install --save-dev @aicqtools/cli@beta
 # 알파를 핀하려면:
 # npm install --save-dev @aicqtools/cli@alpha
 
-# 2. 첫 검사
+# 2. 프로젝트에 aicq 도입 — config + CI 워크플로 한 번에 생성
+npx aicq init --stack next   # 또는 nest | capacitor | generic
+# → aicq.config.yaml 생성 (스택별 exclude/룰 프리셋)
+# → .github/workflows/aicq-check.yml 생성 (CI 통합)
+
+# 3. 첫 검사
 npx aicq check --locale ko
 # 출력 예시:
 # ✗ src/routes/api.ts:42  no-console-log  warning
@@ -103,12 +122,12 @@ npx aicq check --locale ko
 # ✗ src/db/schema.ts:18   no-plain-card-number  error
 #   → 평문 card_number 컬럼은 _encrypted 접미사가 필요합니다 (PCI DSS § 3.5.1).
 
-# 3. AI 에이전트에 룰 자동 주입
+# 4. AI 에이전트에 룰 자동 주입
 npx aicq sync-ai-rules --locale ko
 # → .cursorrules / CLAUDE.md 가 50개 룰 요약으로 갱신됨
 # → Claude Code/Cursor가 다음 코드 생성 시 이 컨텍스트를 사용
 
-# 4. (선택) AI 세션 기록 — EU AI Act 대비
+# 5. (선택) AI 세션 기록 — EU AI Act 대비
 npx aicq provenance capture --reader claude-code
 ```
 
@@ -293,13 +312,25 @@ modules:
 
 | 시기 | 마일스톤 |
 |------|---------|
-| **2026-05 (현재)** | v1.0.0-alpha.2 — 50 룰, MCP, Article 50 HTML/PDF |
-| 2026-08-01 | v1.0 stable — EU AI Act 시행일 직전 |
-| 2026-09-15 | Phase 1b 완료 — Cursor SQLite 추출, 룰 자동작성 프로토타입 |
-| 2026-10-27 | v1.5 SaaS 베타 — 대시보드, PR 자동 코멘트 |
+| **2026-05 (현재)** | **v1.0.0-beta.1** — alpha.7~19 19 cycle 누적 자산 정식화, framework freeze, dist-tag `latest`=beta |
+| 2026-06~07 | beta soak — 외부 dogfood ≥ 2, npm DL ≥ 200/주, P1 미해결 = 0 ([ROADMAP.md](ROADMAP.md) G1~G4) |
+| 2026-08-01 | v1.0 stable 후보 — EU AI Act Article 50 시행일 직전 |
+| 2026-10~ | 1.1 — 한국 IT 룰 +5 (토스 페이먼츠 idempotency, Kakao/Naver SDK init 순서 등), `aicq fix` autofix |
+| 2026-Q4 | 1.2 — 한국 LLM SDK 룰 팩(solar/HyperCLOVA), VS Code 확장 |
+
+상세 게이트와 non-goals: [ROADMAP.md](ROADMAP.md).
 
 ---
 
-## 라이선스 / 기여
+## 보안 / 기여 / 정책
 
-MIT — [LICENSE](LICENSE). 버그 제보 · 룰 PR 환영합니다. 기여 가이드는 추후 `CONTRIBUTING.md`로 추가 예정.
+- **보안 취약점 보고** — [SECURITY.md](SECURITY.md) (48h ack / 14d 영향 분류 / 30d 패치 SLA)
+- **기여 가이드** — [CONTRIBUTING.md](CONTRIBUTING.md) (DCO sign-off + 룰 작성 가이드)
+- **행동 강령** — [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1)
+- **데이터 처리 정책** — [docs/policy/data-handling.md](docs/policy/data-handling.md) (100% 로컬 실행, 텔레메트리 OFF, 금감원·PIPA·ISMS-P 대응)
+
+---
+
+## 라이선스
+
+MIT — [LICENSE](LICENSE). 버그 제보 · 룰 PR 환영합니다.

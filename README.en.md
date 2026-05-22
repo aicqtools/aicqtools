@@ -11,18 +11,21 @@
 
 [![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-v1.0.0--beta.1-blue.svg)](CHANGELOG.md)
+[![Status](https://img.shields.io/badge/status-v1.0.0--beta.2-blue.svg)](CHANGELOG.md)
+[![EU AI Act Article 50](https://img.shields.io/badge/EU%20AI%20Act%20Article%2050-D--72%20(2026--08--02)-orange.svg)](docs/eu-ai-act-data-requirements.md)
 
 > **Deterministic** — same input, same result, no LLM in the loop. Unlike probabilistic tools (Codacy, Greptile), CI runs are stable and auditable.
+
+> ⏰ **EU AI Act Article 50 effective in 73 days (2026-08-02)** — Teams shipping AI-generated code into the EU face obligations as **provider** (machine-readable output marking) or **deployer** (disclosure for AI-generated public-interest text). aicqtools auto-captures Claude Code/Cursor sessions and renders Article 50 reports (HTML/PDF, Korean+English) plus an AI-BOM (CycloneDX 1.6) per PR — attach those attribution artefacts to the same PR as your starting point for compliance.
 
 ---
 
 ## 🇰🇷 Why aicqtools? — Korean-localized for fintech/SaaS teams
 
-aicqtools is the only AI code-quality tool that Korean fintech/SaaS teams can use in place of global tools. CodeRabbit · Codacy · SonarQube · ESLint AI all ship **0** Korean IT rules, **0** Korean FSC (금감원) AI-guideline rules, and no Korean UI. aicqtools does:
+aicqtools is an open-source code-quality tool that bundles Korean IT-convention and FSC AI-guideline rules. Currently in beta (1.0.0-beta.1), designed to run alongside global linters like ESLint and SonarQube. Based on publicly available information as of 2026-05, CodeRabbit · Codacy · SonarQube · ESLint AI do not ship Korean IT rules, Korean FSC AI-guideline rules, or a Korean UI by default. aicqtools provides:
 
 - **7 Korean IT-convention rules** — explicit KST timezone, broken-Hangul comment detection, RFC 5987 Korean filename `Content-Disposition`, Capacitor + Kakao/Naver OAuth WebView anti-pattern, KRW thousands separator, UTF-8 enforcement, Sequelize migration column camelCase.
-- **5 Korean FSC AI-guideline rules** — PII masking before AI prompts, explainability metadata, AI-decision audit logging, human-oversight checkpoints, AI model-version tracking. Combined with the EU AI Act Article 50 reporter (Korean-rendered), aicqtools covers **Korean + EU compliance in a single tool**.
+- **5 Korean FSC AI-guideline rules** — PII masking before AI prompts, explainability metadata, AI-decision audit logging, human-oversight checkpoints, AI model-version tracking. The EU AI Act Article 50 metadata report is also rendered in Korean (guardrail-detection integration is scheduled for 1.0.0-beta.2). aicqtools brings Korean and EU compliance into one tool — useful starting point, not a substitute for legal review.
 - **Full Korean i18n** — **44/45 = 97.8%** of rules have native Korean messages. CLI output is 100% Korean under `aicq check --locale ko` or `LANG=ko_KR.UTF-8`. `aicq docs build` generates Korean and English rule docs side-by-side.
 
 | Item | aicqtools | CodeRabbit | Codacy/SonarQube | ESLint AI |
@@ -32,7 +35,18 @@ aicqtools is the only AI code-quality tool that Korean fintech/SaaS teams can us
 | Korean UI | **97.8% native** | English only | English only | English only |
 | KST · KRW · Hangul filename | **Yes** | No | No | No |
 | Naver/Kakao OAuth anti-pattern | **Yes** | No | No | No |
-| EU AI Act Article 50 reporter | **Yes (Korean-rendered)** | No | No | No |
+| EU AI Act Article 50 metadata report | **Yes** (Korean-rendered; guardrail integration scheduled for beta.2) | No | No | No |
+
+---
+
+### 🎯 The 10-second analogy
+
+If you're new to aicqtools, think of it this way:
+
+- **UL Listing + HACCP, but for code.** UL Listing certifies that a US plug is safe for 120 V; KS mark does the same for 220 V outlets in Korea. Code has the same problem — Korean services need explicit KST timezone, UTF-8 encoding, Korean filename `Content-Disposition` per RFC 5987, and Kakao/Naver OAuth quirks. Global linters (ESLint, SonarQube) check the equivalent of the 120 V world only.
+- **HACCP-style hazard analysis before things ship.** A food plant runs HACCP to identify where contamination *could* enter and seal those points off in advance. aicqtools does the same for AI code hazards — PII landing in an LLM prompt, AI decisions without audit trails, untracked model versions — *before* PRs merge. The 5 FSC AI-guideline rules encode this for Korean fintech, but PCI DSS and EU AI Act coverage apply globally too.
+- **Annual vehicle inspection on every PR.** Cars hide accumulated wear until the inspection forces it into the light. aicqtools runs on every PR — violations block the merge, so risky code never reaches main. Runs **alongside** (not replacing) ESLint and TypeScript.
+- **Structural-audit scale, in seconds.** Think of a 30-year-old apartment's structural audit covering wiring, plumbing, and load all at once — that's 50 built-in rules sweeping a 205,069-LOC Korean production monorepo (TalkUp). Cold scan 3 s, SQLite-cached re-scan 20 ms (150× faster).
 
 ---
 
@@ -52,7 +66,7 @@ Codacy, Semgrep, SonarQube only cover global IT conventions. The compliance and 
 aicqtools bundles 20 of these Korean-domain rules from day one — useful even outside Korea when you need to handle PCI DSS or audit AI decision-making.
 
 ### 3. EU AI Act Article 50 — 3 months out
-**Effective 2026-08-02**, every AI system serving the EU must document training data, models, and operators in machine-readable form. Korean (and other non-EU) startups expanding to EU are in scope. aicqtools auto-detects Claude Code/Cursor sessions and renders an AI-BOM (AI Bill of Materials — model/version/license manifest, CycloneDX 1.6 JSON) plus an Article 50 report (HTML or PDF).
+**From 2026-08-02**, **providers** of AI systems (including general-purpose AI systems) serving the EU must mark outputs in a **machine-readable form**, and **deployers** who publish AI-generated text "for the purpose of informing the public on matters of public interest" face a separate disclosure obligation under Article 50(4). Korean (and other non-EU) businesses are in scope when they either supply generative AI into the EU or publish AI-generated content to EU audiences (generative AI placed on the EU market before 2026-08-02 has a **transitional period until 2026-12-02**). aicqtools auto-detects Claude Code/Cursor sessions and renders an AI-BOM (AI Bill of Materials — model/version/license manifest, CycloneDX 1.6 JSON) plus an Article 50 report (HTML or PDF).
 
 ---
 
@@ -95,7 +109,12 @@ npm install --save-dev @aicqtools/cli@beta
 # To pin alpha:
 # npm install --save-dev @aicqtools/cli@alpha
 
-# 2. First check
+# 2. Scaffold aicq into your repo — config + CI workflow in one shot
+npx aicq init --stack next   # or nest | capacitor | generic
+# → writes aicq.config.yaml (stack-aware exclude/rule preset)
+# → writes .github/workflows/aicq-check.yml (CI integration)
+
+# 3. First check
 npx aicq check --locale en
 # Sample output:
 # ✗ src/routes/api.ts:42  no-console-log  warning
@@ -103,12 +122,12 @@ npx aicq check --locale en
 # ✗ src/db/schema.ts:18   no-plain-card-number  error
 #   → Plaintext card_number column needs an _encrypted suffix (PCI DSS § 3.5.1).
 
-# 3. Inject rules into your AI agents
+# 4. Inject rules into your AI agents
 npx aicq sync-ai-rules --locale en
 # → .cursorrules / CLAUDE.md refreshed with the 50-rule summary
 # → Claude Code/Cursor pick this context up on the next generation
 
-# 4. (Optional) Capture an AI session — Article 50 readiness
+# 5. (Optional) Capture an AI session — Article 50 readiness
 npx aicq provenance capture --reader claude-code
 ```
 
@@ -293,13 +312,25 @@ Most users only install **`@aicqtools/cli`**; everything else is pulled in as a 
 
 | Date | Milestone |
 |------|-----------|
-| **2026-05 (current)** | v1.0.0-alpha.2 — 50 rules, MCP, Article 50 HTML/PDF |
-| 2026-08-01 | v1.0 stable — just before EU AI Act effective date |
-| 2026-09-15 | Phase 1b complete — Cursor SQLite extraction, rule-autocrafting prototype |
-| 2026-10-27 | v1.5 SaaS beta — dashboard, PR auto-comments |
+| **2026-05 (current)** | **v1.0.0-beta.1** — alpha.7~19 (19 cycles) of accumulated assets formalized; framework freeze; dist-tag `latest`=beta |
+| 2026-06~07 | Beta soak — external dogfood ≥ 2, npm DL ≥ 200/week, open P1 = 0 (see [ROADMAP.md](ROADMAP.md) gates G1~G4) |
+| 2026-08-01 | v1.0 stable candidate — just before the EU AI Act Article 50 effective date |
+| 2026-10~ | 1.1 — 5 additional Korean IT rules (Toss Payments idempotency, Kakao/Naver SDK init order, …), `aicq fix` autofix |
+| 2026-Q4 | 1.2 — Korean LLM SDK rule pack (solar/HyperCLOVA), VS Code extension |
+
+Full gates and non-goals: [ROADMAP.md](ROADMAP.md).
 
 ---
 
-## License / contributing
+## Security / contributing / policies
 
-MIT — see [LICENSE](LICENSE). Bug reports and rule PRs welcome. `CONTRIBUTING.md` is forthcoming.
+- **Security disclosures** — [SECURITY.md](SECURITY.md) (48h ack / 14d triage / 30d patch SLA)
+- **Contributing** — [CONTRIBUTING.md](CONTRIBUTING.md) (DCO sign-off + rule-authoring guide)
+- **Code of Conduct** — [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) (Contributor Covenant 2.1)
+- **Data-handling policy** — [docs/policy/data-handling.md](docs/policy/data-handling.md) (100% local execution, telemetry OFF, FSC/PIPA/ISMS-P posture)
+
+---
+
+## License
+
+MIT — see [LICENSE](LICENSE). Bug reports and rule PRs welcome.

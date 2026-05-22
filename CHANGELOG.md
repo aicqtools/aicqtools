@@ -20,6 +20,132 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ---
 
+## [v1.0.0-beta.2] - 2026-05-22
+
+### 🇰🇷 한국어
+
+**베타 phase 두 번째 사이클 — framework 동결 + BREAKING 0 준수.** beta.1 publish 후 cycle. 핵심: **Article 50 리포터 ↔ guardrail 검출 결과 통합**(P0, ROADMAP 1순위). 부가: route-needs-rate-limit spec/test 파일 default skip(P2 dogfood feedback 해소) + 외부 dogfood +1(G1 게이트 충족) + 모니터링 인프라(G2/G3 추적).
+
+#### 🇰🇷 핵심 변경 — Article 50 리포트에 가드레일 위반 요약 통합
+
+알파~베타.1까지 Article 50 리포트는 AI 출처 메타데이터(`aiSystems` + `attributedFiles`)만 담았습니다. 베타.2부터 같은 캡처 데이터 + `aicq check --format json` 출력을 묶어 **가드레일 위반 요약 섹션**을 함께 렌더링합니다.
+
+- **새 옵션 필드** `Article50Report.guardrailSummary?` — 총 위반 수, 위반 포함 파일 수, 심각도 분포(error/warning/info), 룰 카테고리 분포. 부재 시 기존 출력 그대로 유지 (additive, JSON schema 0.1 유지).
+- **새 CLI flag** `aicq provenance report <record> --guardrail-result <path>` — `aicq check --format json` 결과를 첨부하면 article-50 / article-50-html / article-50-pdf 세 포맷 모두에 요약 섹션 포함.
+- **HTML/PDF 제3섹션** — `심각도 분포` + `룰 카테고리 분포` 표 (한·영 i18n 키 12개 추가). count desc + ruleId asc 정렬로 diff-friendly. totalViolations=0이면 friendly empty state.
+- **새 export** `summarizeGuardrail(CheckResult): GuardrailSummary` (provenance/reporter), `BuildArticle50Options`, `GuardrailSummary` 타입.
+- **framework 동결 준수** — `buildArticle50Report` public signature는 옵션 인자만 추가 (backward compatible). 기존 caller 영향 0.
+
+#### 🇰🇷 P2 dogfood feedback 해소
+
+- **`route-needs-rate-limit` 빌트인 spec/test 파일 default skip** — `no-console-log` / `no-empty-catch` / `no-magic-number`의 알파.13+ 패턴을 따라 `SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|e2e-spec)/` 추가. NestJS `TestingModule.get(token)` DI lookup이 `app.get(...)` 라우트 등록과 같은 surface라서 spec 파일에서 false positive가 났던 문제 해소. `skipBuiltinSkips: true` 또는 `overrides`로 opt-out 가능. 회귀 가드 unit test 6건 추가.
+  - 출처: Nest.js `typescript-starter` 외부 dogfood (2026-05-21).
+
+#### 🇰🇷 외부 dogfood 추가 — G1 게이트 충족
+
+- **Next.js with-typescript 재dogfood** — beta.1의 `no-magic-number.allowedNumbers` HTTP status 19개 추가가 FP 3건을 정확히 해소함을 확인. 5 → 2 violations, false positive 0건. ([brain `aicqtools-external-dogfood-nextjs-alpha19`])
+- **Nest.js `typescript-starter` 신규 dogfood** — 7 files / 2 violations / 157ms. 비협상 룰 0건 misfire. case-study `docs/case-studies/nestjs-starter.md` + `.en.md` 신규. ([brain `aicqtools-external-dogfood-nestjs-beta1`])
+- **G1 게이트 — 2/2 충족** (TalkUp + Nest.js typescript-starter).
+
+#### 🇰🇷 모니터링 인프라 (G2/G3 추적)
+
+- **`.github/workflows/monitor-npm.yml`** (신규) — 매주 월요일 09:00 KST cron으로 `@aicqtools/cli`의 last-week npm downloads를 npm-stat API로 측정, GitHub Issue로 보고 (라벨 `monitoring:weekly`). G2 게이트 (≥ 200/주) 추적.
+- **`docs/policy/issue-triage.md`** (신규) — P0/P1/P2/P3 severity 정의, 메인테이너 SLA, 라벨 일람. G3 게이트 (`severity:P1` 미해결 = 0) 추적.
+
+#### npm dist-tag 정책
+- `latest` 와 `beta` 모두 1.0.0-beta.2로 이동 (베타.1과 동일 정책).
+- `@alpha` 사용자는 그대로 1.0.0-alpha.19 (호환).
+
+#### 게시된 패키지 (5)
+- `@aicqtools/core` 1.0.0-beta.2 (변경 없음, sync re-publish)
+- `@aicqtools/rule-sdk` 1.0.0-beta.2 (변경 없음, sync re-publish)
+- `@aicqtools/guardrail` 1.0.0-beta.2 (route-needs-rate-limit spec/test default skip)
+- `@aicqtools/provenance` 1.0.0-beta.2 (Article 50 ↔ guardrail summary 통합)
+- `@aicqtools/cli` 1.0.0-beta.2 (`--guardrail-result <path>` flag + README sync)
+
+#### 문서
+- `docs/case-studies/nestjs-starter.md` + `.en.md` — Nest.js dogfood 케이스 스터디 (한·영 bilingual).
+- `packages/cli/README.md` + `.en.md` — `--guardrail-result` 시나리오 + 명령 표 sync.
+- `ROADMAP.md` — 베타.2 마일스톤 진척도 갱신.
+
+#### 검증
+- `pnpm -w build` / `typecheck` / `test` Windows 11에서 모두 green.
+- guardrail 301 → **308** (route-needs-rate-limit-skips 6건 + 기타 1건).
+- provenance 35 추정 → **47** (article-50-summary 7건 + article-50-html guardrail 5건).
+- cli 36 → **51** (provenance-report-cli 4건 + 그 외 본 cycle 이전 추가분).
+- Public surface diff beta.1 ↔ beta.2: 옵션 필드·옵션 인자·새 export만 추가 (additive).
+- Article 50 JSON schema 버전 그대로 `aicq-article50/0.1` 유지.
+
+#### 베타.2 → 1.0.0 stable 게이트 진척
+- **G1** (외부 dogfood ≥ 2) — **2/2 충족** (TalkUp + Nest.js typescript-starter).
+- **G2** (npm DL ≥ 200/주) — monitor-npm.yml 측정 시작.
+- **G3** (severity:P1 미해결 = 0) — issue-triage.md 정책 수립, 측정 시작.
+- **G4** (베타 soak 2 cycle 무중단) — **2/2 충족** (beta.1 → beta.2, BREAKING 0 / 사용자 보고 P0 0).
+
+---
+
+### 🇬🇧 English
+
+**Second beta cycle — framework freeze + zero BREAKING upheld.** Post-beta.1 cycle. Headline: **Article 50 reporter ↔ guardrail detection integration** (P0, ROADMAP top priority). Plus: default-skip `route-needs-rate-limit` for spec/test files (P2 dogfood feedback resolved) + one more external dogfood (G1 gate met) + monitoring infrastructure (G2/G3 tracking).
+
+#### Headline — Article 50 reports now embed a guardrail violations summary
+
+Through beta.1, Article 50 reports only carried AI-provenance metadata (`aiSystems` + `attributedFiles`). Beta.2 lets the same capture pair up with an `aicq check --format json` output and render a **guardrail violations summary section** alongside it.
+
+- **New optional field** `Article50Report.guardrailSummary?` — total violations, files-with-violations, severity breakdown (error/warning/info), rule-category breakdown. Absent ⇒ prior output unchanged (additive, JSON schema 0.1 preserved).
+- **New CLI flag** `aicq provenance report <record> --guardrail-result <path>` — attach an `aicq check --format json` output, and the summary section is included across article-50 / article-50-html / article-50-pdf.
+- **HTML/PDF third section** — `Severity breakdown` + `Rule category breakdown` tables (12 new ko/en i18n keys). Sorted by count desc, ruleId asc — diff-friendly. Friendly empty state when totalViolations = 0.
+- **New exports** `summarizeGuardrail(CheckResult): GuardrailSummary` (provenance/reporter), plus `BuildArticle50Options` and `GuardrailSummary` types.
+- **Framework-freeze compliant** — `buildArticle50Report` adds an optional second arg only (backward compatible). Zero impact on existing callers.
+
+#### P2 dogfood feedback resolved
+
+- **`route-needs-rate-limit` built-in spec/test default skip** — same alpha.13+ pattern as `no-console-log` / `no-empty-catch` / `no-magic-number`: `SKIP_FILE_RE = /(\.test\.|\.spec\.|__tests__|e2e-spec)/`. Fixes the false positive where NestJS `TestingModule.get(token)` DI lookups collided with the `app.get(...)` route-registration shape inside spec files. Opt out via `skipBuiltinSkips: true` or `overrides`. 6 regression-guard unit tests added.
+  - Surfaced by: Nest.js `typescript-starter` external dogfood (2026-05-21).
+
+#### External dogfood expansion — G1 gate met
+
+- **Next.js with-typescript re-dogfood** — confirmed the beta.1 addition of 19 RFC HTTP-status codes to `no-magic-number.allowedNumbers` precisely resolved the 3 FPs. 5 → 2 violations, 0 false positives.
+- **Nest.js `typescript-starter` first-time dogfood** — 7 files / 2 violations / 157 ms. Zero non-negotiable rule misfires. Case study at `docs/case-studies/nestjs-starter.md` + `.en.md`.
+- **G1 gate — 2/2 met** (TalkUp + Nest.js typescript-starter).
+
+#### Monitoring infrastructure (G2/G3 tracking)
+
+- **`.github/workflows/monitor-npm.yml`** (new) — weekly Monday 00:00 UTC (09:00 KST) cron that polls npm-stat for `@aicqtools/cli` last-week downloads and files a GitHub Issue with label `monitoring:weekly`. Tracks G2 (≥ 200/week).
+- **`docs/policy/issue-triage.md`** (new) — defines P0/P1/P2/P3 severities, maintainer SLAs, and the full label inventory. Tracks G3 (`severity:P1` open = 0).
+
+#### npm dist-tag policy
+- Both `latest` and `beta` move to 1.0.0-beta.2 (same policy as beta.1).
+- `@alpha`-pinned users remain on 1.0.0-alpha.19 (compat).
+
+#### Published packages (5)
+- `@aicqtools/core` 1.0.0-beta.2 (no changes, sync re-publish)
+- `@aicqtools/rule-sdk` 1.0.0-beta.2 (no changes, sync re-publish)
+- `@aicqtools/guardrail` 1.0.0-beta.2 (route-needs-rate-limit spec/test default skip)
+- `@aicqtools/provenance` 1.0.0-beta.2 (Article 50 ↔ guardrail summary integration)
+- `@aicqtools/cli` 1.0.0-beta.2 (`--guardrail-result <path>` flag + README sync)
+
+#### Docs
+- `docs/case-studies/nestjs-starter.md` + `.en.md` — Nest.js dogfood case study (bilingual).
+- `packages/cli/README.md` + `.en.md` — `--guardrail-result` scenario + command-table sync.
+- `ROADMAP.md` — beta.2 milestone progress updated.
+
+#### Validation
+- `pnpm -w build` / `typecheck` / `test` all green on Windows 11.
+- guardrail 301 → **308** (route-needs-rate-limit-skips 6 + 1 other).
+- provenance ~35 → **47** (article-50-summary 7 + article-50-html guardrail 5).
+- cli 36 → **51** (provenance-report-cli 4 + earlier-cycle additions).
+- Public surface diff beta.1 ↔ beta.2: optional field, optional arg, new exports only (additive).
+- Article 50 JSON schema version stays at `aicq-article50/0.1`.
+
+#### Beta.2 → 1.0.0 stable gate progress
+- **G1** (external dogfood ≥ 2) — **2/2 met** (TalkUp + Nest.js typescript-starter).
+- **G2** (npm weekly downloads ≥ 200) — measurement starting via monitor-npm.yml.
+- **G3** (`severity:P1` open = 0) — issue-triage.md policy in place, measurement starting.
+- **G4** (beta soak ≥ 2 cycles, no breakage) — **2/2 met** (beta.1 → beta.2, 0 BREAKING / 0 user-reported P0).
+
+---
+
 ## [v1.0.0-beta.1] - 2026-05-21
 
 ### 🇰🇷 한국어
@@ -28,12 +154,14 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 #### 🇰🇷 베타부터 정식 가치 제안의 핵심 — 한국어 환경 차별점
 
-**aicqtools는 한국 핀테크/SaaS 팀이 글로벌 도구 대신 쓸 수 있는 유일한 AI 코드 품질 도구입니다.** 알파 cycle 동안 누적된 한국어 특화 자산이 베타부터 1급 시민으로:
+**aicqtools는 한국 IT 컨벤션·금감원 AI 가이드라인을 룰로 다루는 OSS 코드 품질 도구입니다 (현재 베타 단계).** 알파 cycle 동안 누적된 한국어 특화 자산이 베타부터 1급 시민으로:
+
+> *(2026-05-21 post-publish 톤 조정 — 초기 단계에 어울리는 표현으로 정정. 게시된 npm 패키지·GitHub Release 본문은 원문 그대로 보존.)*
 
 - **한국 IT 컨벤션 룰 7개** — `explicit-kst-timezone` (Asia/Seoul 명시), `korean-comment-encoding` (깨진 한글 검출), `rfc5987-korean-filename` (한글 파일명 Content-Disposition), `naver-kakao-oauth-webview` (Capacitor 카카오/네이버 OAuth 안티패턴), `won-format-thousands` (원화 천단위 콤마), `enforce-utf8-encoding` (UTF-8 강제), `camelcase-migration-column` (Sequelize 마이그레이션 컬럼명 컨벤션).
-- **금감원 AI 가이드라인 룰 5개** — `mask-pii-in-ai-prompt` (주민번호/카드번호 마스킹), `ai-explainability-metadata` (설명가능성), `audit-log-ai-decision` (감사 추적), `human-oversight-checkpoint` (인간 감독), `track-ai-model-version` (모델 거버넌스). EU AI Act Article 50 리포터 한국어 렌더링과 함께 **한국·EU 컴플라이언스 단일 도구 커버**.
+- **금감원 AI 가이드라인 룰 5개** — `mask-pii-in-ai-prompt` (주민번호/카드번호 마스킹), `ai-explainability-metadata` (설명가능성), `audit-log-ai-decision` (감사 추적), `human-oversight-checkpoint` (인간 감독), `track-ai-model-version` (모델 거버넌스). EU AI Act Article 50 리포터 한국어 렌더링과 함께 한국·EU 컴플라이언스 영역을 한 도구에서 함께 다루는 시도. guardrail 검출 결과 통합은 1.0.0-beta.2 예정.
 - **완전 한국어 i18n** — 룰 메시지 **44/45 = 97.8%** 한국어 native. `aicq check --locale ko` 또는 `LANG=ko_KR.UTF-8` 환경에서 CLI 출력 100% 한글. `aicq docs build` 시 룰 docs 한·영 동시 자동 생성.
-- **글로벌 도구 비교** — CodeRabbit / Codacy / SonarQube / ESLint AI 모두 한국 IT 룰 0개, 금감원 가이드라인 0개, 한국어 UI 없음. aicqtools만 12개 한국 도메인 룰 + 97.8% 한국어 native + EU AI Act Article 50 리포터.
+- **글로벌 도구 비교** — 2026-05 공개 정보 기준, CodeRabbit / Codacy / SonarQube / ESLint AI는 한국 IT 룰·금감원 가이드라인·한국어 UI를 기본 제공하지 않습니다. aicqtools는 12개 한국 도메인 룰 + 97.8% 한국어 native + EU AI Act Article 50 메타데이터 리포트를 함께 제공합니다 (검출 결과 통합은 beta.2 예정).
 
 #### npm dist-tag 정책 전환
 - `beta` 신설 + `latest`도 베타로 이동 (알파 §6b 정책 일관).
@@ -78,12 +206,14 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 #### Korean-localized for fintech/SaaS teams
 
-**aicqtools is the only AI code-quality tool that Korean fintech/SaaS teams can use in place of global tools.** Korean-specific assets accumulated during the alpha cycles are first-class from beta onward:
+**aicqtools is an open-source code-quality tool that bundles Korean IT-convention and FSC AI-guideline rules (currently in beta).** Korean-specific assets accumulated during the alpha cycles are first-class from beta onward:
+
+> *(2026-05-21 post-publish tone adjustment — softened for the early-stage context. The published npm release notes and the GitHub Release body remain unchanged.)*
 
 - **7 Korean IT-convention rules** — KST timezone enforcement, broken-Hangul comment detection, RFC 5987 Korean filename `Content-Disposition`, Capacitor + Kakao/Naver OAuth anti-pattern, KRW thousands formatting, UTF-8 enforcement, Sequelize migration column camelCase.
-- **5 Korean FSC (금감원) AI-guideline rules** — PII masking before AI prompts, explainability metadata, AI-decision audit logging, human-oversight checkpoints, AI model-version tracking. Combined with the EU AI Act Article 50 reporter (Korean-rendered), aicqtools covers **Korean + EU compliance in a single tool**.
+- **5 Korean FSC (금감원) AI-guideline rules** — PII masking before AI prompts, explainability metadata, AI-decision audit logging, human-oversight checkpoints, AI model-version tracking. Combined with the EU AI Act Article 50 reporter (Korean-rendered), aicqtools brings Korean and EU compliance into one tool. Guardrail-detection integration is scheduled for 1.0.0-beta.2.
 - **Full Korean i18n** — **44/45 = 97.8%** rules have native Korean messages. CLI output is 100% Korean under `aicq check --locale ko` or `LANG=ko_KR.UTF-8`. `aicq docs build` generates Korean + English rule docs side-by-side.
-- **Comparison vs global tools** — CodeRabbit / Codacy / SonarQube / ESLint AI all ship 0 Korean IT rules, 0 FSC guideline rules, no Korean UI. aicqtools is the only tool with 12 Korean-domain rules, 97.8% native Korean, plus an EU AI Act Article 50 reporter.
+- **Comparison vs global tools** — As of 2026-05 public information, CodeRabbit / Codacy / SonarQube / ESLint AI do not ship Korean IT rules, FSC guideline rules, or a Korean UI by default. aicqtools ships 12 Korean-domain rules, 97.8% native Korean, plus an EU AI Act Article 50 metadata report (guardrail detection integration scheduled for beta.2).
 
 #### npm dist-tag policy
 - New `beta` tag introduced; `latest` is also moved to beta (consistent with alpha §6b policy).

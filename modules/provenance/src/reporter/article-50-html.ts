@@ -1,8 +1,10 @@
-import type { Article50Report } from './article-50.js';
+import type { Article50Report, GuardrailSummary } from './article-50.js';
 
 export interface RenderHtmlOptions {
   readonly locale?: 'ko' | 'en';
 }
+
+type LocaleMessages = { readonly [K in keyof (typeof messages)['en']]: string };
 
 const messages = {
   ko: {
@@ -18,6 +20,18 @@ const messages = {
     attributedFiles: '출처 명시 파일',
     none: '(없음)',
     notAvailable: '미상',
+    guardrailSummary: '가드레일 위반 요약',
+    noViolations: '(검출된 위반 없음)',
+    totalViolations: '총 위반',
+    filesWithViolations: '위반 포함 파일',
+    severityBreakdown: '심각도 분포',
+    categoryBreakdown: '룰 카테고리 분포',
+    severityError: '오류',
+    severityWarning: '경고',
+    severityInfo: '정보',
+    severity: '심각도',
+    ruleId: '룰 ID',
+    count: '개수',
     footer: 'aicqtools provenance · MIT License · https://github.com/aicqtools/aicqtools',
   },
   en: {
@@ -33,6 +47,18 @@ const messages = {
     attributedFiles: 'Attributed Files',
     none: '(none)',
     notAvailable: 'n/a',
+    guardrailSummary: 'Guardrail violations summary',
+    noViolations: '(no violations detected)',
+    totalViolations: 'Total violations',
+    filesWithViolations: 'Files with violations',
+    severityBreakdown: 'Severity breakdown',
+    categoryBreakdown: 'Rule category breakdown',
+    severityError: 'Error',
+    severityWarning: 'Warning',
+    severityInfo: 'Info',
+    severity: 'Severity',
+    ruleId: 'Rule ID',
+    count: 'Count',
     footer: 'aicqtools provenance · MIT License · https://github.com/aicqtools/aicqtools',
   },
 } as const;
@@ -44,6 +70,79 @@ function escapeHtml(s: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function renderGuardrailSection(summary: GuardrailSummary, m: LocaleMessages): string {
+  // No violations: keep the section but show a friendly empty state.
+  if (summary.totalViolations === 0) {
+    return `
+<section>
+  <h2>${m.guardrailSummary}</h2>
+  <p class="empty">${m.noViolations}</p>
+</section>
+`;
+  }
+
+  const severityLabel: Readonly<Record<'error' | 'warning' | 'info', string>> = {
+    error: m.severityError,
+    warning: m.severityWarning,
+    info: m.severityInfo,
+  };
+
+  // Severity rows in fixed order: error → warning → info (stable for diff-friendly fixtures).
+  const severityRows = (['error', 'warning', 'info'] as const)
+    .map(
+      (sev) => `<tr>
+              <td>${severityLabel[sev]}</td>
+              <td class="num">${summary.severityCount[sev]}</td>
+            </tr>`,
+    )
+    .join('\n');
+
+  // Category rows sorted by count desc, then ruleId asc — stable & readable.
+  const categoryRows = Object.entries(summary.categoryCount)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(
+      ([ruleId, count]) => `<tr>
+              <td><code>${escapeHtml(ruleId)}</code></td>
+              <td class="num">${count}</td>
+            </tr>`,
+    )
+    .join('\n');
+
+  return `
+<section>
+  <h2>${m.guardrailSummary}</h2>
+  <dl class="meta">
+    <dt>${m.totalViolations}</dt><dd>${summary.totalViolations}</dd>
+    <dt>${m.filesWithViolations}</dt><dd>${summary.filesWithViolations}</dd>
+  </dl>
+  <h3>${m.severityBreakdown}</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>${m.severity}</th>
+        <th class="num">${m.count}</th>
+      </tr>
+    </thead>
+    <tbody>
+${severityRows}
+    </tbody>
+  </table>
+  <h3>${m.categoryBreakdown}</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>${m.ruleId}</th>
+        <th class="num">${m.count}</th>
+      </tr>
+    </thead>
+    <tbody>
+${categoryRows}
+    </tbody>
+  </table>
+</section>
+`;
 }
 
 export function renderArticle50Html(report: Article50Report, opts: RenderHtmlOptions = {}): string {
@@ -68,6 +167,10 @@ export function renderArticle50Html(report: Article50Report, opts: RenderHtmlOpt
     report.attributedFiles.length === 0
       ? `<li class="empty">${m.none}</li>`
       : report.attributedFiles.map((f) => `<li><code>${escapeHtml(f)}</code></li>`).join('\n');
+
+  const guardrailSection = report.guardrailSummary
+    ? renderGuardrailSection(report.guardrailSummary, m)
+    : '';
 
   return `<!DOCTYPE html>
 <html lang="${locale}">
@@ -99,6 +202,7 @@ export function renderArticle50Html(report: Article50Report, opts: RenderHtmlOpt
   .meta dt { color: var(--muted); }
   .meta dd { margin: 0; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; }
   h2 { font-size: 1.25rem; margin-top: 2rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border); }
+  h3 { font-size: 1rem; margin-top: 1.25rem; margin-bottom: 0.25rem; color: var(--muted); font-weight: 600; }
   table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
   th, td { padding: 0.5rem 0.75rem; text-align: left; border-bottom: 1px solid var(--border); }
   th { background: var(--bg-alt); font-weight: 600; }
@@ -149,7 +253,7 @@ ${systemsRows}
 ${fileItems}
   </ul>
 </section>
-
+${guardrailSection}
 <footer>${m.footer}</footer>
 </body>
 </html>

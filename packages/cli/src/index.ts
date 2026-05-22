@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import { runCheck } from './commands/check.js';
+import { isStack, runInit, SUPPORTED_STACKS } from './commands/init.js';
 import { getCliVersion } from './version.js';
 
 export function buildProgram(): Command {
@@ -8,6 +9,42 @@ export function buildProgram(): Command {
     .name('aicq')
     .description('AI Code Quality Platform — guardrail engine and provenance tracker')
     .version(getCliVersion());
+
+  program
+    .command('init')
+    .description(
+      `Scaffold aicq.config.yaml and .github/workflows/aicq-check.yml for a stack (${SUPPORTED_STACKS.join(' | ')})`,
+    )
+    .option('-C, --cwd <path>', 'project root', process.cwd())
+    .option('--stack <stack>', `stack preset (${SUPPORTED_STACKS.join('|')})`, 'generic')
+    .option('--force', 'overwrite existing files', false)
+    .option('--no-workflow', 'skip writing the GitHub Actions workflow')
+    .option('--locale <locale>', 'message locale (ko|en)')
+    .action(
+      async (opts: {
+        cwd: string;
+        stack: string;
+        force: boolean;
+        workflow: boolean;
+        locale?: string;
+      }) => {
+        const locale = opts.locale === 'ko' || opts.locale === 'en' ? opts.locale : undefined;
+        if (!isStack(opts.stack)) {
+          process.stderr.write(
+            `aicq init: unknown stack \`${opts.stack}\`. Supported: ${SUPPORTED_STACKS.join(' | ')}.\n`,
+          );
+          process.exit(1);
+        }
+        const code = await runInit({
+          cwd: opts.cwd,
+          stack: opts.stack,
+          force: opts.force,
+          workflow: opts.workflow,
+          ...(locale !== undefined ? { locale } : {}),
+        });
+        process.exit(code);
+      },
+    );
 
   program
     .command('check')
@@ -109,10 +146,20 @@ export function buildProgram(): Command {
     )
     .option('--locale <locale>', 'message locale for HTML/PDF output (ko|en)')
     .option('-o, --output <path>', 'output file (required for article-50-pdf)')
+    .option(
+      '--guardrail-result <path>',
+      'attach guardrail diagnostics summary to article-50 reports (path to `aicq check --format json` output)',
+    )
     .action(
       async (
         record: string,
-        opts: { cwd: string; format: string; locale?: string; output?: string },
+        opts: {
+          cwd: string;
+          format: string;
+          locale?: string;
+          output?: string;
+          guardrailResult?: string;
+        },
       ) => {
         const { runProvenanceReport } = await import('./commands/provenance.js');
         const format =
@@ -130,6 +177,9 @@ export function buildProgram(): Command {
           recordPath: record,
           ...(locale !== undefined ? { locale } : {}),
           ...(opts.output !== undefined ? { output: opts.output } : {}),
+          ...(opts.guardrailResult !== undefined
+            ? { guardrailResultPath: opts.guardrailResult }
+            : {}),
         });
         process.exit(code);
       },

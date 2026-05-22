@@ -1,0 +1,21 @@
+# aicq.config.yaml — Next.js App Router 미러
+# `aicq init --stack next` 출력과 동일 구조.
+locale: ko
+
+include:
+  - "src/**/*.{ts,tsx,js}"
+
+exclude:
+  - ".next/**"
+  - "out/**"
+  - "public/**"
+  - "**/__generated__/**"
+  - "**/node_modules/**"
+
+overrides:
+  - paths: ['**/scripts/**', '**/tools/**']
+    rules:
+      no-console-log: off
+  - paths: ['**/app/api/**', '**/pages/api/**']
+    rules:
+      no-magic-number: off  # HTTP status codes are noise here

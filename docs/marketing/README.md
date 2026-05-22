@@ -9,6 +9,7 @@ aicqtools v1.0-alpha 출시 전·후 한국 IT 커뮤니티에 평판 빌딩하�
 | GeekNews | [geeknews-launch.md](geeknews-launch.md) | 짧고 임팩트 (200~400자), HN 스타일 | 1차 — 가장 먼저 |
 | OKKY | [okky-launch.md](okky-launch.md) | 토론형 + Q&A (~1000자), 캐주얼 | 2차 — GeekNews 후 1~2일 |
 | Velog | [velog-launch.md](velog-launch.md) | 긴 기술 블로그 (3000~5000자), 코드 + 분석 | 3차 — 후속 long-tail 트래픽 |
+| GitHub Discussions | [discussions-welcome.md](discussions-welcome.md) | 활성화 가이드 + 핀 글 본문 (한·영) | 발화 전 (5/26 일요일까지) |
 
 ## 게시 순서 권장
 

@@ -89,3 +89,105 @@ describe('renderArticle50Html', () => {
     expect(html).toContain('n/a');
   });
 });
+
+describe('renderArticle50Html — guardrailSummary section (beta.2 Sub 3c)', () => {
+  it('omits the guardrail section when guardrailSummary is absent (backward compat)', () => {
+    const html = renderArticle50Html(baseReport, { locale: 'en' });
+    expect(html).not.toContain('Guardrail violations summary');
+    // Existing Korean section title must not appear either.
+    expect(html).not.toContain('가드레일 위반 요약');
+  });
+
+  it('renders a friendly empty state when totalViolations is 0', () => {
+    const report: Article50Report = {
+      ...baseReport,
+      guardrailSummary: {
+        totalViolations: 0,
+        filesWithViolations: 0,
+        severityCount: { error: 0, warning: 0, info: 0 },
+        categoryCount: {},
+      },
+    };
+    const htmlKo = renderArticle50Html(report, { locale: 'ko' });
+    expect(htmlKo).toContain('가드레일 위반 요약');
+    expect(htmlKo).toContain('(검출된 위반 없음)');
+    expect(htmlKo).not.toContain('심각도 분포'); // tables suppressed
+
+    const htmlEn = renderArticle50Html(report, { locale: 'en' });
+    expect(htmlEn).toContain('Guardrail violations summary');
+    expect(htmlEn).toContain('(no violations detected)');
+  });
+
+  it('renders severity and category breakdowns when violations exist (Korean)', () => {
+    const report: Article50Report = {
+      ...baseReport,
+      guardrailSummary: {
+        totalViolations: 5,
+        filesWithViolations: 3,
+        severityCount: { error: 2, warning: 1, info: 2 },
+        categoryCount: {
+          'no-magic-number': 3,
+          'route-needs-auth': 1,
+          'no-console-log': 1,
+        },
+      },
+    };
+    const html = renderArticle50Html(report, { locale: 'ko' });
+
+    // Section heading + meta
+    expect(html).toContain('가드레일 위반 요약');
+    expect(html).toContain('총 위반');
+    expect(html).toContain('위반 포함 파일');
+
+    // Severity rows (fixed order: error → warning → info)
+    expect(html).toContain('심각도 분포');
+    expect(html).toContain('오류');
+    expect(html).toContain('경고');
+    expect(html).toContain('정보');
+
+    // Category breakdown — sorted desc by count → no-magic-number (3) should appear before
+    // route-needs-auth (1) or no-console-log (1) in the rendered table.
+    const idxNoMagic = html.indexOf('no-magic-number');
+    const idxRouteAuth = html.indexOf('route-needs-auth');
+    expect(idxNoMagic).toBeGreaterThan(0);
+    expect(idxRouteAuth).toBeGreaterThan(0);
+    expect(idxNoMagic).toBeLessThan(idxRouteAuth);
+  });
+
+  it('renders severity and category breakdowns when violations exist (English)', () => {
+    const report: Article50Report = {
+      ...baseReport,
+      guardrailSummary: {
+        totalViolations: 3,
+        filesWithViolations: 2,
+        severityCount: { error: 1, warning: 0, info: 2 },
+        categoryCount: { 'no-magic-number': 2, 'route-needs-auth': 1 },
+      },
+    };
+    const html = renderArticle50Html(report, { locale: 'en' });
+
+    expect(html).toContain('Guardrail violations summary');
+    expect(html).toContain('Total violations');
+    expect(html).toContain('Files with violations');
+    expect(html).toContain('Severity breakdown');
+    expect(html).toContain('Rule category breakdown');
+    expect(html).toContain('Error');
+    expect(html).toContain('Warning');
+    expect(html).toContain('Info');
+  });
+
+  it('escapes ruleId XSS payloads in the category breakdown', () => {
+    const report: Article50Report = {
+      ...baseReport,
+      guardrailSummary: {
+        totalViolations: 1,
+        filesWithViolations: 1,
+        severityCount: { error: 1, warning: 0, info: 0 },
+        categoryCount: { '<script>alert(1)</script>': 1 },
+      },
+    };
+    const html = renderArticle50Html(report, { locale: 'en' });
+    expect(html).not.toContain('<script>alert(1)</script>');
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;');
+  });
+});

@@ -23,11 +23,14 @@ export type {
 } from './git-hook/index.js';
 export {
   buildArticle50Report,
+  summarizeGuardrail,
   renderArticle50Html,
   renderArticle50Pdf,
 } from './reporter/index.js';
 export type {
   Article50Report,
+  BuildArticle50Options,
+  GuardrailSummary,
   RenderHtmlOptions,
   RenderPdfOptions,
 } from './reporter/index.js';
