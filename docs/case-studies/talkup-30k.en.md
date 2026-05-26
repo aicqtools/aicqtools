@@ -120,7 +120,7 @@ res.json({ success: true, data: items, message: null });
 
 ## 3. Ruleset mapping (50 rules)
 
-aicq v1.0-alpha.1 generalizes the seven patterns above and adds Korean-domain-specific rules.
+aicq's 50 built-in rules (as of v1.0.0-beta.2) generalize the seven patterns above and extend coverage into Korean-domain-specific rules.
 
 | Category | Rules | TalkUp coverage |
 |----------|-------|-----------------|

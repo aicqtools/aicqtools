@@ -12,11 +12,11 @@
 [![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-v1.0.0--beta.2-blue.svg)](CHANGELOG.md)
-[![EU AI Act Article 50](https://img.shields.io/badge/EU%20AI%20Act%20Article%2050-D--72%20(2026--08--02)-orange.svg)](docs/eu-ai-act-data-requirements.md)
+[![EU AI Act Article 50](https://img.shields.io/badge/EU%20AI%20Act%20Article%2050-D--67%20(2026--08--02)-orange.svg)](docs/eu-ai-act-data-requirements.md)
 
 > **Deterministic** — same input, same result, no LLM in the loop. Unlike probabilistic tools (Codacy, Greptile), CI runs are stable and auditable.
 
-> ⏰ **EU AI Act Article 50 effective in 73 days (2026-08-02)** — Teams shipping AI-generated code into the EU face obligations as **provider** (machine-readable output marking) or **deployer** (disclosure for AI-generated public-interest text). aicqtools auto-captures Claude Code/Cursor sessions and renders Article 50 reports (HTML/PDF, Korean+English) plus an AI-BOM (CycloneDX 1.6) per PR — attach those attribution artefacts to the same PR as your starting point for compliance.
+> ⏰ **EU AI Act Article 50 effective in 67 days (2026-08-02)** — Teams shipping AI-generated code into the EU face obligations as **provider** (machine-readable output marking) or **deployer** (disclosure for AI-generated public-interest text). aicqtools auto-captures Claude Code/Cursor sessions and renders Article 50 reports (HTML/PDF, Korean+English) plus an AI-BOM (CycloneDX 1.6) per PR — attach those attribution artefacts to the same PR as your starting point for compliance.
 
 ---
 
@@ -52,7 +52,7 @@ If you're new to aicqtools, think of it this way:
 
 ## Why
 
-Code from AI assistants (Claude Code, Cursor, Copilot) compiles fine but routinely violates **company policy, regulation, and domain rules**. aicqtools fills the gap left by general-purpose linters.
+Code from AI code assistants (Claude Code, Cursor, Copilot, etc.) compiles fine but routinely violates **company policy, regulation, and domain rules**. aicqtools fills the gap left by general-purpose linters.
 
 ### 1. AI vibe-coding repeats the same mistakes
 ESLint catches generic patterns but misses *"in this company every LLM client must be a singleton"*. aicqtools starts from 7 patterns extracted by dogfooding (running our own tool on our own code) on a Korean SaaS production monorepo (TalkUp, 205,069 LOC) and ships 50 rules total.
@@ -65,7 +65,7 @@ Codacy, Semgrep, SonarQube only cover global IT conventions. The compliance and 
 
 aicqtools bundles 20 of these Korean-domain rules from day one — useful even outside Korea when you need to handle PCI DSS or audit AI decision-making.
 
-### 3. EU AI Act Article 50 — 3 months out
+### 3. EU AI Act Article 50 — 67 days out
 **From 2026-08-02**, **providers** of AI systems (including general-purpose AI systems) serving the EU must mark outputs in a **machine-readable form**, and **deployers** who publish AI-generated text "for the purpose of informing the public on matters of public interest" face a separate disclosure obligation under Article 50(4). Korean (and other non-EU) businesses are in scope when they either supply generative AI into the EU or publish AI-generated content to EU audiences (generative AI placed on the EU market before 2026-08-02 has a **transitional period until 2026-12-02**). aicqtools auto-detects Claude Code/Cursor sessions and renders an AI-BOM (AI Bill of Materials — model/version/license manifest, CycloneDX 1.6 JSON) plus an Article 50 report (HTML or PDF).
 
 ---
@@ -312,7 +312,7 @@ Most users only install **`@aicqtools/cli`**; everything else is pulled in as a 
 
 | Date | Milestone |
 |------|-----------|
-| **2026-05 (current)** | **v1.0.0-beta.1** — alpha.7~19 (19 cycles) of accumulated assets formalized; framework freeze; dist-tag `latest`=beta |
+| **2026-05 (current)** | **v1.0.0-beta.2** — Article 50 reporter ↔ guardrail summary integration + 2/2 external dogfoods (TalkUp + Nest.js typescript-starter), framework freeze, dist-tag `latest`=beta |
 | 2026-06~07 | Beta soak — external dogfood ≥ 2, npm DL ≥ 200/week, open P1 = 0 (see [ROADMAP.md](ROADMAP.md) gates G1~G4) |
 | 2026-08-01 | v1.0 stable candidate — just before the EU AI Act Article 50 effective date |
 | 2026-10~ | 1.1 — 5 additional Korean IT rules (Toss Payments idempotency, Kakao/Naver SDK init order, …), `aicq fix` autofix |

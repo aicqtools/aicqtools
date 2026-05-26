@@ -32,16 +32,17 @@
 - `mask-pii-in-ai-prompt`는 리터럴 PII 패턴만 매칭합니다(`\d{6}-\d{7}`, `\d{15,16}`). 변수 보간을 통해 PII가 흘러가는 케이스는 false negative이며, 정상 패턴(`route-good.ts`)의 토큰 참조 방식이 사실상의 fix입니다. 변수 흐름 추적은 v1.1 후속 검토.
 - `audit-log-ai-decision`은 AI 호출 직후 동일 함수 스코프에서 `auditAi*` 호출이 보이는지로 판단합니다. 다른 모듈로 위임된 로깅은 false negative 가능.
 
-### 직접 실행
+### 직접 실행 — 30초 quickstart (npm publish 버전)
+
+외부 사용자가 가장 빠르게 돌려보는 경로:
 
 ```bash
-# aicqtools 모노레포 루트에서 (한 번)
-pnpm install && pnpm -w build
-
-# 이 예제 디렉토리에서
-cd examples/nextjs-pii-mirror
-node ../../packages/cli/dist/bin.js check --locale ko --no-cache
+git clone https://github.com/aicqtools/aicqtools.git
+cd aicqtools/examples/nextjs-pii-mirror
+npx --package=@aicqtools/cli@beta aicq check --locale ko --no-cache
 ```
+
+(또는 모노레포 루트에서 `pnpm install && pnpm -w build` 후 `node ../../packages/cli/dist/bin.js check --locale ko --no-cache` — 빌드된 로컬 바이너리 사용)
 
 기대 출력:
 
@@ -51,9 +52,16 @@ node ../../packages/cli/dist/bin.js check --locale ko --no-cache
 exit code 1
 ```
 
+> 측정 시점: 2026-05-21 (v1.0.0-beta.1). 베타.2까지 룰셋·검출 결과 동일 (회귀 0).
+
 ### 왜 이 예제인가
 
-한국 핀테크/SaaS가 EU AI Act Article 50 + 금감원 AI 가이드라인을 동시에 충족하려면 **AI 호출 전 PII 마스킹 + 모델 버전 추적 + 감사 로그**가 비협상입니다. Next.js App Router는 한국 신규 프로젝트 점유율이 가장 높은 프레임워크이고, `app/api/<route>/route.ts` 패턴이 AI 호출의 단일 진입점이 되는 경우가 흔합니다. 이 예제는 그 단일 진입점이 "동작은 하지만 컴플라이언스를 통과 못 하는" 흔한 형태를 1:1 시연합니다.
+한국 핀테크/SaaS가 **금감원 AI 가이드라인을 충족**하면서 EU 시장 진출 시 EU AI Act Article 50 transparency 의무까지 대비하려면 **AI 호출 전 PII 마스킹 + 모델 버전 추적 + 감사 로그**가 비협상입니다. Next.js App Router는 한국 신규 프로젝트 점유율이 가장 높은 프레임워크이고, `app/api/<route>/route.ts` 패턴이 AI 호출의 단일 진입점이 되는 경우가 흔합니다. 이 예제는 그 단일 진입점이 "동작은 하지만 컴플라이언스를 통과 못 하는" 흔한 형태를 1:1 시연합니다.
+
+관련 자료:
+- [AI 어시스턴트 단독 사용 vs aicqtools — 토큰·비용·결정론 비교](../../docs/marketing/blog-vs-ai-assistant.ko.md)
+- [TalkUp 205,069 LOC 케이스 스터디](../../docs/case-studies/talkup-30k.md)
+- [aicqtools README — "왜 만들었나"](../../README.md)
 
 ---
 
@@ -87,16 +95,17 @@ exit code 1
 - `mask-pii-in-ai-prompt` matches literal PII patterns (`\d{6}-\d{7}`, `\d{15,16}`). Cases where PII flows through variable interpolation are false negatives; the fix in practice is the token-reference pattern in `route-good.ts`. Variable-flow tracking is on the v1.1 follow-up list.
 - `audit-log-ai-decision` checks for an `auditAi*` call in the same function scope as the AI call. Logging delegated to another module may be a false negative.
 
-### Run it
+### Run it — 30-second quickstart (published npm version)
+
+The fastest path for an outside reader:
 
 ```bash
-# From the aicqtools monorepo root (once)
-pnpm install && pnpm -w build
-
-# In this directory
-cd examples/nextjs-pii-mirror
-node ../../packages/cli/dist/bin.js check --locale en --no-cache
+git clone https://github.com/aicqtools/aicqtools.git
+cd aicqtools/examples/nextjs-pii-mirror
+npx --package=@aicqtools/cli@beta aicq check --locale en --no-cache
 ```
+
+(Or from the monorepo root: `pnpm install && pnpm -w build`, then `node ../../packages/cli/dist/bin.js check --locale en --no-cache` for the local built binary.)
 
 Expected output:
 
@@ -106,6 +115,13 @@ Expected output:
 exit code 1
 ```
 
+> Measured 2026-05-21 on v1.0.0-beta.1. Ruleset and detections are unchanged through beta.2 (zero regressions).
+
 ### Why this example
 
-To clear both EU AI Act Article 50 and the Korean FSC AI guidelines, **PII masking before the LLM call + model-version tracking + an audit log** are non-negotiable for Korean fintech / SaaS. Next.js App Router has the highest adoption among new Korean projects, and `app/api/<route>/route.ts` is frequently the single entry point for AI calls. This example shows that single entry point in its most common "works but won't pass compliance" form, side by side with its fixed twin.
+To meet the **Korean FSC AI guidelines** — and stay ready for the EU AI Act Article 50 transparency obligation when expanding to the EU — **PII masking before the LLM call + model-version tracking + an audit log** are non-negotiable for Korean fintech / SaaS. Next.js App Router has the highest adoption among new Korean projects, and `app/api/<route>/route.ts` is frequently the single entry point for AI calls. This example shows that single entry point in its most common "works but won't pass compliance" form, side by side with its fixed twin.
+
+Related reading:
+- [AI assistants alone vs aicqtools — cost, accuracy, determinism compared](../../docs/marketing/blog-vs-ai-assistant.en.md)
+- [TalkUp 205,069-LOC case study](../../docs/case-studies/talkup-30k.en.md)
+- [aicqtools README — "Why"](../../README.en.md)

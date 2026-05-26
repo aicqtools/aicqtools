@@ -21,16 +21,17 @@ Capacitor의 `Browser.open()`은 Android에서 Chrome Custom Tab을 외부 프�
 
 대안: **router로 in-app 페이지를 push해 같은 WebView 세션 안에서 OAuth URL을 로드**한다. 콜백이 같은 컨텍스트에서 일어나므로 토큰 유실이 없다.
 
-### 직접 실행
+### 직접 실행 — 30초 quickstart (npm publish 버전)
+
+외부 사용자가 가장 빠르게 돌려보는 경로:
 
 ```bash
-# aicqtools 모노레포 루트에서 (한 번)
-pnpm install && pnpm -w build
-
-# 이 예제 디렉토리에서
-cd examples/capacitor-kakao-oauth-mirror
-node ../../packages/cli/dist/bin.js check --locale ko --no-cache
+git clone https://github.com/aicqtools/aicqtools.git
+cd aicqtools/examples/capacitor-kakao-oauth-mirror
+npx --package=@aicqtools/cli@beta aicq check --locale ko --no-cache
 ```
+
+(또는 모노레포 루트에서 `pnpm install && pnpm -w build` 후 `node ../../packages/cli/dist/bin.js check --locale ko --no-cache` — 빌드된 로컬 바이너리 사용)
 
 기대 출력:
 
@@ -41,9 +42,16 @@ node ../../packages/cli/dist/bin.js check --locale ko --no-cache
 
 `kakao-login-good.ts`는 진단 0건이어야 합니다.
 
+> 측정 시점: 2026-05-21 (v1.0.0-beta.1). 베타.2까지 룰셋·검출 결과 동일.
+
 ### `aicq init --stack capacitor`와의 관계
 
 이 예제의 `aicq.config.yaml`은 `aicq init --stack capacitor` 출력과 동일합니다 — `ios/`, `android/`, `www/`, `public/native-bridge.*` 자동 제외. 즉 신규 Capacitor 프로젝트에서 `aicq init --stack capacitor`만 한 번 돌리면 이 예제와 같은 baseline config를 얻습니다.
+
+관련 자료:
+- [AI 어시스턴트 단독 사용 vs aicqtools — 토큰·비용·결정론 비교](../../docs/marketing/blog-vs-ai-assistant.ko.md)
+- [TalkUp 205,069 LOC 케이스 스터디](../../docs/case-studies/talkup-30k.md)
+- [aicqtools README — 한국 IT 컨벤션 룰 7개](../../README.md)
 
 ---
 
@@ -66,16 +74,17 @@ Capacitor's `Browser.open()` opens a Chrome Custom Tab in a separate process on 
 
 The fix: **push an in-app page via the router and load the OAuth URL inside the same WebView session.** The callback resolves in the same context, so no token is lost.
 
-### Run it
+### Run it — 30-second quickstart (published npm version)
+
+The fastest path for an outside reader:
 
 ```bash
-# From the aicqtools monorepo root (once)
-pnpm install && pnpm -w build
-
-# In this directory
-cd examples/capacitor-kakao-oauth-mirror
-node ../../packages/cli/dist/bin.js check --locale en --no-cache
+git clone https://github.com/aicqtools/aicqtools.git
+cd aicqtools/examples/capacitor-kakao-oauth-mirror
+npx --package=@aicqtools/cli@beta aicq check --locale en --no-cache
 ```
+
+(Or from the monorepo root: `pnpm install && pnpm -w build`, then `node ../../packages/cli/dist/bin.js check --locale en --no-cache` for the local built binary.)
 
 Expected output:
 
@@ -86,6 +95,13 @@ Expected output:
 
 `kakao-login-good.ts` should emit zero diagnostics.
 
+> Measured 2026-05-21 on v1.0.0-beta.1. Ruleset and detections unchanged through beta.2.
+
 ### Relation to `aicq init --stack capacitor`
 
 This example's `aicq.config.yaml` mirrors the output of `aicq init --stack capacitor` — auto-exclude for `ios/`, `android/`, `www/`, and `public/native-bridge.*`. Run `aicq init --stack capacitor` once in a fresh Capacitor project and you'll start from the same baseline shown here.
+
+Related reading:
+- [AI assistants alone vs aicqtools — cost, accuracy, determinism compared](../../docs/marketing/blog-vs-ai-assistant.en.md)
+- [TalkUp 205,069-LOC case study](../../docs/case-studies/talkup-30k.en.md)
+- [aicqtools README — 7 Korean IT convention rules](../../README.en.md)

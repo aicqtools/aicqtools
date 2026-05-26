@@ -13,7 +13,7 @@ body:
     attributes:
       label: aicq 버전 / version
       description: "`aicq --version` 또는 package.json의 version"
-      placeholder: "1.0.0-alpha.1"
+      placeholder: "1.0.0-beta.2"
     validations:
       required: true
 

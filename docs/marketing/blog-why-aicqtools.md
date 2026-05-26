@@ -2,7 +2,7 @@
 
 ## 시작은 이런 장면입니다
 
-ChatGPT나 Claude Code에 "결제 API 만들어줘" 한 줄 던지면 10초 안에 코드가 나옵니다. 문법은 맞고, 컴파일도 됩니다. 그런데 코드 안에는 이런 게 숨어 있어요.
+AI 코드 어시스턴트(ChatGPT, Claude Code, Cursor 등)에 "결제 API 만들어줘" 한 줄 던지면 10초 안에 코드가 나옵니다. 문법은 맞고, 컴파일도 됩니다. 그런데 코드 안에는 이런 게 숨어 있어요.
 
 - `console.log("user:", userData)` — 주민번호·카드번호가 그대로 로그에 찍힘
 - `new Date()` — 시간대 명시 없음. 글로벌 서버에서 UTC로 돌다가 매출 마감이 9시간 어긋남
@@ -39,11 +39,11 @@ ESLint, SonarQube, Codacy, CodeRabbit — 다 좋은 도구지만 **글로벌 IT
 
 - 한국 IT 컨벤션 7개 + 금감원 AI 가이드라인 5개 + PCI DSS 8개 + 글로벌 TS/Python 22개 + 도그푸드 8개
 - 메시지 97.8%가 한국어 native. `aicq check --locale ko`로 100% 한글 출력
-- **EU AI Act Article 50 대응 리포트** 한·영 HTML/PDF 생성 (시행 2026-08-02)
-- Claude Code · Cursor MCP 네이티브 — 코드 생성 *전* 컨텍스트 주입
+- **EU AI Act Article 50 transparency 마킹·출처 리포트** 한·영 HTML/PDF 생성 (시행 2026-08-02 대응 — 직접 적용 대상은 provider/deployer로 한정)
+- MCP 네이티브 — AI 코드 어시스턴트(Claude Code, Cursor 등)에 MCP 서버로 등록하면 코드 생성 *전* 컨텍스트 주입
 - 10K LOC 첫 검사 3초, 캐시 후 20ms
 
-도그푸드 결과: 한국 핀테크 모노레포 TalkUp(205,069 LOC)에서 frontend 742 / backend 2,865 / admin 179건 위반 검출, 1.0.0-beta.1 기준 0 regression.
+도그푸드 결과: 한국 핀테크 모노레포 TalkUp(205,069 LOC)에서 frontend 742 / backend 2,865 / admin 179건 위반 검출, 1.0.0-beta.2까지 0 regression. 외부 dogfood로 Next.js `with-typescript`(false positive 0건) + Nest.js `typescript-starter`(7 files / 2 violations) 추가 검증.
 
 ## 시작하기
 
@@ -57,5 +57,5 @@ npx aicq check --locale ko
 
 ---
 
-*aicqtools는 MIT 오픈소스입니다. 한국 IT 컨벤션과 금감원 AI 가이드라인을 룰로 다루는 시도이고, 현재 베타 단계(1.0.0-beta.1)예요.*
-*저장소: [https://github.com/aicqtools/aicqtools](https://github.com/aicqtools/aicqtools) (현재 비공개 베타). 공개 채널: npm `@aicqtools/cli`, CHANGELOG.*
+*aicqtools는 MIT 오픈소스입니다. 한국 IT 컨벤션과 금감원 AI 가이드라인을 룰로 다루는 시도이고, 현재 베타 단계(v1.0.0-beta.2, 2026-05-22)예요.*
+*저장소: [https://github.com/aicqtools/aicqtools](https://github.com/aicqtools/aicqtools) — OSS 공개 베타 (MIT 라이선스). npm: `@aicqtools/cli` (latest tag, 또는 `@beta`). CHANGELOG와 ROADMAP은 저장소 루트에서 확인 가능.*

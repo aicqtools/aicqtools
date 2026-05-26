@@ -28,7 +28,7 @@
 
 **제목 (영문 권장 — 글로벌 검색 노출):**
 ```
-Welcome to aicqtools Discussions — Beta is here (v1.0.0-beta.1)
+Welcome to aicqtools Discussions — Beta is here (v1.0.0-beta.2)
 ```
 
 **본문 (한·영 bilingual, 한국어 먼저, 그대로 복사):**
@@ -38,7 +38,7 @@ Welcome to aicqtools Discussions — Beta is here (v1.0.0-beta.1)
 
 ## 🇰🇷 한국어 — 베타 환영
 
-aicqtools v1.0.0-beta.1이 npm에 공개됐습니다 (2026-05-21). alpha.7~19 (19 cycle) 누적 자산을 정식화하면서 **framework freeze + BREAKING 0 강제**로 진입한 단계입니다.
+aicqtools v1.0.0-beta.2가 npm에 공개됐습니다 (2026-05-22). alpha.7~19 (19 cycle) 누적 자산을 베타.1로 정식화한 뒤 베타.2에서 **Article 50 리포트 ↔ guardrail 검출 결과 통합**을 추가했고, **framework freeze + BREAKING 0** 정책이 유효합니다.
 
 ### 베타 phase 안내
 
@@ -74,7 +74,7 @@ aicqtools v1.0.0-beta.1이 npm에 공개됐습니다 (2026-05-21). alpha.7~19 (1
 
 ## 🇬🇧 English — Welcome to the beta
 
-aicqtools v1.0.0-beta.1 shipped to npm on 2026-05-21. This release formalizes 19 cycles of accumulated assets (alpha.7~19) under **framework freeze + zero BREAKING**.
+aicqtools v1.0.0-beta.2 shipped to npm on 2026-05-22. Beta.1 formalized 19 cycles of accumulated assets (alpha.7~19), and beta.2 adds the **Article 50 reporter ↔ guardrail-detection integration** under the same **framework freeze + zero BREAKING** policy.
 
 ### Beta phase notes
 

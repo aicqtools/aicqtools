@@ -3,13 +3,13 @@
 > AI가 짠 코드를 결정론적으로 검증하는 한국 IT 컨벤션·금감원 AI 가이드라인 룰 기반 OSS 코드 품질 도구.
 > KS마크 + HACCP의 코드 버전. 한국 IT 컨벤션 + 금감원 AI 가이드라인 + EU AI Act Article 50 영역을 한 도구에서 함께 다루는 시도 (현재 베타 단계).
 
-**npm**: `@aicqtools/cli@beta` (v1.0.0-beta.1, 2026-05-21 게시) | **라이선스**: MIT | **상태**: 베타 (1.0.0 stable 직전)
+**npm**: `@aicqtools/cli` (v1.0.0-beta.2, 2026-05-22 게시 — latest tag 또는 `@beta`) | **라이선스**: MIT | **상태**: 베타 (1.0.0 stable 직전 — G1 외부 dogfood 2/2, G4 베타 soak 2 cycle 무중단 충족)
 
 ---
 
 ## 1. 문제
 
-AI 어시스턴트(Claude Code · Cursor · Copilot)가 짠 코드는 **컴파일은 되지만 회사 정책·법규·도메인 룰을 반복 위반**합니다.
+AI 코드 어시스턴트(Claude Code · Cursor · Copilot 등)가 짠 코드는 **컴파일은 되지만 회사 정책·법규·도메인 룰을 반복 위반**합니다.
 
 - **Veracode 2025** — AI 생성 코드의 **24.7~45%에서 보안 결함**
 - **Tenzai 2025** — AI 자동 적용 CSRF·보안 헤더 **0%**
@@ -25,7 +25,7 @@ AI 어시스턴트(Claude Code · Cursor · Copilot)가 짠 코드는 **컴파�
 | PCI DSS | **8** | 카드번호 평문 금지, 결제 멱등성, TLS 1.2+ |
 | 글로벌 (TS·Python) | **22** | `no-direct-openai`, `no-process-env-leak`, `route-needs-auth`, `requests-needs-timeout` |
 | 코드베이스 도그푸드 | **8** | `controller-needs-async-wrapper`, `api-response-shape` |
-| **합계** | **50** | + EU AI Act Article 50 한·영 리포트 + AI-BOM(CycloneDX 1.6) |
+| **합계** | **50** | + EU AI Act Article 50 transparency 마킹·출처 리포트(한·영) + AI-BOM(CycloneDX 1.6) |
 
 ## 3. 차별점 — 글로벌 도구 대비
 
@@ -52,7 +52,7 @@ npx aicq init --stack next     # 또는 nest | capacitor | generic
 npx aicq check --locale ko     # 첫 검사 — 10K LOC 모노레포 ~3초
 ```
 
-- **CI 통합** — GitHub Actions 1줄, pre-commit 훅, MCP(Claude Code/Cursor) 네이티브
+- **CI 통합** — GitHub Actions 1줄, pre-commit 훅, MCP 네이티브(AI 코드 어시스턴트 — Claude Code/Cursor 등)
 - **첫 도입 공수** — 1팀 기준 반나절 (config + CI + 초기 위반 트리아지)
 - **유지 비용** — repo당 추가 비용 0 (OSS)
 
@@ -63,6 +63,6 @@ npx aicq check --locale ko     # 첫 검사 — 10K LOC 모노레포 ~3초
 | 1 | `npx aicq init` + `npx aicq check` 로컬 시범 | 30분 |
 | 2 | 위반 결과 검토 + `aicq.config.yaml` 튜닝 | 2시간 |
 | 3 | GitHub Action 워크플로 활성화 | 30분 |
-| 4 | (선택) MCP 등록 → Claude Code 코드 생성 *전* 룰 컨텍스트 주입 | 1시간 |
+| 4 | (선택) MCP 등록 → AI 코드 어시스턴트 코드 생성 *전* 룰 컨텍스트 주입 | 1시간 |
 
-**연락처**: GitHub Discussions (응답 시간 24시간 내) | **저장소**: https://github.com/aicqtools/aicqtools (현재 비공개 베타 — 도입 문의 시 별도 안내) | **문서**: README ko·en + 룰 docs 한·영
+**연락처**: GitHub Discussions (응답 시간 24시간 내) | **저장소**: https://github.com/aicqtools/aicqtools (OSS 공개 베타 · MIT) · npm `@aicqtools/cli` | **문서**: README ko·en + 룰 docs 한·영

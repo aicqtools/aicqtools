@@ -29,14 +29,14 @@ aicqtools는 LLM 호출 없이 100% 통과/실패 판정하는 결정론적 가�
 
 차별화 포인트:
   - LLM 호출 없는 결정론적 (Codacy/Greptile 확률적과 구분)
-  - MCP 네이티브 — Claude Code/Cursor에 등록하면 코드 생성 *전* 차단
+  - MCP 네이티브 — AI 코드 어시스턴트(Claude Code/Cursor 등)에 MCP 서버로 등록하면 코드 생성 *전* 차단
   - .cursorrules / CLAUDE.md 자동 동기화
-  - 출처 추적기 모듈 — EU AI Act Article 50 한·영 HTML/PDF 리포트 (시행일 2026-08-02 대응)
+  - 출처 추적기 모듈 — EU AI Act Article 50 transparency 마킹·출처 리포트 (한·영 HTML/PDF, 시행일 2026-08-02 대응)
   - 한국 도메인 룰셋 — 글로벌 도구가 흉내내기 어려운 영역
 
 검증: 한국 상용 모노레포(205,069 LOC, 1,379 파일)에 적용한 케이스 스터디 — 7개 핵심 AI 바이브코딩 패턴 정형화.
 
-라이선스 MIT. v1.0-alpha.1 GitHub Release 게시 완료. 한국 IT 팀에게 피드백 요청합니다.
+라이선스 MIT. **v1.0.0-beta.2** GitHub Release 게시 완료 (npm `@aicqtools/cli` latest tag). 한국 IT 팀에게 피드백 요청합니다.
 ```
 
 ---
@@ -63,8 +63,8 @@ aicqtools는 이 문제를 결정론적 정적 분석으로 풀려는 시도입�
 - LLM 호출 없는 100% 통과/실패 (Codacy Guardrails / Greptile은 확률적)
 - tree-sitter 기반 AST + 하이브리드 룰 DSL (간단=YAML, 복잡=TS 함수)
 - 50개 빌트인 룰 (글로벌 30 + 한국 IT 20)
-- MCP 네이티브 — Claude Code/Cursor에 등록하면 prompt 시점 차단 (사후가 아닌 사전)
-- 출처 추적기 — EU AI Act Article 50 한·영 HTML/PDF 리포트 (2026-08-02 시행)
+- MCP 네이티브 — AI 코드 어시스턴트(Claude Code/Cursor 등)에 MCP 서버로 등록하면 prompt 시점 차단 (사후가 아닌 사전)
+- 출처 추적기 — EU AI Act Article 50 transparency 마킹·출처 리포트 (한·영 HTML/PDF, 2026-08-02 시행)
 
 한국 도메인 룰 20개가 핵심 차별화입니다 — 글로벌 도구는 다음을 지원하지 않습니다:
 - 한국 IT 컨벤션 (camelCase 마이그레이션, KST 타임존, ₩ 포맷, RFC 5987 한글 파일명, Naver/Kakao OAuth)
@@ -73,7 +73,7 @@ aicqtools는 이 문제를 결정론적 정적 분석으로 풀려는 시도입�
 
 검증: 한국 상용 모노레포 205,069 LOC에 적용한 케이스 스터디로 7개 핵심 AI 바이브코딩 패턴을 정형화했습니다 — github.com/aicqtools/aicqtools/blob/main/docs/case-studies/talkup-30k.md
 
-라이선스 MIT. v1.0-alpha.1 게시 완료, npm publish는 v1.0 정식에서. 한국 IT 팀의 dogfooding 피드백을 기다립니다.
+라이선스 MIT. **v1.0.0-beta.2** 공개 — npm `@aicqtools/cli` (latest tag, 또는 `@beta`). 한국 IT 팀의 dogfooding 피드백을 기다립니다.
 
 GitHub: https://github.com/aicqtools/aicqtools
 설치: docs/pre-commit-setup.md
@@ -86,7 +86,7 @@ MCP 등록: docs/mcp-claude-code-setup.md
 
 - **시간대**: 평일 오전 10~12시 또는 오후 9~11시 가장 트래픽 많음
 - **태그 / 카테고리**: GeekNews는 자유 게시. "개발/도구" 분류
-- **첫 댓글로 추가 컨텍스트** 달기 — "TalkUp 30k줄 케이스 스터디" 또는 "EU AI Act D-12주" 같은 후킹
+- **첫 댓글로 추가 컨텍스트** 달기 — "TalkUp 205,069 LOC 케이스 스터디" 또는 "EU AI Act Article 50 D-67 (2026-08-02 시행)" 같은 후킹
 - **답글 빠르게** — GeekNews는 첫 30분 안에 댓글 활동이 노출에 영향
 - **민감 주제 회피**: "AI가 만든 코드 다 못 믿는다" 같은 자극적 표현보다 "결정론적 검증의 필요성" 같은 분석적 톤
 
@@ -97,7 +97,7 @@ MCP 등록: docs/mcp-claude-code-setup.md
 - **Q**: Codacy Guardrails / Greptile과 차이는?
   - **A**: 둘은 LLM 기반 확률적. aicq는 결정론적(LLM 호출 0). 또한 한국 도메인 룰 20개는 글로벌 도구가 못 다룸.
 - **Q**: 가격은?
-  - **A**: 엔진은 MIT OSS, 무료. 클라우드 대시보드(v1.5)는 ₩29,000/repo/월 또는 $19/repo/월 (Semgrep $35×N과 비교). 1인은 무료.
+  - **A**: 엔진은 MIT OSS, 영구 무료. 유료 구독(클라우드 대시보드 등 부가 기능)은 **v1.5 공개 시점에 결정 예정** — 베타 단계에서는 OSS 무료만 운영.
 - **Q**: 룰 작성 어렵나요?
   - **A**: 간단한 패턴은 YAML 5줄. 복잡한 룰은 TS 함수 (`defineRule({ visitors: { call_expression: ... } })`). docs/rules/ 카탈로그 참고.
 - **Q**: false positive 걱정되는데?

@@ -25,16 +25,17 @@ AI가 짠 코드를 또 다른 AI로 검증할 수 있을까 — 결정론적 �
 ```markdown
 ## TL;DR
 
+- **AI 코드 어시스턴트 도입 후 PR 리뷰에서 한국 IT 컨벤션·금감원·PCI DSS 위반이 매주 반복 — 시니어 리뷰 시간 손실이 진짜 비용**
 - AI 보조 코딩 결과의 24~45%에서 보안 결함 발견 (Veracode 2025), CSRF/보안 헤더 자동 적용률 0% (Tenzai 2025)
-- 같은 LLM 계열이 코드를 만들고 검증까지 하면 같은 맹점 공유 → **결정론적** 정적 분석이 필요
-- 우리는 **aicqtools** v1.0-alpha를 만들었습니다 — 50개 빌트인 룰, 한국 도메인 20개, MCP 네이티브
-- GitHub: https://github.com/aicqtools/aicqtools (MIT 라이선스)
+- 같은 LLM 계열이 검증까지 하면 같은 맹점 공유 → **결정론적** 정적 분석으로 PR 머지 *전* hard gate
+- 우리는 **aicqtools** v1.0.0-beta.2를 공개했습니다 — 50개 빌트인 룰, 한국 도메인 20개, MCP 네이티브
+- GitHub: https://github.com/aicqtools/aicqtools (MIT 라이선스, npm `@aicqtools/cli`)
 
 ---
 
 ## 1. 우리가 매번 마주친 7가지 패턴
 
-작년부터 Cursor / Claude Code로 코드 짜는 빈도가 80% 넘었습니다. 그러다 보니 코드 리뷰에서 자꾸 같은 패턴이 잡혔습니다.
+작년부터 AI 코드 어시스턴트(Cursor, Claude Code 등)로 코드 짜는 빈도가 80% 넘었습니다. 그러다 보니 코드 리뷰에서 자꾸 같은 패턴이 잡혔습니다.
 
 ### 패턴 1 — LLM 클라이언트 직접 인스턴스화
 
@@ -97,11 +98,13 @@ res.json({ result: items });  // 표준은 { success, data, message }
 이 시점에 Codacy Guardrails (LLM 기반), Greptile (자연어 룰), Surmado (STANDARDS.md 앵커) 같은 **확률적** 검증 도구들이 등장했습니다. 다 좋은 도구인데, 우리 사례에서 한계가 있었습니다:
 
 1. **비결정성** — 같은 코드를 두 번 검증하면 다른 결과. CI에서 "운 좋게 통과"가 발생.
-2. **모델 맹점 공유** — 우리가 쓰는 Cursor가 Claude면, 검증도 Claude로 하는 구조에서 같은 맹점을 공유.
+2. **모델 맹점 공유** — 코드 생성과 검증을 같은 LLM 계열로 돌리면 같은 맹점을 공유합니다 (예: 코드 어시스턴트와 검증기가 동일 모델 패밀리).
 3. **API 비용** — 검증마다 LLM 호출하면 PR 1건당 토큰 비용. CI 트리거 시마다 결제.
 4. **느림** — LLM round-trip은 평균 3~10초. tree-sitter는 수 ms.
 
 그래서 결정론적 도구가 필요했습니다. tree-sitter 기반 AST 분석 + 명시적 룰셋으로.
+
+> *(토큰 비용·정확도·결정론·CI 게이트의 정량 비교 — 4가지 방법 vs aicqtools — 는 별도 글로 정리했습니다: [AI가 짠 코드를 AI로 검증하면 되지 않나? — 비교 분석](./blog-vs-ai-assistant.ko.md))*
 
 ---
 
@@ -110,12 +113,12 @@ res.json({ result: items });  // 표준은 { success, data, message }
 ### 차별화 7가지
 
 1. **결정론적** — LLM 호출 0, 100% 통과/실패
-2. **MCP 네이티브** — Claude Code/Cursor에 등록하면 코드 생성 *전* 차단
+2. **MCP 네이티브** — AI 코드 어시스턴트(Claude Code/Cursor 등)에 MCP 서버로 등록하면 코드 생성 *전* 차단
 3. **AI 에이전트 룰 자동 동기화** — `.cursorrules` / `CLAUDE.md`에 룰 50개 주입
 4. **하이브리드 룰 DSL** — 간단=YAML, 복잡=TS 함수
 5. **한국 도메인 룰셋 20개** ★ — 글로벌 도구가 못 따라오는 영역
-6. **출처 추적기 모듈** — EU AI Act Article 50 한·영 HTML/PDF 리포트
-7. **repo당 과금** — Semgrep $35 × 인원 모델 대비 repo당 정액
+6. **출처 추적기 모듈** — EU AI Act Article 50 transparency 마킹·출처 리포트 (한·영 HTML/PDF)
+7. **MIT OSS 영구 무료** — 유료 구독(클라우드 대시보드 등 부가 기능)은 v1.5 공개 시점에 결정 예정
 
 ### 빌트인 룰 50개 카테고리
 
@@ -244,13 +247,13 @@ async function pay(amount, idempotencyKey) {
 }
 \`\`\`
 
-Claude Code가 코드를 만들기 전에 aicq가 룰을 노출 → AI가 룰을 인지한 채로 생성. 이게 .cursorrules / CLAUDE.md 동기화와 결합되면 위반 빈도가 크게 줄어듭니다 (정확한 효과는 dogfooding 중).
+AI 코드 어시스턴트가 코드를 만들기 전에 aicq가 룰을 노출 → AI가 룰을 인지한 채로 생성. 이게 .cursorrules / CLAUDE.md 동기화와 결합되면 위반 빈도가 크게 줄어듭니다 (정확한 효과는 dogfooding 중).
 
 ---
 
 ## 6. 출처 추적기 — EU AI Act 대응
 
-EU AI Act는 **2026-08-02 시행**입니다. Article 50은 AI 생성 텍스트의 machine-readable 마킹을 요구합니다.
+EU AI Act Article 50은 **2026-08-02 시행**으로, AI 시스템 **공급자(provider, GPAI 포함)**에 출력물 machine-readable 마킹을 요구합니다. 한국 SaaS도 EU에 generative AI를 공급하거나 AI 출력을 EU 시장 대상으로 publish하면 적용 (직접 부담 주체는 좁은 범위지만 future-proofing 가치).
 
 aicq의 출처 추적기 모듈은:
 
@@ -296,14 +299,12 @@ EU AI Act + 한국 컴플라이언스 (금감원 AI 가이드라인)을 같은 �
 ## 8. 라이선스 / 가격
 
 - 엔진은 **MIT OSS** — 영구 무료
-- 클라우드 대시보드(v1.5 예정) — **₩29,000/repo/월** (Semgrep Team $35 × 인원 모델 대비 repo당 정액)
-- 1인 개발자 무료
-- Enterprise (SSO + 감사 로그 + EU AI Act 리포트) — 맞춤 가격
+- 유료 구독(클라우드 대시보드 / 감사 로그 / Article 50 리포트 자동 보관 등 부가 기능)은 **v1.5 공개 시점에 결정 예정** — 베타 단계에서는 OSS 무료만 운영
 
 ## 9. 다음 단계
 
-- v1.0 정식 출시 (~2026-09): npm publish, Phase 1b 마무리, 룰 50개 외 사용자 룰 마켓플레이스
-- v1.5 클라우드 베타 (~2026-10): 대시보드 + PR 자동 코멘트 + Stripe 결제
+- **베타 soak → 1.0.0 stable**: G1 외부 dogfood 2/2 충족, G4 베타 soak 2 cycle 무중단. 남은 게이트 G2(npm DL ≥ 200/주) + G3(P1 미해결 0) 측정 진행 중 (`docs/policy/issue-triage.md`)
+- **v1.5 클라우드 베타** (~1.0.0 stable 후): 대시보드 + PR 자동 코멘트 — 유료 구독 모델 확정
 
 ## 10. 피드백 부탁드립니다
 

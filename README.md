@@ -12,11 +12,11 @@
 [![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-v1.0.0--beta.2-blue.svg)](CHANGELOG.md)
-[![EU AI Act Article 50](https://img.shields.io/badge/EU%20AI%20Act%20Article%2050-D--72%20(2026--08--02)-orange.svg)](docs/eu-ai-act-data-requirements.md)
+[![EU AI Act Article 50](https://img.shields.io/badge/EU%20AI%20Act%20Article%2050-D--67%20(2026--08--02)-orange.svg)](docs/eu-ai-act-data-requirements.md)
 
 > **결정론적**(deterministic) — LLM 호출 없이 같은 입력에 항상 같은 결과를 내는 방식. Codacy/Greptile 같은 확률적 도구와 반대로 CI에서 안정적으로 동작합니다.
 
-> ⏰ **EU AI Act Article 50 시행 D-73 (2026-08-02)** — AI 생성 코드를 EU 시장 대상 서비스에 쓰는 팀은 **공급자(provider)**라면 출력물 기계 가독 마킹, **배포자(deployer)**라면 공익 정보 텍스트 disclosure 의무를 집니다. aicqtools는 Claude Code/Cursor 세션을 자동 캡처해 Article 50 리포트(HTML/PDF, 한·영) + AI-BOM(CycloneDX 1.6)을 PR마다 생성 — 그 attribution을 같은 PR에 첨부하면 본 의무 이행의 출발선이 됩니다.
+> ⏰ **EU AI Act Article 50 시행 D-67 (2026-08-02)** — AI 생성 코드를 EU 시장 대상 서비스에 쓰는 팀은 **공급자(provider)**라면 출력물 기계 가독 마킹, **배포자(deployer)**라면 공익 정보 텍스트 disclosure 의무를 집니다. aicqtools는 Claude Code/Cursor 세션을 자동 캡처해 Article 50 리포트(HTML/PDF, 한·영) + AI-BOM(CycloneDX 1.6)을 PR마다 생성 — 그 attribution을 같은 PR에 첨부하면 본 의무 이행의 출발선이 됩니다.
 
 ---
 
@@ -52,7 +52,7 @@ aicqtools를 처음 접하시면 이렇게 생각하세요.
 
 ## 왜 만들었나
 
-AI 어시스턴트(Claude Code · Cursor · Copilot)가 만든 코드는 문법은 맞아도 **회사 정책 · 법규 · 도메인 규칙을 반복적으로 위반**합니다. 이 격차를 메우는 게 aicqtools의 목적입니다.
+AI 코드 어시스턴트(Claude Code · Cursor · Copilot 등)가 만든 코드는 문법은 맞아도 **회사 정책 · 법규 · 도메인 규칙을 반복적으로 위반**합니다. 이 격차를 메우는 게 aicqtools의 목적입니다.
 
 ### 1. AI 바이브코딩의 반복 패턴
 ESLint는 일반적인 패턴은 잡지만 *"이 회사는 LLM 클라이언트를 항상 싱글톤으로 만든다"* 같은 프로젝트 고유 규칙은 못 잡습니다. aicqtools는 한국 SaaS 프로덕션 모노레포(TalkUp, 205,069 LOC)를 도그푸딩(자기 도구로 자기 코드 검사)해 추출한 7개 패턴을 시작점으로 50개 룰을 제공합니다.
@@ -65,7 +65,7 @@ Codacy · Semgrep · SonarQube 같은 글로벌 도구는 글로벌 IT 관례만
 
 aicqtools는 이 20개 한국 도메인 룰을 처음부터 번들링합니다.
 
-### 3. EU AI Act Article 50 — 시행 D-3개월
+### 3. EU AI Act Article 50 — 시행 D-67일
 **2026-08-02부터** EU에 서비스하는 AI 시스템의 **공급자(provider, GPAI 포함)**는 출력물을 **기계 가독 형식**으로 마킹하고, **배포자(deployer)**가 공익 정보 목적으로 publish하는 AI 생성 텍스트는 별도 disclosure 의무(50(4))를 집니다. 한국 사업자도 EU에 generative AI를 공급하거나 AI 출력을 EU 시장 대상으로 publish하면 동일하게 적용됩니다 (2026-08-02 이전 시장 출시된 generative AI는 **2026-12-02까지 유예**). aicqtools는 Claude Code/Cursor 세션을 자동 감지해 AI-BOM(AI Bill of Materials — 사용된 모델/버전/라이선스 명세서, CycloneDX 1.6 포맷)과 Article 50 리포트(HTML/PDF)를 자동 생성합니다.
 
 ---
@@ -312,7 +312,7 @@ modules:
 
 | 시기 | 마일스톤 |
 |------|---------|
-| **2026-05 (현재)** | **v1.0.0-beta.1** — alpha.7~19 19 cycle 누적 자산 정식화, framework freeze, dist-tag `latest`=beta |
+| **2026-05 (현재)** | **v1.0.0-beta.2** — Article 50 리포트 ↔ guardrail summary 통합 + 외부 dogfood 2/2 (TalkUp + Nest.js typescript-starter), framework freeze, dist-tag `latest`=beta |
 | 2026-06~07 | beta soak — 외부 dogfood ≥ 2, npm DL ≥ 200/주, P1 미해결 = 0 ([ROADMAP.md](ROADMAP.md) G1~G4) |
 | 2026-08-01 | v1.0 stable 후보 — EU AI Act Article 50 시행일 직전 |
 | 2026-10~ | 1.1 — 한국 IT 룰 +5 (토스 페이먼츠 idempotency, Kakao/Naver SDK init 순서 등), `aicq fix` autofix |
