@@ -7,7 +7,7 @@ contact_links:
     url: https://okky.kr/
     about: AI 코딩·바이브코딩 관련 토론.
   - name: 📖 룰 문서
-    url: https://github.com/aicqtools/aicqtools/tree/main/modules/guardrail/src/rules-default
+    url: https://github.com/aicqtools/aicqtools/tree/HEAD/modules/guardrail/src/rules-default
     about: 빌트인 룰 코드와 단위 테스트.
   - name: 🔒 보안 취약점 신고
     url: mailto:neuralflux3@gmail.com

@@ -5,8 +5,8 @@ body:
   - type: markdown
     attributes:
       value: |
-        제안하시는 룰이 [기존 룰셋](https://github.com/aicqtools/aicqtools/blob/main/modules/guardrail/src/rules-default/index.ts)과 중복되지 않는지 먼저 확인해 주세요.
-        Please check the [existing ruleset](https://github.com/aicqtools/aicqtools/blob/main/modules/guardrail/src/rules-default/index.ts) for overlap.
+        제안하시는 룰이 [기존 룰셋](https://github.com/aicqtools/aicqtools/blob/HEAD/modules/guardrail/src/rules-default/index.ts)과 중복되지 않는지 먼저 확인해 주세요.
+        Please check the [existing ruleset](https://github.com/aicqtools/aicqtools/blob/HEAD/modules/guardrail/src/rules-default/index.ts) for overlap.
 
   - type: input
     id: rule-id

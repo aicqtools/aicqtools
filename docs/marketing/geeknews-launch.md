@@ -71,7 +71,7 @@ aicqtools는 이 문제를 결정론적 정적 분석으로 풀려는 시도입�
 - 금감원 AI 가이드라인 매핑 (감사 로그, PII 마스킹, 모델 버전 추적, 인간 개입 포인트, 설명가능성)
 - PCI DSS 결제 (카드번호 평문 저장 금지, CVV 로깅 금지, TLS 1.2+, PG 응답 검증, 멱등키 필수, 환불 권한 분리, 트랜잭션 로그, 카드번호 마스킹)
 
-검증: 한국 상용 모노레포 205,069 LOC에 적용한 케이스 스터디로 7개 핵심 AI 바이브코딩 패턴을 정형화했습니다 — github.com/aicqtools/aicqtools/blob/main/docs/case-studies/talkup-30k.md
+검증: 한국 상용 모노레포 205,069 LOC에 적용한 케이스 스터디로 7개 핵심 AI 바이브코딩 패턴을 정형화했습니다 — github.com/aicqtools/aicqtools/blob/HEAD/docs/case-studies/talkup-30k.md
 
 라이선스 MIT. **v1.0.0-beta.2** 공개 — npm `@aicqtools/cli` (latest tag, 또는 `@beta`). 한국 IT 팀의 dogfooding 피드백을 기다립니다.
 

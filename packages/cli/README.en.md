@@ -10,7 +10,7 @@
 > `check` · `sync-ai-rules` · `mcp` · `provenance` · `docs build`.
 
 [![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/aicqtools/aicqtools/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/aicqtools/aicqtools/blob/HEAD/LICENSE)
 
 This is the user-facing entry point for the aicqtools monorepo. **Install just this one package** and [`@aicqtools/guardrail`](https://www.npmjs.com/package/@aicqtools/guardrail), [`@aicqtools/provenance`](https://www.npmjs.com/package/@aicqtools/provenance), [`@aicqtools/core`](https://www.npmjs.com/package/@aicqtools/core), and [`@aicqtools/rule-sdk`](https://www.npmjs.com/package/@aicqtools/rule-sdk) come along as dependencies.
 
@@ -68,7 +68,7 @@ claude mcp add --transport stdio aicq -- \
   node /absolute/path/node_modules/@aicqtools/cli/dist/bin.js mcp
 ```
 
-Full guide: [docs/mcp-claude-code-setup.md](https://github.com/aicqtools/aicqtools/blob/main/docs/mcp-claude-code-setup.md)
+Full guide: [docs/mcp-claude-code-setup.md](https://github.com/aicqtools/aicqtools/blob/HEAD/docs/mcp-claude-code-setup.md)
 
 ### 3) EU AI Act Article 50 PDF report
 

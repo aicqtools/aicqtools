@@ -10,7 +10,7 @@
 > `check` · `sync-ai-rules` · `mcp` · `provenance` · `docs build`.
 
 [![npm](https://img.shields.io/npm/v/@aicqtools/cli/beta.svg)](https://www.npmjs.com/package/@aicqtools/cli)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/aicqtools/aicqtools/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/aicqtools/aicqtools/blob/HEAD/LICENSE)
 
 aicqtools 모노레포의 사용자 입구입니다. **이 패키지 하나만 설치**하면 [`@aicqtools/guardrail`](https://www.npmjs.com/package/@aicqtools/guardrail), [`@aicqtools/provenance`](https://www.npmjs.com/package/@aicqtools/provenance), [`@aicqtools/core`](https://www.npmjs.com/package/@aicqtools/core), [`@aicqtools/rule-sdk`](https://www.npmjs.com/package/@aicqtools/rule-sdk)가 의존성으로 함께 설치됩니다.
 
@@ -68,7 +68,7 @@ claude mcp add --transport stdio aicq -- \
   node /절대경로/node_modules/@aicqtools/cli/dist/bin.js mcp
 ```
 
-상세 가이드: [docs/mcp-claude-code-setup.md](https://github.com/aicqtools/aicqtools/blob/main/docs/mcp-claude-code-setup.md)
+상세 가이드: [docs/mcp-claude-code-setup.md](https://github.com/aicqtools/aicqtools/blob/HEAD/docs/mcp-claude-code-setup.md)
 
 ### 3) EU AI Act Article 50 PDF 리포트
 

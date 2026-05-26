@@ -283,7 +283,7 @@ EU AI Act + 한국 컴플라이언스 (금감원 AI 가이드라인)을 같은 �
 
 한국 상용 모노레포 **205,069 LOC** (backend 91k + frontend 82k + admin 31k)에 적용. 7개 핵심 AI 바이브코딩 패턴 정형화. 5/7 즉시 검출, 2/7 변형 패턴은 v1.5 type-aware 도입 시 보강.
 
-전체: https://github.com/aicqtools/aicqtools/blob/main/docs/case-studies/talkup-30k.md
+전체: https://github.com/aicqtools/aicqtools/blob/HEAD/docs/case-studies/talkup-30k.md
 
 ### 도입 4단계
 

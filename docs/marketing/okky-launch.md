@@ -52,7 +52,7 @@
 ## 검증 / 케이스 스터디
 
 한국 상용 모노레포 **205,069 LOC** (backend 91k + frontend 82k + admin 31k)에 적용해서 7개 핵심 AI 바이브코딩 패턴을 정형화했습니다:
-- https://github.com/aicqtools/aicqtools/blob/main/docs/case-studies/talkup-30k.md
+- https://github.com/aicqtools/aicqtools/blob/HEAD/docs/case-studies/talkup-30k.md
 
 5/7 패턴은 즉시 검출, 변형 패턴 2건은 v1.5 type-aware 도입 시 정밀도 보강 예정 — 베타 단계로 솔직히 표시했습니다.
 
